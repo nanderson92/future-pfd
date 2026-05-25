@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Future Systems Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;750;850;900&family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@500;650;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -30,6 +33,19 @@
       </div>
     </header>
 
+    <nav class="progress-rail" aria-label="Atlas section progress">
+      <a href="#content" data-section="content"><span>Top</span></a>
+      <a href="#concept" data-section="concept"><span>Thesis</span></a>
+      <a href="#system-map" data-section="system-map"><span>Stack</span></a>
+      <a href="#chemical-spine" data-section="chemical-spine"><span>Chem</span></a>
+      <a href="#unit-ops" data-section="unit-ops"><span>Ops</span></a>
+      <a href="#readiness" data-section="readiness"><span>Ready</span></a>
+      <a href="#pathways" data-section="pathways"><span>Path</span></a>
+      <a href="#case-studies" data-section="case-studies"><span>Cases</span></a>
+      <a href="#atlas" data-section="atlas"><span>Index</span></a>
+    </nav>
+    <a class="top-pill" id="topPill" href="#content" aria-label="Back to top">↑ Top</a>
+
     <main id="content">
       <section class="hero-section" aria-labelledby="page-title">
         <div class="hero-stage">
@@ -46,8 +62,8 @@
             <p class="hero-thesis">The future is not just invented. It is scaled.</p>
             <p class="hero-secondary-thesis">Sci-fi becomes real when it becomes a process flow.</p>
             <div class="hero-actions">
-              <a class="button primary" href="#atlas">Trace the Process Flows</a>
-              <a class="button secondary" href="#system-map">View the Civilization Stack</a>
+              <a class="button primary" href="#atlas">Trace the Process Flows <span aria-hidden="true">→</span></a>
+              <a class="button secondary" href="#system-map">View the Civilization Stack <span aria-hidden="true">→</span></a>
             </div>
             <div class="hero-metrics" id="heroMetrics" aria-label="Atlas summary"></div>
           </div>
@@ -67,13 +83,21 @@
                 <span>P-401 Potable water</span>
               </div>
               <ol class="instrument-flow">
-                <li class="role-feed"><span>B-101</span> Ambient Air</li>
-                <li class="role-separation"><span>A-201</span> Sorbent Capture</li>
+                <li class="role-feed"><span>B-101</span> Ambient air</li>
+                <li class="role-separation"><span>A-201</span> Sorbent capture</li>
                 <li class="role-energy"><span>R-301</span> Regeneration</li>
                 <li class="role-separation"><span>HX-401</span> Condensation</li>
                 <li class="role-qa"><span>F-501</span> Purification</li>
                 <li class="role-infrastructure"><span>T-601</span> Storage</li>
               </ol>
+              <div class="process-legend" aria-label="PFD color legend">
+                <span class="legend-conversion">Conversion</span>
+                <span class="legend-separation">Separation</span>
+                <span class="legend-energy">Energy</span>
+                <span class="legend-fabrication">Fabrication</span>
+                <span class="legend-qa">QA</span>
+                <span class="legend-waste">Waste</span>
+              </div>
               <div class="process-callouts">
                 <div><span>Bottleneck</span><strong>Energy use at low humidity</strong></div>
                 <div><span>Scale trigger</span><strong>Low-cost sorbents + waste heat</strong></div>
@@ -109,11 +133,15 @@
           <div class="atlas-nav-groups">
             <div>
               <span>Future-system sectors</span>
-              <p><a href="#system-map">Energy</a> · <a href="#system-map">Carbon</a> · <a href="#system-map">Water</a> · <a href="#system-map">Materials</a> · <a href="#system-map">Manufacturing</a> · <a href="#system-map">Cities</a> · <a href="#system-map">Space</a></p>
+              <p><a href="#system-map">Energy</a> <a href="#system-map">Carbon</a> <a href="#system-map">Water</a> <a href="#system-map">Materials</a> <a href="#system-map">Manufacturing</a> <a href="#system-map">Cities</a> <a href="#system-map">Space</a></p>
             </div>
             <div>
               <span>Engineering lenses</span>
-              <p><a href="#chemical-spine">Chemicals</a> · <a href="#unit-ops">Unit operations</a> · <a href="#readiness">Bottlenecks</a> · <a href="#case-studies">Case studies</a> · <a href="#atlas">Full PFD index</a></p>
+              <p><a href="#chemical-spine">Chemicals</a> <a href="#unit-ops">Unit operations</a> <a href="#readiness">Bottlenecks</a> <a href="#case-studies">Case studies</a> <a href="#atlas">Full PFD index</a></p>
+            </div>
+            <div>
+              <span>By chemical spine</span>
+              <p><a href="#chemical-spine">H₂</a> <a href="#chemical-spine">CO₂</a> <a href="#chemical-spine">NH₃</a> <a href="#chemical-spine">Si</a> <a href="#chemical-spine">Li</a> <a href="#chemical-spine">Cu</a></p>
             </div>
           </div>
         </div>
@@ -121,12 +149,12 @@
 
       <section id="concept" class="concept-section section-shell" aria-labelledby="concept-title">
         <div class="section-heading">
-          <p class="eyebrow">Project thesis</p>
+          <p class="eyebrow">FSA-002 · Project thesis</p>
           <h2 id="concept-title">The product is visible; the process system is hidden.</h2>
         </div>
         <div class="visible-hidden-map">
           <article class="concept-panel visible-panel">
-            <span>Visible product</span>
+            <span>Visible product <em>(what gets pitched)</em></span>
             <h3>What people imagine</h3>
             <ul>
               <li>Flying cars</li>
@@ -138,10 +166,16 @@
             </ul>
           </article>
           <div class="concept-transfer" aria-hidden="true">
-            <span>Process engineering translates the visible promise into the hidden system.</span>
+            <span>Flying cars</span>
+            <ol>
+              <li>Lightweight composites</li>
+              <li>High-density energy storage</li>
+              <li>Urban air corridors</li>
+            </ol>
+            <strong>Scaled mobility system</strong>
           </div>
           <article class="concept-panel hidden-panel">
-            <span>Hidden process system</span>
+            <span>Hidden process system <em>(what gets engineered)</em></span>
             <h3>What has to scale</h3>
             <ul>
               <li>Feedstocks and platform chemicals</li>
@@ -158,7 +192,7 @@
       <section id="read-atlas" class="section-shell compact-guide" aria-labelledby="read-atlas-title">
         <div class="guide-grid">
           <article class="guide-card primary-guide">
-            <p class="eyebrow">How to read this atlas</p>
+            <p class="eyebrow">FSA-003 · Reader protocol</p>
             <h2 id="read-atlas-title">Start with the promise. Then trace the process.</h2>
             <ol>
               <li>Identify the sci-fi capability people imagine.</li>
@@ -168,12 +202,13 @@
               <li>Ask what has to become repeatable before deployment.</li>
             </ol>
           </article>
-          <article class="guide-card">
+          <article class="guide-card contribution-card">
             <p class="eyebrow">Process engineer contribution</p>
             <h2>Where process engineering enters.</h2>
+            <blockquote>Translate prototypes into manufacturing systems that can be operated, maintained, and scaled.</blockquote>
             <p>
               Process engineers define process windows, control impurities, close recycle loops, reduce energy intensity,
-              design QA gates, and translate prototypes into manufacturing systems that can be operated, maintained, and scaled.
+              and design QA gates that make frontier technologies repeatable.
             </p>
           </article>
         </div>
@@ -181,7 +216,7 @@
 
       <section id="system-map" class="section-shell" aria-labelledby="system-map-title">
         <div class="section-heading">
-          <p class="eyebrow">Master system diagram</p>
+          <p class="eyebrow">FSA-004 · Master system diagram</p>
           <h2 id="system-map-title">The future civilization stack.</h2>
         </div>
         <div class="master-map" id="masterStack"></div>
@@ -190,7 +225,7 @@
 
       <section id="chemical-spine" class="section-shell" aria-labelledby="chemical-title">
         <div class="section-heading">
-          <p class="eyebrow">Chemical spine</p>
+          <p class="eyebrow">FSA-005 · Chemical spine</p>
           <h2 id="chemical-title">The Chemical Spine of the Future.</h2>
         </div>
         <p class="section-intro">
@@ -203,7 +238,7 @@
 
       <section id="unit-ops" class="section-shell" aria-labelledby="unit-title">
         <div class="section-heading">
-          <p class="eyebrow">Unit operation library</p>
+          <p class="eyebrow">FSA-006 · Unit operation library</p>
           <h2 id="unit-title">Unit Operations Behind the Future.</h2>
         </div>
         <p class="section-intro">
@@ -216,7 +251,7 @@
 
       <section id="readiness" class="section-shell" aria-labelledby="readiness-title">
         <div class="section-heading">
-          <p class="eyebrow">Bottlenecks and readiness</p>
+          <p class="eyebrow">FSA-007 · Bottlenecks and readiness</p>
           <h2 id="readiness-title">Most future systems are blocked by MRL, IRL, and process economics.</h2>
         </div>
         <div class="readiness-layout">
@@ -233,11 +268,11 @@
 
       <section id="pathways" class="pathways-section section-shell" aria-labelledby="pathways-title">
         <div class="section-heading">
-          <p class="eyebrow">How we realistically get there</p>
+          <p class="eyebrow">FSA-008 · Scale-up pathways</p>
           <h2 id="pathways-title">The repeated moves that turn speculative technology into infrastructure.</h2>
         </div>
         <p class="section-intro">
-          Across the atlas, the route from sci-fi concept to deployable system usually repeats the same pattern: better
+          These eleven moves are sequenced and interdependent. Across the atlas, the route from sci-fi concept to deployable system usually repeats the same pattern: better
           materials, cheaper clean energy, stronger separations, process control, modular manufacturing, reliability testing,
           supply-chain redesign, and infrastructure deployment.
         </p>
@@ -246,7 +281,7 @@
 
       <section id="case-studies" class="section-shell" aria-labelledby="case-title">
         <div class="section-heading">
-          <p class="eyebrow">Featured case studies</p>
+          <p class="eyebrow">FSA-009 · Featured case studies</p>
           <h2 id="case-title">Start here: featured process architectures.</h2>
         </div>
         <div class="case-grid" id="caseStudyGrid"></div>
@@ -255,7 +290,7 @@
       <section id="atlas" class="atlas-section section-shell" aria-labelledby="atlas-title">
         <div class="section-heading atlas-heading">
           <div>
-            <p class="eyebrow">Atlas index</p>
+            <p class="eyebrow">FSA-010 · Atlas index</p>
             <h2 id="atlas-title">Complete PFD Library.</h2>
           </div>
           <div class="atlas-stats" id="atlasStats" aria-label="Atlas statistics"></div>
@@ -269,11 +304,15 @@
           <div class="control-row">
             <label class="search-control">
               <span>Search full library</span>
-              <input id="searchInput" type="search" placeholder="Search technology, chemical, bottleneck, unit operation..." />
+              <div class="search-box">
+                <span class="search-icon" aria-hidden="true">⌕</span>
+                <input id="searchInput" type="search" placeholder="Search technology, chemical, bottleneck, unit operation..." />
+                <button class="clear-search" id="clearSearch" type="button" aria-label="Clear search">×</button>
+              </div>
             </label>
             <div class="view-switch" aria-label="Library view mode">
-              <button class="view-button" type="button" data-view="cards">Cards</button>
-              <button class="view-button is-active" type="button" data-view="compact">Compact</button>
+              <button class="view-button" type="button" data-view="cards"><span aria-hidden="true">⊞</span> Cards</button>
+              <button class="view-button is-active" type="button" data-view="compact"><span aria-hidden="true">☰</span> Compact</button>
             </div>
           </div>
           <div class="filter-stack">
@@ -294,6 +333,9 @@
               <div class="filter-group compact-filters" id="unitFilters" aria-label="Unit operation filters"></div>
             </div>
           </div>
+          <div class="filter-actions">
+            <button class="reset-filters" id="resetFilters" type="button">Reset filters</button>
+          </div>
         </div>
 
         <div class="result-line" id="resultLine" aria-live="polite"></div>
@@ -303,19 +345,40 @@
 
     <section class="author-note section-shell" aria-labelledby="author-note-title">
       <div>
-        <p class="eyebrow">Author note</p>
+        <p class="eyebrow">FSA-011 · Author note</p>
         <h2 id="author-note-title">Built as a process-engineering worldview, not a sci-fi directory.</h2>
       </div>
-      <p>
-        I built Future Systems Atlas as a Chemical & Biomolecular Engineering student interested in the gap between
-        frontier invention and real-world deployment. The project reflects the way I want to think as a process engineer:
-        not just asking whether a technology is possible, but what has to become repeatable, manufacturable, safe,
-        affordable, and integrated before it can change the built world.
-      </p>
+      <div class="author-copy">
+        <p>
+          I built Future Systems Atlas as a Chemical & Biomolecular Engineering student interested in the gap between
+          frontier invention and real-world deployment. The project reflects the way I want to think as a process engineer:
+          not just asking whether a technology is possible, but what has to become repeatable, manufacturable, safe,
+          affordable, and integrated before it can change the built world.
+        </p>
+        <span>— N. Anderson · Chemical & Biomolecular Engineering</span>
+      </div>
     </section>
 
     <footer class="site-footer">
-      <p>A process-engineering atlas for frontier technologies that could make the future physically real.</p>
+      <div class="footer-headline">The future is not just invented. It is scaled.</div>
+      <div class="footer-grid">
+        <div>
+          <strong>Future Systems Atlas</strong>
+          <p>A process-engineering atlas for frontier technologies that could make the future physically real.</p>
+        </div>
+        <nav aria-label="Footer navigation">
+          <a href="#system-map">System Map</a>
+          <a href="#chemical-spine">Chemicals</a>
+          <a href="#unit-ops">Unit Ops</a>
+          <a href="#readiness">Readiness</a>
+          <a href="#atlas">Atlas Index</a>
+        </nav>
+        <div class="footer-meta">
+          <span>Sheet stamp · FSA-011</span>
+          <span>Last updated · May 2026</span>
+          <span>Built by Nathan Anderson</span>
+        </div>
+      </div>
     </footer>
 
     <div class="modal" id="detailModal" aria-hidden="true">

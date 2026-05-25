@@ -1586,52 +1586,52 @@ const technologies = [
 const SECTOR_META = {
   "Clean Energy Civilization": {
     code: "A",
-    color: "#67e8f9",
+    color: "#d97706",
     thesis: "Power, fuels, storage, and grids that make future infrastructure energetically possible."
   },
   "Carbon and Atmospheric Engineering": {
     code: "B",
-    color: "#62d1bd",
+    color: "#0f172a",
     thesis: "CO2, methane, heat, and atmospheric chemistry converted into managed industrial streams."
   },
   "Future Water Systems": {
     code: "C",
-    color: "#5aa7ff",
+    color: "#0891b2",
     thesis: "Water capture, purification, reuse, contaminant destruction, and mineral recovery loops."
   },
   "Future Materials and Smart Surfaces": {
     code: "D",
-    color: "#bdb5ff",
+    color: "#7c3aed",
     thesis: "Functional materials, membranes, coatings, composites, glass, and adaptive surfaces."
   },
   "Advanced Manufacturing and Microfactories": {
     code: "E",
-    color: "#f0a06d",
+    color: "#7d5cff",
     thesis: "Factories, fabs, skids, printed systems, robotic production, and autonomous process development."
   },
   "Future Cities and Built Environments": {
     code: "F",
-    color: "#f3bfdc",
+    color: "#059669",
     thesis: "Buildings, districts, waste, logistics, heat, food, and urban operating systems."
   },
   "Transportation and Mobility": {
     code: "G",
-    color: "#ffb36b",
+    color: "#bdb5ff",
     thesis: "Aircraft, roads, rail, shipping, charging, fuels, and city mobility infrastructure."
   },
   "Biomanufacturing, Medicine, and Human Augmentation": {
     code: "H",
-    color: "#89d777",
+    color: "#f3bfdc",
     thesis: "Cells, therapies, organs, cultivated food, biosensors, and controlled biological production."
   },
   "Computing, Semiconductors, and Ambient Intelligence": {
     code: "I",
-    color: "#8ea0ff",
+    color: "#76f1ff",
     thesis: "Chips, displays, AI infrastructure, quantum systems, sensors, and scientific automation."
   },
   "Space and Off-World Industry": {
     code: "J",
-    color: "#a67cff",
+    color: "#050507",
     thesis: "ISRU, habitats, orbital manufacturing, life support, and autonomous off-world plants."
   }
 };
