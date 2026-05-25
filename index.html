@@ -24,6 +24,7 @@
           <a href="#chemical-spine">Chemicals</a>
           <a href="#unit-ops">Unit Ops</a>
           <a href="#readiness">Bottlenecks</a>
+          <a href="#pathways">Pathways</a>
           <a href="#case-studies">Cases</a>
         </nav>
       </div>
@@ -38,9 +39,9 @@
             <h1 id="page-title">Future Systems Atlas</h1>
             <p class="subtitle">Turning sci-fi technologies into manufacturable process systems.</p>
             <p class="hero-text">
-              Most futuristic technologies are described as products: flying cars, smart glass, fusion power,
-              synthetic fuels, autonomous factories, vertical farms, space habitats. This atlas maps the hidden process
-              systems behind them — chemicals, materials, unit operations, manufacturing lines, bottlenecks, and infrastructure.
+              Future Systems Atlas translates speculative technologies into process architecture: the chemicals,
+              materials, unit operations, manufacturing systems, bottlenecks, and infrastructure that would have to exist
+              before sci-fi becomes deployable.
             </p>
             <div class="tagline-stack" aria-label="Project thesis statements">
               <span>Sci-fi becomes real when it becomes a process flow.</span>
@@ -120,13 +121,15 @@
         </div>
         <div class="concept-grid">
           <p>
-            A future city is not only buildings, vehicles, and interfaces. It is hydrogen production, water reuse,
-            carbon handling, semiconductor fabrication, coatings, batteries, polymers, catalysts, sensors, waste loops,
-            and maintenance systems working together.
+            Most future-tech discourse stops at the visible product: flying cars, smart glass, fusion power,
+            vertical farms, artificial organs, space habitats. But the product is only the endpoint. Behind it is a
+            process system of feedstocks, reactors, separations, coatings, sensors, QA, reliability testing, maintenance,
+            and infrastructure.
           </p>
           <p>
-            Before any futuristic technology becomes normal, the process window has to become repeatable: feedstocks,
-            conversions, separations, quality gates, reliability tests, supply chains, safety cases, and economics must survive scale-up.
+            This atlas treats speculative technologies as engineering systems. It asks what has to be separated,
+            reacted, purified, deposited, assembled, tested, recycled, and maintained before concept art can become a
+            city, factory, vehicle, medical device, or off-world system.
           </p>
           <p class="scale-line">The product is visible; the process system is hidden.</p>
         </div>
@@ -171,8 +174,9 @@
           <h2 id="chemical-title">The Chemical Spine of the Future.</h2>
         </div>
         <p class="section-intro">
-          Many futuristic technologies depend on a smaller set of core chemicals, materials, and industrial
-          intermediates. If those streams do not scale, the visible future does not scale either.
+          Hydrogen, CO2, ammonia, silicon, lithium, copper, sulfuric acid, water, membranes, catalysts, and
+          polymers quietly determine which futures can actually scale. This section maps the recurring chemical and
+          material backbones behind clean energy, smart cities, semiconductors, synthetic fuels, and off-world industry.
         </p>
         <div class="chemical-grid" id="chemicalGrid"></div>
       </section>
@@ -183,8 +187,9 @@
           <h2 id="unit-title">Unit Operations Behind the Future.</h2>
         </div>
         <p class="section-intro">
-          The same operations keep appearing across the atlas. The core engineering question is which operation
-          controls cost, yield, reliability, purity, or deployment.
+          Different futures often fail at the same process steps: separating dilute molecules, moving heat,
+          preventing fouling, depositing uniform films, purifying trace contaminants, controlling interfaces, and proving
+          reliability over thousands of cycles.
         </p>
         <div class="unit-grid" id="unitOperationGrid"></div>
       </section>
@@ -204,6 +209,19 @@
             <div class="bottleneck-taxonomy" id="bottleneckGrid"></div>
           </div>
         </div>
+      </section>
+
+      <section id="pathways" class="pathways-section section-shell" aria-labelledby="pathways-title">
+        <div class="section-heading">
+          <p class="eyebrow">How we realistically get there</p>
+          <h2 id="pathways-title">The repeated moves that turn speculative technology into infrastructure.</h2>
+        </div>
+        <p class="section-intro">
+          Across the atlas, the route from sci-fi concept to deployable system usually repeats the same pattern: better
+          materials, cheaper clean energy, stronger separations, process control, modular manufacturing, reliability testing,
+          supply-chain redesign, and infrastructure deployment.
+        </p>
+        <div class="pathway-grid" id="pathwayGrid"></div>
       </section>
 
       <section id="case-studies" class="section-shell" aria-labelledby="case-title">
@@ -234,8 +252,8 @@
               <input id="searchInput" type="search" placeholder="Search technology, chemical, bottleneck, unit operation..." />
             </label>
             <div class="view-switch" aria-label="Library view mode">
-              <button class="view-button is-active" type="button" data-view="cards">Cards</button>
-              <button class="view-button" type="button" data-view="compact">Compact</button>
+              <button class="view-button" type="button" data-view="cards">Cards</button>
+              <button class="view-button is-active" type="button" data-view="compact">Compact</button>
             </div>
           </div>
           <div class="filter-stack">
@@ -262,6 +280,19 @@
         <div class="technology-grid" id="technologyGrid"></div>
       </section>
     </main>
+
+    <section class="author-note section-shell" aria-labelledby="author-note-title">
+      <div>
+        <p class="eyebrow">Author note</p>
+        <h2 id="author-note-title">Built as a process-engineering worldview, not a sci-fi directory.</h2>
+      </div>
+      <p>
+        I built Future Systems Atlas as a Chemical & Biomolecular Engineering student interested in the gap between
+        frontier invention and real-world deployment. The project reflects the way I want to think as a process engineer:
+        not just asking whether a technology is possible, but what has to become repeatable, manufacturable, safe,
+        affordable, and integrated before it can change the built world.
+      </p>
+    </section>
 
     <footer class="site-footer">
       <p>A process-engineering atlas for frontier technologies that could make the future physically real.</p>

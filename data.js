@@ -1952,6 +1952,22 @@ function inferUnitOperations(tech) {
   return unique(ops).filter((name) => UNIT_OPERATIONS.some((opItem) => opItem.name === name)).slice(0, 6);
 }
 
+
+function inferCriticalParameters(tech) {
+  const text = textForTech(tech);
+  const params = [];
+  if (hasAny(text, ["hydrogen", "ammonia", "methane", "co2", "gas", "air"])) params.push("purity", "pressure", "leak rate");
+  if (hasAny(text, ["heat", "thermal", "fusion", "pyrolysis", "combustion", "geothermal"])) params.push("temperature", "heat flux", "residence time");
+  if (hasAny(text, ["water", "desalination", "wastewater", "pfas", "membrane", "filtration"])) params.push("flux", "recovery ratio", "fouling rate");
+  if (hasAny(text, ["coating", "glass", "display", "semiconductor", "printed", "lithography", "electronics", "surface"])) params.push("film thickness", "defect density", "line width / registration");
+  if (hasAny(text, ["battery", "electrolyte", "electrolysis", "fuel cell", "electrochemical"])) params.push("current density", "voltage efficiency", "cycle life");
+  if (hasAny(text, ["bioreactor", "cell", "fermentation", "organ", "cultivated", "medical"])) params.push("sterility", "cell density", "viability", "residence time");
+  if (hasAny(text, ["concrete", "building", "road", "construction"])) params.push("strength", "curing time", "durability");
+  if (hasAny(text, ["robot", "autonomous", "ai", "digital twin", "sensor"])) params.push("uptime", "sensor drift", "control latency");
+  if (params.length < 4) params.push("yield", "throughput", "unit cost", "reliability");
+  return unique(params).slice(0, 6);
+}
+
 function inferBottleneckTags(tech) {
   const text = textForTech(tech);
   const tags = [];
@@ -2008,6 +2024,7 @@ let enrichedTechnologies = technologies.map((tech) => {
   const materials = inferMaterials(tech, chemicals);
   const unitOperations = inferUnitOperations(tech);
   const bottleneckTags = inferBottleneckTags(tech);
+  const criticalParameters = inferCriticalParameters(tech);
   return {
     id,
     name: tech.name,
@@ -2023,6 +2040,7 @@ let enrichedTechnologies = technologies.map((tech) => {
     chemicals,
     materials,
     unitOperations,
+    criticalParameters,
     bottlenecks: tech.bottlenecks,
     bottleneckTags,
     readiness: inferReadiness(tech, sector, bottleneckTags),

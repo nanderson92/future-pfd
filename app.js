@@ -12,7 +12,7 @@
     bottleneck: "All",
     chemical: "All",
     unitOperation: "All",
-    view: "cards"
+    view: "compact"
   };
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -26,6 +26,7 @@
     unitOperationGrid: $("#unitOperationGrid"),
     bottleneckGrid: $("#bottleneckGrid"),
     readinessGrid: $("#readinessGrid"),
+    pathwayGrid: $("#pathwayGrid"),
     caseStudyGrid: $("#caseStudyGrid"),
     search: $("#searchInput"),
     sectorFilters: $("#sectorFilters"),
@@ -88,9 +89,16 @@
 
   function pfdMarkup(steps, variant = "mini") {
     return `
-      <ol class="pfd-flow ${variant}">
-        ${steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
-      </ol>
+      <div class="pfd-shell ${variant}">
+        <div class="pfd-rail" aria-hidden="true">
+          <span>material stream</span>
+          <span>QA gate</span>
+          <span>recycle / data feedback</span>
+        </div>
+        <ol class="pfd-flow ${variant}">
+          ${steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
+        </ol>
+      </div>
     `;
   }
 
@@ -140,6 +148,7 @@
       tech.chemicals.join(" "),
       tech.materials.join(" "),
       tech.unitOperations.join(" "),
+      (tech.criticalParameters || []).join(" "),
       tech.bottlenecks.join(" "),
       tech.bottleneckTags.join(" ")
     ]
@@ -293,6 +302,21 @@
       .join("");
   }
 
+  function renderPathways() {
+    if (!elements.pathwayGrid) return;
+    elements.pathwayGrid.innerHTML = atlas.processPathways
+      .map(
+        (pathway, index) => `
+          <article class="pathway-card">
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <h3>${escapeHtml(pathway.title)}</h3>
+            <p>${escapeHtml(pathway.text)}</p>
+          </article>
+        `
+      )
+      .join("");
+  }
+
   function renderCaseStudies() {
     const cases = atlas.featuredCaseIds.map((id) => techById.get(id)).filter(Boolean);
     elements.caseStudyGrid.innerHTML = cases
@@ -316,6 +340,16 @@
               <div>
                 <span>Unit operations</span>
                 ${chipList(tech.unitOperations, "unitOperation", 5)}
+              </div>
+            </div>
+            <div class="case-columns case-bottom">
+              <div>
+                <span>Critical parameters</span>
+                ${staticPills(tech.criticalParameters || [], 5)}
+              </div>
+              <div>
+                <span>Main outputs</span>
+                ${staticPills(tech.outputs, 4)}
               </div>
             </div>
             <div class="case-columns case-bottom">
@@ -416,6 +450,10 @@
           ${chipList(tech.unitOperations, "unitOperation", 5)}
         </div>
         <div class="tag-block">
+          <span>Critical parameters</span>
+          ${staticPills(tech.criticalParameters || [], 5)}
+        </div>
+        <div class="tag-block">
           <span>Bottleneck tags</span>
           ${chipList(tech.bottleneckTags, "bottleneck", 4)}
         </div>
@@ -425,16 +463,28 @@
   }
 
   function renderCompactRow(tech) {
+    const spine = [...tech.chemicals, ...tech.materials].slice(0, 3);
     return `
       <article class="compact-card" style="${styleForTech(tech)}">
-        <div>
-          <span class="category-badge">${escapeHtml(tech.originalCategory)}</span>
+        <div class="compact-primary">
+          <span class="category-badge">${escapeHtml(tech.category)}</span>
           <h3>${escapeHtml(tech.name)}</h3>
-          <p>${escapeHtml(tech.realisticPathway)}</p>
+          <p>${escapeHtml(tech.sciFiPromise)}</p>
         </div>
-        <div class="compact-meta">
-          ${staticPills(tech.bottleneckTags, 3)}
-          <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Details</button>
+        <div class="compact-cell">
+          <span>Hidden process</span>
+          <p>${escapeHtml(tech.pfdSteps.join(" → "))}</p>
+        </div>
+        <div class="compact-cell">
+          <span>Key bottleneck</span>
+          <p>${escapeHtml(tech.bottleneckTags[0] || tech.bottlenecks[0] || "Scale-up uncertainty")}</p>
+        </div>
+        <div class="compact-cell">
+          <span>Chemical spine</span>
+          ${staticPills(spine, 3)}
+        </div>
+        <div class="compact-action">
+          <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Open</button>
         </div>
       </article>
     `;
@@ -505,6 +555,7 @@
           ${modalSection("Unit operations", chipList(tech.unitOperations, "unitOperation", 8))}
           ${modalSection("Bottleneck tags", chipList(tech.bottleneckTags, "bottleneck", 6))}
         </div>
+        ${modalSection("Critical process parameters", staticPills(tech.criticalParameters || [], 8))}
         ${modalSection("Critical bottlenecks", `<p>${escapeHtml(tech.bottlenecks.join("; "))}</p>`)}
         ${modalSection("Manufacturing / deployment readiness gap", `<p>${escapeHtml(tech.readinessGap)}</p>`)}
         ${modalSection("What would need to be true for scale?", `<p>${escapeHtml(tech.scaleCondition)}</p>`)}
@@ -580,6 +631,7 @@
     renderChemicalGrid();
     renderUnitOperations();
     renderBottlenecksAndReadiness();
+    renderPathways();
     renderCaseStudies();
     renderFilters();
     renderLibrary();
