@@ -1583,8 +1583,490 @@ const technologies = [
   })
 ];
 
+const SECTOR_META = {
+  "Clean Energy Civilization": {
+    code: "A",
+    color: "#67e8f9",
+    thesis: "Power, fuels, storage, and grids that make future infrastructure energetically possible."
+  },
+  "Carbon and Atmospheric Engineering": {
+    code: "B",
+    color: "#62d1bd",
+    thesis: "CO2, methane, heat, and atmospheric chemistry converted into managed industrial streams."
+  },
+  "Future Water Systems": {
+    code: "C",
+    color: "#5aa7ff",
+    thesis: "Water capture, purification, reuse, contaminant destruction, and mineral recovery loops."
+  },
+  "Future Materials and Smart Surfaces": {
+    code: "D",
+    color: "#bdb5ff",
+    thesis: "Functional materials, membranes, coatings, composites, glass, and adaptive surfaces."
+  },
+  "Advanced Manufacturing and Microfactories": {
+    code: "E",
+    color: "#f0a06d",
+    thesis: "Factories, fabs, skids, printed systems, robotic production, and autonomous process development."
+  },
+  "Future Cities and Built Environments": {
+    code: "F",
+    color: "#f3bfdc",
+    thesis: "Buildings, districts, waste, logistics, heat, food, and urban operating systems."
+  },
+  "Transportation and Mobility": {
+    code: "G",
+    color: "#ffb36b",
+    thesis: "Aircraft, roads, rail, shipping, charging, fuels, and city mobility infrastructure."
+  },
+  "Biomanufacturing, Medicine, and Human Augmentation": {
+    code: "H",
+    color: "#89d777",
+    thesis: "Cells, therapies, organs, cultivated food, biosensors, and controlled biological production."
+  },
+  "Computing, Semiconductors, and Ambient Intelligence": {
+    code: "I",
+    color: "#8ea0ff",
+    thesis: "Chips, displays, AI infrastructure, quantum systems, sensors, and scientific automation."
+  },
+  "Space and Off-World Industry": {
+    code: "J",
+    color: "#a67cff",
+    thesis: "ISRU, habitats, orbital manufacturing, life support, and autonomous off-world plants."
+  }
+};
+
+const MASTER_STACK = [
+  {
+    title: "Planetary / local resources",
+    detail: "Air, water, minerals, biomass, waste, sunlight, CO2, industrial heat",
+    tags: ["Resources", "Feedstocks", "Waste streams"]
+  },
+  {
+    title: "Primary conversion systems",
+    detail: "Electrolysis, air separation, mining, refining, fermentation, capture, purification",
+    tags: ["Conversion", "Purification", "Capture"]
+  },
+  {
+    title: "Platform chemicals + materials",
+    detail: "H2, NH3, methanol, syngas, silicon, lithium salts, polymers, metals, CO2, O2, N2",
+    tags: ["Intermediates", "Bulk materials", "Energy carriers"]
+  },
+  {
+    title: "Advanced materials + devices",
+    detail: "Batteries, smart glass, membranes, sensors, catalysts, chips, coatings, composites",
+    tags: ["Devices", "Materials", "Performance"]
+  },
+  {
+    title: "Manufacturing systems",
+    detail: "Fabs, microfactories, bioreactors, additive manufacturing, roll-to-roll lines, modular plants",
+    tags: ["MRL", "Yield", "Quality"]
+  },
+  {
+    title: "Infrastructure systems",
+    detail: "Grids, water loops, hydrogen networks, smart buildings, transit, data centers, circular waste",
+    tags: ["Deployment", "Maintenance", "Safety"]
+  },
+  {
+    title: "Future worlds",
+    detail: "Clean cities, autonomous factories, resilient neighborhoods, space habitats, carbon-negative infrastructure",
+    tags: ["Cities", "Industry", "Off-world"]
+  },
+  {
+    title: "Feedback loops",
+    detail: "Recycling, data, quality control, reliability testing, process optimization, policy, economics",
+    tags: ["Learning", "Controls", "Scale"]
+  }
+];
+
+function chem(name, formula, role, madeFrom, processPathway, enables, bottlenecks, unitOperations) {
+  return { name, formula, role, madeFrom, processPathway, enables, bottlenecks, unitOperations, relatedTechnologies: [] };
+}
+
+const CHEMICAL_SPINE = [
+  chem("Hydrogen", "H2", "Energy carrier for steel, ammonia, synthetic fuels, aircraft, fuel cells, and propellant.", "Water electrolysis or methane reforming/pyrolysis", ["Water feed", "Electrolysis", "Purification", "Compression/liquefaction", "Distribution"], ["Green hydrogen cities", "Green ammonia fuel", "Low-carbon steel", "Synthetic fuel from air and water"], ["Clean electricity cost", "Storage density", "Leakage and safety"], ["Electrolysis", "Compression", "Liquefaction"]),
+  chem("Carbon dioxide", "CO2", "Carbon feedstock and climate liability that links capture, fuels, plastics, concrete, and storage.", "Air, flue gas, fermentation, mineral processes", ["Capture", "Regeneration", "Purification", "Compression", "Use or storage"], ["Direct air capture cities", "Synthetic fuel from air and water", "Carbon-negative concrete", "Mars fuel production"], ["Low concentration", "Energy penalty", "Storage verification"], ["Adsorption", "Absorption", "Compression"]),
+  chem("Ammonia", "NH3", "Hydrogen carrier, fertilizer backbone, and possible carbon-free shipping fuel.", "Nitrogen plus hydrogen", ["Air separation", "Hydrogen production", "Synthesis", "Storage", "Distribution"], ["Green ammonia fuel", "City-scale nutrient recovery", "Ammonia shipping"], ["Toxicity", "NOx control", "Infrastructure"], ["Air separation", "Catalysis", "Compression"]),
+  chem("Methanol", "CH3OH", "Platform molecule for synthetic fuels, chemicals, solvents, and CO2 utilization.", "Syngas or CO2 plus hydrogen", ["Feed cleanup", "Catalytic synthesis", "Separation", "Storage"], ["Synthetic fuel from air and water", "CO2-to-methanol", "Carbon-negative plastics"], ["Hydrogen cost", "Catalyst selectivity", "Product separation"], ["Catalysis", "Distillation", "Heat exchange"]),
+  chem("Methane", "CH4", "Fuel, hydrogen feedstock, and Sabatier product for off-world propellant.", "Natural gas, biogas, or CO2 hydrogenation", ["Gas cleanup", "Conversion", "Separation", "Storage"], ["Methane pyrolysis for clean hydrogen", "Mars fuel production", "Thermal batteries"], ["Fugitive emissions", "Carbon handling", "Reactor fouling"], ["Pyrolysis", "Gas separation", "Compression"]),
+  chem("Syngas", "CO + H2", "Flexible intermediate for methanol, Fischer-Tropsch fuels, and chemical synthesis.", "Gasification, reforming, or CO2 conversion", ["Feed prep", "Gasification/reforming", "Shift/control", "Cleanup", "Synthesis"], ["Synthetic fuels", "Methanol", "Carbon-derived plastics"], ["Tar/impurity cleanup", "Ratio control", "Capital cost"], ["Gasification", "Catalysis", "Absorption"]),
+  chem("Oxygen", "O2", "Oxidant for life support, combustion, medical systems, and off-world propellant.", "Air separation, electrolysis, regolith processing", ["Separation/generation", "Drying", "Compression", "Storage"], ["Lunar oxygen production", "Mars fuel production", "Closed-loop life support"], ["Energy supply", "Purity", "Cryogenic storage"], ["Air separation", "Electrolysis", "Liquefaction"]),
+  chem("Nitrogen", "N2", "Inerting gas, ammonia feedstock, semiconductor utility, and habitat atmosphere component.", "Air separation", ["Air intake", "Separation", "Purification", "Compression"], ["Green ammonia fuel", "Semiconductor fabs", "Space habitats"], ["Purity", "Power demand", "Distribution"], ["Air separation", "Membrane separation", "Compression"]),
+  chem("Water", "H2O", "Universal solvent, coolant, feedstock, cleaning medium, and life-support loop material.", "Surface water, seawater, air, wastewater, ice", ["Intake", "Treatment", "Polishing", "Reuse", "Discharge"], ["Desalination megastructures", "Wastewater-to-drinking-water systems", "Green hydrogen cities"], ["Scarcity", "Purity requirements", "Brine/waste handling"], ["Filtration", "Membrane separation", "Wastewater treatment"]),
+  chem("Sulfuric acid", "H2SO4", "Industrial acid for mining, batteries, fertilizers, and hydrometallurgical extraction.", "Sulfur or sulfide processing", ["Sulfur burning", "SO2 conversion", "Absorption", "Distribution"], ["Battery materials", "Brine mining", "Hydrometallurgy"], ["Corrosion", "Sulfur supply", "Waste acid management"], ["Absorption", "Catalysis", "Leaching"]),
+  chem("Sodium hydroxide", "NaOH", "Base for mineralization, water treatment, chemical recycling, and pH control.", "Chlor-alkali electrolysis", ["Brine prep", "Electrolysis", "Separation", "Storage"], ["Carbon-negative concrete", "PFAS destruction systems", "Wastewater treatment"], ["Electricity cost", "Caustic handling", "Chlorine co-product balance"], ["Electrolysis", "Ion exchange", "Precipitation"]),
+  chem("Chlorine", "Cl2", "Reactive intermediate for polymers, water disinfection, electronics, and chemical synthesis.", "Chlor-alkali electrolysis", ["Brine prep", "Electrolysis", "Drying", "Use/storage"], ["Water systems", "Semiconductor processing", "Polymer production"], ["Toxicity", "Transport risk", "Demand coupling with caustic"], ["Electrolysis", "Drying", "Absorption"]),
+  chem("Silicon", "Si", "Semiconductor and solar backbone for chips, sensors, photovoltaics, and power electronics.", "Quartz reduction and purification", ["Quartz reduction", "Purification", "Crystal growth", "Wafering"], ["Lights-out semiconductor fabs", "Transparent solar windows", "Perovskite/silicon solar"], ["Purity", "Energy intensity", "Fab yield"], ["Crystallization", "Chemical vapor deposition", "Lithography"]),
+  chem("Lithium", "Li", "Battery metal for EVs, grid storage, aircraft, drones, and portable future systems.", "Brines, hard rock, clay, recycling", ["Extraction", "Concentration", "Purification", "Conversion", "Cathode/electrolyte use"], ["Grid-scale flow batteries", "Electric aviation", "Wireless road charging"], ["Resource concentration", "Water use", "Refining capacity"], ["Leaching", "Crystallization", "Ion exchange"]),
+  chem("Sodium", "Na", "Low-cost battery and chemical platform for storage, caustic, salts, and heat-transfer systems.", "Salt/brine processing", ["Salt purification", "Electrochemical conversion", "Material formulation"], ["Thermal batteries", "Sodium-ion storage", "Chemical production"], ["Energy cost", "Moisture sensitivity", "Material performance"], ["Electrochemical separation", "Drying", "Crystallization"]),
+  chem("Nickel", "Ni", "Battery, catalyst, alloy, and high-temperature material for electrified industry.", "Sulfide/laterite ores or recycling", ["Mining", "Leaching/smelting", "Refining", "Precursor production"], ["Electric aviation", "Thermal batteries", "Hydrogen systems"], ["Ore quality", "Processing emissions", "Price volatility"], ["Hydrometallurgy", "Leaching", "Precipitation"]),
+  chem("Cobalt", "Co", "Battery and catalyst material where performance competes with supply-chain risk.", "Copper/nickel byproduct mining and recycling", ["Ore processing", "Separation", "Refining", "Cathode precursor"], ["High-energy batteries", "Wearables", "Electric aircraft"], ["Ethical sourcing", "Price volatility", "Recycling"], ["Hydrometallurgy", "Ion exchange", "Precipitation"]),
+  chem("Manganese", "Mn", "Battery, steel, and catalyst element for lower-cost energy materials.", "Manganese ores and recycling", ["Ore concentration", "Leaching", "Purification", "Precursor production"], ["Batteries", "Low-carbon steel", "Catalysts"], ["Purity", "Processing waste", "Market scale"], ["Leaching", "Crystallization", "Precipitation"]),
+  chem("Copper", "Cu", "Electrical metal for grids, motors, charging, data centers, and thermal systems.", "Ore mining, smelting, solvent extraction/electrowinning, recycling", ["Mining", "Concentration", "Refining", "Wire/foil production"], ["Smart grids", "Wireless road charging", "Data centers"], ["Ore grade decline", "Permitting", "Recycling quality"], ["Flotation", "Leaching", "Electrochemical separation"]),
+  chem("Aluminum", "Al", "Lightweight structural and conductive metal for aircraft, buildings, grids, and space systems.", "Bauxite to alumina to electrolytic aluminum", ["Bayer process", "Electrolysis", "Casting", "Forming"], ["Electric aviation", "Space habitats", "Smart buildings"], ["Electricity demand", "Red mud", "Recycling alloys"], ["Calcination", "Electrolysis", "Casting"]),
+  chem("Rare earth elements", "REE", "Magnet and optical materials for motors, wind, robotics, displays, and sensors.", "Mineral concentrates and recycling", ["Mining", "Leaching", "Solvent extraction", "Separation", "Metal/alloy production"], ["eVTOL aircraft", "Home robots", "Maglev trains"], ["Separation complexity", "Geographic concentration", "Waste streams"], ["Leaching", "Solvent extraction", "Crystallization"]),
+  chem("Graphite", "C", "Battery anode, thermal, electrical, and carbon composite material.", "Natural graphite, synthetic coke routes, recycling", ["Purification", "Spheronization", "Coating", "Anode production"], ["Batteries", "Graphene membranes", "Carbon nanotube fibers"], ["Purity", "Energy intensity", "Supply concentration"], ["Coating", "Sintering", "Purification"]),
+  chem("Cement/concrete chemistries", "Ca-Si-Al hydrates", "Structural chemistry for carbon-negative buildings, self-healing concrete, and urban materials.", "Limestone, clays, supplementary cementitious materials, CO2 mineralization", ["Calcination", "Blending", "Hydration", "Curing", "Testing"], ["Carbon-negative concrete", "Self-healing concrete", "3D-printed buildings"], ["CO2 emissions", "Strength certification", "Durability"], ["Calcination", "Curing", "Mineralization"]),
+  chem("Polymers", "various", "Structural, flexible, electronic, membrane, and self-healing materials.", "Fossil, biomass, or CO2-derived monomers", ["Monomer synthesis", "Polymerization", "Compounding", "Forming", "Recycling"], ["Carbon-negative plastics", "Smart clothing", "Self-healing polymers"], ["Performance parity", "Recycling", "Additive compatibility"], ["Polymerization", "Extrusion", "Solvent recovery"]),
+  chem("Conductive inks", "Ag/Cu/C/polymer", "Printed electronics material for roll-to-roll devices and micromodular circuits.", "Metal particles, carbon materials, polymers, solvents", ["Ink formulation", "Printing", "Drying", "Sintering", "Inspection"], ["Roll-to-roll printed electronics", "Micromodular printed electronics", "Smart clothing"], ["Viscosity control", "Sintering temperature", "Defect density"], ["Coating", "Drying", "Sintering"]),
+  chem("Photoresists", "polymer systems", "Pattern-transfer chemistry for semiconductor, display, sensor, and photonic manufacturing.", "Specialty polymers, solvents, photoactive compounds", ["Coating", "Exposure", "Development", "Etch transfer", "Stripping"], ["Lights-out semiconductor fabs", "Photonic computing", "Transparent displays"], ["Resolution", "Defectivity", "Chemical purity"], ["Lithography", "Coating", "Solvent recovery"]),
+  chem("Solvents", "various", "Cleaning, synthesis, coating, extraction, and purification media.", "Petrochemical, bio-based, or recycled streams", ["Sourcing", "Use", "Recovery", "Purification", "Reuse"], ["Pharmaceutical factories", "Printed electronics", "Chemical recycling"], ["VOC control", "Purity", "Recovery energy"], ["Distillation", "Solvent recovery", "Drying"]),
+  chem("Electrolytes", "salts + solvents", "Ion-transport media for batteries, electrolyzers, fuel cells, and sensors.", "Salts, solvents, polymers, additives", ["Salt purification", "Mixing", "Drying", "Filling", "Sealing"], ["Flow batteries", "Green hydrogen cities", "Smart glass buildings"], ["Stability", "Membrane compatibility", "Purity"], ["Drying", "Filtration", "Electrochemical separation"]),
+  chem("Sorbents", "MOFs/amines/zeolites", "Selective capture materials for CO2, water, contaminants, and gases.", "Porous solids, amines, polymers, minerals", ["Synthesis", "Shaping", "Contacting", "Regeneration", "Replacement"], ["Direct air capture cities", "Atmospheric water harvesting", "PFAS destruction systems"], ["Degradation", "Selectivity", "Regeneration energy"], ["Adsorption", "Drying", "Heat exchange"]),
+  chem("Membranes", "polymer/ceramic/graphene", "Selective barriers for water, gases, ions, chips, and bioprocessing.", "Polymers, ceramics, graphene, supports", ["Casting/growth", "Pore control", "Module assembly", "Cleaning", "Replacement"], ["Desalination megastructures", "Graphene membranes", "Wastewater-to-drinking-water systems"], ["Fouling", "Defects", "Pressure drop"], ["Membrane separation", "Filtration", "Coating"]),
+  chem("Catalysts", "metals/enzymes/oxides", "Kinetic enablers for fuels, hydrogen, chemicals, plastics, and environmental systems.", "Metals, supports, enzymes, oxides", ["Synthesis", "Activation", "Reaction", "Regeneration", "Recovery"], ["Artificial photosynthesis", "Synthetic fuels", "Methane pyrolysis"], ["Lifetime", "Selectivity", "Poisoning"], ["Catalysis", "Calcination", "Filtration"]),
+  chem("Biomass-derived feedstocks", "bio-carbon", "Renewable carbon source for fermentation, fuels, polymers, nutrients, and biochar.", "Crops, residues, algae, waste biomass", ["Collection", "Pretreatment", "Conversion", "Purification", "Residue handling"], ["Modular biomanufacturing", "Cultivated meat", "Carbon-negative plastics"], ["Land use", "Variability", "Downstream cost"], ["Fermentation", "Gasification", "Filtration"])
+];
+
+function op(name, description, scaleChallenge) {
+  return { name, description, appearsIn: [], scaleChallenge };
+}
+
+const UNIT_OPERATIONS = [
+  op("Electrolysis", "Uses electricity to split or transform chemical species.", "Cost and lifetime depend on power price, catalysts, membranes, and operating current density."),
+  op("Catalysis", "Accelerates chemical conversion through engineered active sites.", "Selectivity, poisoning, heat management, and catalyst lifetime control economics."),
+  op("Adsorption", "Captures molecules on selective solid surfaces.", "Capacity, regeneration energy, humidity, and degradation often dominate scale-up."),
+  op("Absorption", "Transfers gases into liquids for capture or reaction.", "Solvent loss, heat duty, corrosion, and mass transfer determine viability."),
+  op("Distillation", "Separates liquids by volatility.", "Energy intensity and azeotropes can dominate process cost."),
+  op("Crystallization", "Forms purified solids from solution or melt.", "Nucleation control, impurity rejection, and particle handling are hard to scale."),
+  op("Membrane separation", "Separates by size, charge, solubility, or diffusivity.", "Fouling, defects, pressure drop, and module sealing decide reliability."),
+  op("Filtration", "Removes particles, cells, or solids from fluids.", "Cake formation, cleaning cycles, and variable feeds limit uptime."),
+  op("Drying", "Removes solvent or water from solids, films, gases, or products.", "Energy use, cracking, residual solvent, and throughput set constraints."),
+  op("Calcination", "Thermally decomposes or activates solids.", "High-temperature heat, emissions, and solid residence time matter."),
+  op("Pyrolysis", "Thermally decomposes feedstocks without oxygen.", "Reactor fouling, heat transfer, and product handling are scale risks."),
+  op("Gasification", "Converts carbonaceous feedstocks into synthesis gas.", "Feed variability, tar control, and gas cleanup dominate complexity."),
+  op("Fermentation", "Uses organisms or enzymes to convert feedstocks.", "Contamination, oxygen transfer, sterility, and downstream recovery drive cost."),
+  op("Polymerization", "Links monomers into polymers.", "Heat removal, molecular weight control, and residual monomer limits matter."),
+  op("Lithography", "Patterns materials for chips and microdevices.", "Resolution, overlay, particle defects, and photoresist chemistry set yield."),
+  op("Chemical vapor deposition", "Deposits thin films from vapor-phase chemistry.", "Uniformity, precursor purity, and tool uptime control device quality."),
+  op("Physical vapor deposition", "Deposits films by sputtering or evaporation.", "Film stress, adhesion, and uniformity limit scale."),
+  op("Atomic layer deposition", "Deposits ultrathin conformal layers by sequential surface reactions.", "Cycle time, precursor cost, and defect density matter."),
+  op("Coating", "Applies functional layers to substrates.", "Uniformity, adhesion, drying, and inline inspection define manufacturability."),
+  op("Curing", "Sets a material through heat, light, moisture, or chemical reaction.", "Incomplete cure, shrinkage, and durability define quality."),
+  op("Sintering", "Densifies particles with heat or light.", "Temperature compatibility, shrinkage, and conductivity control device performance."),
+  op("Annealing", "Thermally treats materials to improve structure or properties.", "Thermal budgets, atmosphere, and stress control matter."),
+  op("Extrusion", "Forces material through a die to form continuous products.", "Rheology, die swell, cooling, and additive dispersion set quality."),
+  op("Compression", "Raises gas pressure for storage, reaction, or transport.", "Energy use, leakage, heat rejection, and safety shape design."),
+  op("Liquefaction", "Converts gases into cryogenic liquids.", "Energy penalty, boiloff, insulation, and safety dominate deployment."),
+  op("Heat exchange", "Transfers heat between streams or storage media.", "Fouling, pinch temperature, materials, and integration determine performance."),
+  op("Combustion", "Releases heat through oxidation.", "Emissions, flame stability, NOx, and safety constrain future fuels."),
+  op("Plasma processing", "Uses ionized gas for conversion, etching, or destruction.", "Power efficiency, electrode life, and scale-up uniformity are key."),
+  op("Sterilization", "Destroys microbes for medical and bioprocess systems.", "Material compatibility, validation, and sterility assurance constrain operations."),
+  op("Solvent recovery", "Recovers and purifies solvent for reuse.", "Energy use, water content, impurities, and VOC control drive design."),
+  op("Wastewater treatment", "Removes organics, nutrients, pathogens, and trace contaminants.", "Variable feeds, monitoring, sludge, and failure safety matter."),
+  op("Air separation", "Separates air into nitrogen, oxygen, argon, or other streams.", "Power demand, purity, and integration determine economics."),
+  op("Ion exchange", "Swaps ions on resin or functional materials.", "Selectivity, regeneration chemicals, fouling, and brine waste matter."),
+  op("Precipitation", "Forms solids from dissolved species.", "Selectivity, particle size, impurities, and solid-liquid separation drive quality."),
+  op("Leaching", "Dissolves target species from solids.", "Reagent use, kinetics, impurity co-dissolution, and waste handling dominate."),
+  op("Hydrometallurgy", "Extracts and refines metals in aqueous systems.", "Selectivity, reagent recycle, residue management, and purity set scale."),
+  op("Electrochemical separation", "Uses electrical potential to separate or transform ions.", "Membrane life, current efficiency, and impurity management control economics.")
+];
+
+const BOTTLENECK_TAXONOMY = [
+  "energy penalty",
+  "material degradation",
+  "low yield",
+  "poor selectivity",
+  "slow kinetics",
+  "fouling",
+  "heat management",
+  "mass-transfer limitation",
+  "separation cost",
+  "purity requirement",
+  "infrastructure gap",
+  "safety risk",
+  "regulatory barrier",
+  "reliability gap",
+  "supply-chain constraint",
+  "cost curve problem",
+  "public acceptance",
+  "maintenance burden",
+  "data/control problem",
+  "manufacturing repeatability",
+  "quality-control challenge",
+  "lifecycle/recycling issue",
+  "extreme environment durability",
+  "scale-up uncertainty"
+];
+
+const FEATURED_CASE_IDS = [
+  "micromodular-printed-electronics",
+  "smart-glass-buildings",
+  "synthetic-fuel-from-air-and-water",
+  "carbon-negative-concrete",
+  "lights-out-semiconductor-fabs",
+  "atmospheric-water-harvesting",
+  "green-ammonia-fuel",
+  "urban-vertical-farms",
+  "autonomous-waste-sorting-facilities",
+  "lunar-oxygen-production",
+  "mars-fuel-production"
+];
+
+function slugifyAtlas(value) {
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function textForTech(tech) {
+  return [
+    tech.name,
+    tech.category,
+    tech.promise,
+    tech.realisticPathway,
+    tech.readinessGap,
+    tech.scaleCondition,
+    tech.pfdSteps.join(" "),
+    tech.inputs.join(" "),
+    tech.outputs.join(" "),
+    tech.bottlenecks.join(" ")
+  ].join(" ").toLowerCase().normalize("NFKC").replace(/\s+/g, " ");
+}
+
+function hasAny(text, words) {
+  return words.some((word) => text.includes(word));
+}
+
+function unique(values) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function sectorFor(tech) {
+  const text = textForTech(tech);
+  const name = (tech.name || "").toLowerCase().normalize("NFKC");
+  if (tech.category === "Space" || hasAny(name, ["lunar", "mars", "orbital", "asteroid", "space elevator", "space habitat", "terraforming"])) return "Space and Off-World Industry";
+  if (tech.category === "Transportation") return "Transportation and Mobility";
+  if (tech.category === "Medical Tech" || (tech.category === "Bio" && !name.includes("living building"))) return "Biomanufacturing, Medicine, and Human Augmentation";
+  if (tech.category === "Computing" || hasAny(name, ["semiconductor", "quantum", "neuromorphic", "ai assistant", "immersive vr", "augmented reality", "real-time translation", "scientific discovery", "mind archives", "transparent displays", "holographic"])) return "Computing, Semiconductors, and Ambient Intelligence";
+  if (hasAny(name, ["atmospheric water", "desalination", "brine mining", "self-cleaning city water", "pfas", "wastewater", "nutrient recovery", "stormwater", "emergency water", "closed-loop building water"]) || hasAny(text, ["reverse osmosis", "potable storage"])) return "Future Water Systems";
+  if (name.includes("living building")) return "Future Cities and Built Environments";
+  if (hasAny(name, ["direct air capture", "synthetic fuel", "carbon-negative", "low-carbon steel", "low-carbon", "methane pyrolysis"]) || hasAny(text, ["co2 capture", "captured carbon", "fischer-tropsch", "mineralization reactor"])) return "Carbon and Atmospheric Engineering";
+  if (tech.category === "Energy" || hasAny(name, ["fusion", "solar power", "hydrogen", "ammonia", "battery", "geothermal", "thermal batteries"]) || name.includes("industrial waste-heat")) return "Clean Energy Civilization";
+  if (tech.category === "Materials" || hasAny(name, ["smart glass", "radiative cooling", "self-healing", "adaptive building skins", "transparent solar", "graphene", "carbon nanotube", "metamaterial", "aerogel", "shape-shifting", "anti-icing", "self-cleaning surfaces"])) return "Future Materials and Smart Surfaces";
+  if (tech.category === "Manufacturing" || tech.category === "Robotics" || hasAny(name, ["factory", "robot", "printed", "additive", "fab", "microfactory", "construction"])) return "Advanced Manufacturing and Microfactories";
+  return "Future Cities and Built Environments";
+}
+
+function inferChemicals(tech) {
+  const text = textForTech(tech);
+  const chemicals = [];
+  if (hasAny(text, ["hydrogen", "electrolysis", "fuel cell", "h2"])) chemicals.push("Hydrogen");
+  if (hasAny(text, ["co2", "carbon", "air capture", "mineralization"])) chemicals.push("Carbon dioxide");
+  if (text.includes("ammonia") || text.includes("nitrogen")) chemicals.push("Ammonia", "Nitrogen");
+  if (text.includes("methanol")) chemicals.push("Methanol");
+  if (text.includes("methane") || text.includes("sabatier")) chemicals.push("Methane");
+  if (text.includes("syngas") || text.includes("fischer")) chemicals.push("Syngas");
+  if (hasAny(text, ["oxygen", "o2", "life support", "regolith"])) chemicals.push("Oxygen");
+  if (hasAny(text, ["water", "desalination", "wastewater", "hydroponic", "electrolysis"])) chemicals.push("Water");
+  if (hasAny(text, ["silicon", "semiconductor", "wafer", "solar"])) chemicals.push("Silicon", "Photoresists");
+  if (hasAny(text, ["battery", "lithium", "electric aviation", "ev"])) chemicals.push("Lithium", "Electrolytes", "Graphite");
+  if (hasAny(text, ["cobalt", "nickel", "manganese", "cathode"])) chemicals.push("Nickel", "Cobalt", "Manganese");
+  if (hasAny(text, ["copper", "grid", "charging", "electronics", "conductive"])) chemicals.push("Copper");
+  if (hasAny(text, ["aluminum", "aircraft", "lightweight", "space habitat"])) chemicals.push("Aluminum");
+  if (hasAny(text, ["magnet", "motor", "levitation", "rare earth"])) chemicals.push("Rare earth elements");
+  if (hasAny(text, ["concrete", "cement", "curing"])) chemicals.push("Cement/concrete chemistries");
+  if (hasAny(text, ["polymer", "plastic", "textile", "smart clothing", "self-healing"])) chemicals.push("Polymers");
+  if (hasAny(text, ["printed electronics", "ink", "roll-to-roll", "micromodular"])) chemicals.push("Conductive inks", "Solvents");
+  if (hasAny(text, ["sorbent", "adsorption", "capture"])) chemicals.push("Sorbents");
+  if (hasAny(text, ["membrane", "filtration", "reverse osmosis"])) chemicals.push("Membranes");
+  if (hasAny(text, ["catalyst", "catalytic", "artificial photosynthesis"])) chemicals.push("Catalysts");
+  if (hasAny(text, ["biomass", "fermentation", "cultivated", "algae", "bio"])) chemicals.push("Biomass-derived feedstocks");
+  if (chemicals.length < 2) chemicals.push("Water", "Catalysts");
+  return unique(chemicals).slice(0, 6);
+}
+
+function inferMaterials(tech, chemicals) {
+  const text = textForTech(tech);
+  const materials = [];
+  if (hasAny(text, ["glass", "window"])) materials.push("Glass", "Transparent conductors");
+  if (hasAny(text, ["membrane", "graphene"])) materials.push("Membrane modules", "Graphene");
+  if (hasAny(text, ["concrete", "cement"])) materials.push("Cementitious materials", "Mineral aggregates");
+  if (hasAny(text, ["battery", "electrolyte"])) materials.push("Electrodes", "Electrolytes");
+  if (hasAny(text, ["chip", "semiconductor", "display"])) materials.push("Silicon wafers", "Photoresists", "Thin films");
+  if (hasAny(text, ["coating", "surface", "anti-icing", "radiative"])) materials.push("Functional coatings", "Binders");
+  if (hasAny(text, ["textile", "clothing", "wearable"])) materials.push("Smart textiles", "Flexible electronics");
+  if (hasAny(text, ["metal", "steel", "aircraft", "maglev"])) materials.push("Metals and alloys");
+  if (hasAny(text, ["bioreactor", "cell", "organ", "meat"])) materials.push("Growth media", "Scaffolds");
+  chemicals.forEach((item) => {
+    if (["Polymers", "Membranes", "Conductive inks", "Sorbents", "Catalysts", "Electrolytes"].includes(item)) materials.push(item);
+  });
+  return unique(materials).slice(0, 5);
+}
+
+function inferUnitOperations(tech) {
+  const text = textForTech(tech);
+  const ops = [];
+  const checks = [
+    ["electrolysis", "Electrolysis"],
+    ["catalyst", "Catalysis"],
+    ["catalytic", "Catalysis"],
+    ["adsorption", "Adsorption"],
+    ["sorbent", "Adsorption"],
+    ["absorption", "Absorption"],
+    ["distillation", "Distillation"],
+    ["crystallization", "Crystallization"],
+    ["membrane", "Membrane separation"],
+    ["filtration", "Filtration"],
+    ["drying", "Drying"],
+    ["calcination", "Calcination"],
+    ["pyrolysis", "Pyrolysis"],
+    ["gasification", "Gasification"],
+    ["fermentation", "Fermentation"],
+    ["polymerization", "Polymerization"],
+    ["lithography", "Lithography"],
+    ["chemical vapor", "Chemical vapor deposition"],
+    ["physical vapor", "Physical vapor deposition"],
+    ["atomic layer", "Atomic layer deposition"],
+    ["coating", "Coating"],
+    ["curing", "Curing"],
+    ["sintering", "Sintering"],
+    ["annealing", "Annealing"],
+    ["extrusion", "Extrusion"],
+    ["compression", "Compression"],
+    ["liquefaction", "Liquefaction"],
+    ["heat", "Heat exchange"],
+    ["combustion", "Combustion"],
+    ["plasma", "Plasma processing"],
+    ["sterilization", "Sterilization"],
+    ["solvent", "Solvent recovery"],
+    ["wastewater", "Wastewater treatment"],
+    ["air separation", "Air separation"],
+    ["ion exchange", "Ion exchange"],
+    ["precipitation", "Precipitation"],
+    ["leaching", "Leaching"],
+    ["hydrometallurgy", "Hydrometallurgy"],
+    ["electrochemical", "Electrochemical separation"]
+  ];
+  checks.forEach(([needle, opName]) => {
+    if (text.includes(needle)) ops.push(opName);
+  });
+  if (tech.category === "Energy") ops.push("Electrolysis", "Heat exchange", "Compression");
+  if (tech.category === "Climate Tech") ops.push("Adsorption", "Catalysis", "Compression");
+  if (tech.category === "Infrastructure") ops.push("Membrane separation", "Filtration", "Wastewater treatment");
+  if (tech.category === "Materials") ops.push("Coating", "Curing", "Filtration");
+  if (tech.category === "Manufacturing") ops.push("Coating", "Drying", "Inspection");
+  if (tech.category === "Bio" || tech.category === "Medical Tech") ops.push("Fermentation", "Filtration", "Sterilization");
+  if (tech.category === "Space") ops.push("Electrolysis", "Compression", "Heat exchange");
+  return unique(ops).filter((name) => UNIT_OPERATIONS.some((opItem) => opItem.name === name)).slice(0, 6);
+}
+
+function inferBottleneckTags(tech) {
+  const text = textForTech(tech);
+  const tags = [];
+  if (hasAny(text, ["energy", "electricity", "power", "heat", "efficiency"])) tags.push("energy penalty");
+  if (hasAny(text, ["degradation", "durability", "lifetime", "abrasion", "fatigue"])) tags.push("material degradation");
+  if (hasAny(text, ["yield", "repeatability", "defect"])) tags.push("low yield", "manufacturing repeatability");
+  if (hasAny(text, ["selectivity", "purity"])) tags.push("poor selectivity", "purity requirement");
+  if (hasAny(text, ["fouling", "contamination"])) tags.push("fouling");
+  if (hasAny(text, ["thermal", "heat"])) tags.push("heat management");
+  if (hasAny(text, ["separation", "purification", "downstream"])) tags.push("separation cost");
+  if (hasAny(text, ["infrastructure", "distribution", "pipeline", "grid", "airport", "city", "retrofit"])) tags.push("infrastructure gap");
+  if (hasAny(text, ["safety", "toxicity", "leakage", "nox", "cryogenic"])) tags.push("safety risk");
+  if (hasAny(text, ["regulation", "regulatory", "code", "certification", "standards", "permitting"])) tags.push("regulatory barrier");
+  if (hasAny(text, ["reliability", "maintenance", "robust"])) tags.push("reliability gap", "maintenance burden");
+  if (hasAny(text, ["supply", "feedstock", "critical", "resource"])) tags.push("supply-chain constraint");
+  if (hasAny(text, ["cost", "economics", "market", "capital"])) tags.push("cost curve problem");
+  if (hasAny(text, ["public", "trust", "acceptance", "social"])) tags.push("public acceptance");
+  if (hasAny(text, ["sensor", "data", "control", "model", "autonomy"])) tags.push("data/control problem");
+  if (hasAny(text, ["qa", "quality", "inspection", "validation"])) tags.push("quality-control challenge");
+  if (hasAny(text, ["recycle", "recycling", "lifecycle"])) tags.push("lifecycle/recycling issue");
+  if (hasAny(text, ["space", "lunar", "mars", "radiation", "dust", "icing", "harsh"])) tags.push("extreme environment durability");
+  tags.push("scale-up uncertainty");
+  return unique(tags).filter((tag) => BOTTLENECK_TAXONOMY.includes(tag)).slice(0, 4);
+}
+
+function inferReadiness(tech, sector, bottleneckTags) {
+  const text = textForTech(tech);
+  let trl = 5;
+  if (hasAny(text, ["commercial", "mature", "exist", "proven", "fielded"])) trl += 2;
+  if (hasAny(text, ["prototype", "pilot", "demonstration", "trial"])) trl += 1;
+  if (hasAny(text, ["speculative", "far away", "unproven", "not yet", "no broadly verified"])) trl -= 2;
+  if (sector === "Space and Off-World Industry") trl -= 1;
+  trl = Math.max(1, Math.min(9, trl));
+
+  let mrl = Math.max(1, Math.min(9, trl - (hasAny(text, ["manufacturing", "repeatable", "yield", "defect", "quality"]) ? 2 : 1)));
+  let irl = Math.max(1, Math.min(9, trl - (bottleneckTags.includes("infrastructure gap") ? 3 : 1)));
+  if (hasAny(text, ["city", "grid", "airport", "pipeline", "district", "space", "orbital"])) irl = Math.max(1, irl - 1);
+
+  const biggestGap = bottleneckTags.includes("infrastructure gap")
+    ? "Infrastructure readiness"
+    : bottleneckTags.includes("manufacturing repeatability") || bottleneckTags.includes("quality-control challenge")
+      ? "Manufacturing readiness"
+      : bottleneckTags.includes("energy penalty") || bottleneckTags.includes("cost curve problem")
+        ? "Process economics"
+        : "Reliability at scale";
+  return { trl, mrl, irl, biggestGap };
+}
+
+const rawTechnologies = technologies.map((tech) => ({ ...tech }));
+let enrichedTechnologies = technologies.map((tech) => {
+  const id = slugifyAtlas(tech.name);
+  const sector = sectorFor(tech);
+  const chemicals = inferChemicals(tech);
+  const materials = inferMaterials(tech, chemicals);
+  const unitOperations = inferUnitOperations(tech);
+  const bottleneckTags = inferBottleneckTags(tech);
+  return {
+    id,
+    name: tech.name,
+    category: sector,
+    originalCategory: tech.category,
+    subcategory: tech.category,
+    sciFiPromise: tech.promise,
+    promise: tech.promise,
+    realisticPathway: tech.realisticPathway,
+    pfdSteps: tech.pfdSteps,
+    inputs: tech.inputs,
+    outputs: tech.outputs,
+    chemicals,
+    materials,
+    unitOperations,
+    bottlenecks: tech.bottlenecks,
+    bottleneckTags,
+    readiness: inferReadiness(tech, sector, bottleneckTags),
+    readinessGap: tech.readinessGap,
+    scaleCondition: tech.scaleCondition,
+    processQuestion: tech.processQuestion,
+    relatedTechnologies: [],
+    featured: FEATURED_CASE_IDS.includes(id)
+  };
+});
+
+enrichedTechnologies = enrichedTechnologies.map((tech) => ({
+  ...tech,
+  relatedTechnologies: enrichedTechnologies
+    .filter((candidate) => candidate.id !== tech.id && (candidate.category === tech.category || candidate.unitOperations.some((opName) => tech.unitOperations.includes(opName))))
+    .slice(0, 4)
+    .map((candidate) => candidate.id)
+}));
+
+const enrichedChemicals = CHEMICAL_SPINE.map((chemical) => ({
+  ...chemical,
+  relatedTechnologies: enrichedTechnologies
+    .filter((tech) => tech.chemicals.includes(chemical.name))
+    .slice(0, 8)
+    .map((tech) => tech.id)
+}));
+
+const enrichedUnitOperations = UNIT_OPERATIONS.map((operation) => ({
+  ...operation,
+  appearsIn: enrichedTechnologies
+    .filter((tech) => tech.unitOperations.includes(operation.name))
+    .slice(0, 10)
+    .map((tech) => tech.id)
+}));
+
 window.FUTURE_SYSTEMS_ATLAS = {
   categoryMeta: CATEGORY_META,
+  sectors: SECTOR_META,
   processPathways: PROCESS_PATHWAYS,
-  technologies
+  masterStack: MASTER_STACK,
+  chemicals: enrichedChemicals,
+  unitOperations: enrichedUnitOperations,
+  bottleneckTaxonomy: BOTTLENECK_TAXONOMY,
+  featuredCaseIds: FEATURED_CASE_IDS,
+  rawTechnologies,
+  technologies: enrichedTechnologies
 };
