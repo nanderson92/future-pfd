@@ -94,18 +94,30 @@
     `;
   }
 
+  function readinessLabel(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "Speculative";
+    if (number <= 3) return "Low";
+    if (number <= 6) return "Medium";
+    return "High";
+  }
+
   function readinessBars(readiness) {
     return `
-      <div class="readiness-bars" aria-label="Readiness levels">
+      <div class="readiness-bars" aria-label="Qualitative readiness levels">
         ${["trl", "mrl", "irl"]
           .map(
-            (key) => `
-              <div>
-                <span>${key.toUpperCase()}</span>
-                <strong>${escapeHtml(readiness[key])}/9</strong>
-                <i style="--value:${(Number(readiness[key]) / 9) * 100}%"></i>
-              </div>
-            `
+            (key) => {
+              const numeric = Number(readiness[key]);
+              const value = Number.isFinite(numeric) ? Math.max(8, Math.min(100, (numeric / 9) * 100)) : 15;
+              return `
+                <div>
+                  <span>${key.toUpperCase()}</span>
+                  <strong>${escapeHtml(readinessLabel(readiness[key]))}</strong>
+                  <i style="--value:${value}%"></i>
+                </div>
+              `;
+            }
           )
           .join("")}
       </div>
@@ -150,8 +162,11 @@
   function renderHeroMetrics() {
     const featuredCount = technologies.filter((tech) => tech.featured).length;
     elements.heroMetrics.innerHTML = `
-      <span><strong>${technologies.length}</strong> full-library PFDs</span>
+      <span><strong>${technologies.length}</strong> technologies mapped</span>
       <span><strong>${Object.keys(sectors).length}</strong> future-system sectors</span>
+      <span><strong>${chemicals.length}</strong> chemicals / materials</span>
+      <span><strong>${unitOperations.length}</strong> recurring unit ops</span>
+      <span><strong>${bottleneckTaxonomy.length}</strong> bottleneck classes</span>
       <span><strong>${featuredCount}</strong> featured case studies</span>
     `;
   }
@@ -169,10 +184,13 @@
       .map(
         (layer, index) => `
           <article class="stack-node">
-            <span>${String(index + 1).padStart(2, "0")}</span>
-            <h3>${escapeHtml(layer.title)}</h3>
-            <p>${escapeHtml(layer.detail)}</p>
-            ${staticPills(layer.tags)}
+            <div class="stack-index">${String(index + 1).padStart(2, "0")}</div>
+            <div class="stack-main">
+              <h3>${escapeHtml(layer.title)}</h3>
+              <p>${escapeHtml(layer.detail)}</p>
+            </div>
+            <div class="stack-tags">${staticPills(layer.tags)}</div>
+            ${index < atlas.masterStack.length - 1 ? `<span class="stack-arrow" aria-hidden="true">↓</span>` : ""}
           </article>
         `
       )
@@ -206,12 +224,20 @@
             <h3>${escapeHtml(chemical.name)}</h3>
             <p>${escapeHtml(chemical.role)}</p>
             <dl>
-              <div><dt>Sourced from</dt><dd>${escapeHtml(chemical.madeFrom)}</dd></div>
-              <div><dt>Bottleneck</dt><dd>${escapeHtml(chemical.bottlenecks[0])}</dd></div>
+              <div><dt>Made / sourced from</dt><dd>${escapeHtml(chemical.madeFrom)}</dd></div>
+              <div><dt>Process pathway</dt><dd>${escapeHtml(chemical.processPathway.join(" → "))}</dd></div>
+              <div><dt>Main bottleneck</dt><dd>${escapeHtml(chemical.bottlenecks[0])}</dd></div>
             </dl>
-            ${staticPills(chemical.unitOperations, 3)}
+            <div class="tag-block">
+              <span>Enables</span>
+              ${staticPills(chemical.enables, 4)}
+            </div>
+            <div class="tag-block">
+              <span>Related unit operations</span>
+              ${staticPills(chemical.unitOperations, 4)}
+            </div>
             <button type="button" class="inline-link" data-filter-type="chemical" data-filter-value="${escapeHtml(chemical.name)}">
-              Related PFDs: ${chemical.relatedTechnologies.length}
+              Filter related PFDs: ${chemical.relatedTechnologies.length}
             </button>
           </article>
         `
@@ -278,7 +304,9 @@
               <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Open Case</button>
             </div>
             <h3>${escapeHtml(tech.name)}</h3>
+            <div class="case-label">Why it feels futuristic</div>
             <p class="promise">${escapeHtml(tech.sciFiPromise)}</p>
+            <div class="case-label">Realistic PFD</div>
             ${pfdMarkup(tech.pfdSteps, "case")}
             <div class="case-columns">
               <div>
@@ -290,9 +318,19 @@
                 ${chipList(tech.unitOperations, "unitOperation", 5)}
               </div>
             </div>
+            <div class="case-columns case-bottom">
+              <div>
+                <span>Primary bottlenecks</span>
+                ${chipList(tech.bottleneckTags, "bottleneck", 4)}
+              </div>
+              <div>
+                <span>Readiness gap</span>
+                <p>${escapeHtml(tech.readinessGap)}</p>
+              </div>
+            </div>
             <div class="question-panel">
-              <span>Scale trigger</span>
-              <strong>${escapeHtml(tech.scaleCondition)}</strong>
+              <span>Process engineer's question</span>
+              <strong>${escapeHtml(tech.processQuestion)}</strong>
             </div>
           </article>
         `
@@ -352,8 +390,11 @@
           <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Details</button>
         </div>
         <h3>${escapeHtml(tech.name)}</h3>
+        <div class="card-label">Sci-fi promise</div>
         <p class="promise">${escapeHtml(tech.sciFiPromise)}</p>
+        <div class="card-label">Engineering pathway</div>
         <p class="pathway">${escapeHtml(tech.realisticPathway)}</p>
+        <div class="card-label">Mini-PFD</div>
         ${pfdMarkup(tech.pfdSteps)}
         <div class="card-split">
           <div>
@@ -464,7 +505,7 @@
           ${modalSection("Unit operations", chipList(tech.unitOperations, "unitOperation", 8))}
           ${modalSection("Bottleneck tags", chipList(tech.bottleneckTags, "bottleneck", 6))}
         </div>
-        ${modalSection("Critical process parameters", `<p>${escapeHtml(tech.bottlenecks.join("; "))}</p>`)}
+        ${modalSection("Critical bottlenecks", `<p>${escapeHtml(tech.bottlenecks.join("; "))}</p>`)}
         ${modalSection("Manufacturing / deployment readiness gap", `<p>${escapeHtml(tech.readinessGap)}</p>`)}
         ${modalSection("What would need to be true for scale?", `<p>${escapeHtml(tech.scaleCondition)}</p>`)}
         <div class="question-panel">

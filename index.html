@@ -15,14 +15,16 @@
           <span class="brand-mark" aria-hidden="true">FSA</span>
           <span>
             <strong>Future Systems Atlas</strong>
-            <small>Process architecture for speculative technology</small>
+            <small>Process architecture for frontier technology</small>
           </span>
         </a>
         <nav class="site-nav" aria-label="Primary navigation">
           <a href="#system-map">System Map</a>
+          <a href="#atlas">Atlas</a>
           <a href="#chemical-spine">Chemicals</a>
+          <a href="#unit-ops">Unit Ops</a>
+          <a href="#readiness">Bottlenecks</a>
           <a href="#case-studies">Cases</a>
-          <a href="#atlas">Full Library</a>
         </nav>
       </div>
     </header>
@@ -36,8 +38,9 @@
             <h1 id="page-title">Future Systems Atlas</h1>
             <p class="subtitle">Turning sci-fi technologies into manufacturable process systems.</p>
             <p class="hero-text">
-              Future Systems Atlas maps futuristic technologies into the chemicals, materials, unit operations,
-              manufacturing systems, infrastructure, bottlenecks, and deployment pathways required to make them real.
+              Most futuristic technologies are described as products: flying cars, smart glass, fusion power,
+              synthetic fuels, autonomous factories, vertical farms, space habitats. This atlas maps the hidden process
+              systems behind them — chemicals, materials, unit operations, manufacturing lines, bottlenecks, and infrastructure.
             </p>
             <div class="tagline-stack" aria-label="Project thesis statements">
               <span>Sci-fi becomes real when it becomes a process flow.</span>
@@ -45,8 +48,8 @@
               <span>The future is not just invented. It is scaled.</span>
             </div>
             <div class="hero-actions">
-              <a class="button primary" href="#system-map">View System Map</a>
-              <a class="button secondary" href="#atlas">View Full Atlas Library</a>
+              <a class="button primary" href="#atlas">Explore the Atlas</a>
+              <a class="button secondary" href="#system-map">See the System Map</a>
             </div>
             <div class="hero-metrics" id="heroMetrics" aria-label="Atlas summary"></div>
           </div>
@@ -78,6 +81,20 @@
               <span>Manufacturing readiness</span>
               <span>Deployment infrastructure</span>
             </div>
+            <div class="system-example" aria-label="Example PFD preview">
+              <div class="example-kicker">Example PFD</div>
+              <h2>Atmospheric Water Harvesting</h2>
+              <ol>
+                <li>Ambient air</li>
+                <li>Sorbent capture</li>
+                <li>Regeneration</li>
+                <li>Condensation</li>
+                <li>Purification</li>
+                <li>Storage</li>
+              </ol>
+              <p><strong>Bottleneck:</strong> energy use at low humidity.</p>
+              <p><strong>Scale trigger:</strong> low-cost sorbents plus renewable or waste heat.</p>
+            </div>
             <div class="system-grid">
               <div>
                 <small>Core identity</small>
@@ -103,14 +120,39 @@
         </div>
         <div class="concept-grid">
           <p>
-            Most future technologies are discussed as products or vibes: clean cities, synthetic fuels, smart glass,
-            autonomous factories, vertical farms, space habitats, flying cars, transparent displays, and fusion power.
+            A future city is not only buildings, vehicles, and interfaces. It is hydrogen production, water reuse,
+            carbon handling, semiconductor fabrication, coatings, batteries, polymers, catalysts, sensors, waste loops,
+            and maintenance systems working together.
           </p>
           <p>
-            Before any of them become normal, they need repeatable process windows, controlled materials, quality
-            gates, reliable supply chains, safe deployment models, and economics that survive scale-up.
+            Before any futuristic technology becomes normal, the process window has to become repeatable: feedstocks,
+            conversions, separations, quality gates, reliability tests, supply chains, safety cases, and economics must survive scale-up.
           </p>
-          <p class="scale-line">The bottleneck is not the concept. It is the system behind the concept.</p>
+          <p class="scale-line">The product is visible; the process system is hidden.</p>
+        </div>
+      </section>
+
+      <section id="read-atlas" class="section-shell compact-guide" aria-labelledby="read-atlas-title">
+        <div class="guide-grid">
+          <article class="guide-card primary-guide">
+            <p class="eyebrow">How to read this atlas</p>
+            <h2 id="read-atlas-title">Start with the promise. Then trace the process.</h2>
+            <ol>
+              <li>Identify the sci-fi capability people imagine.</li>
+              <li>Trace the material and energy inputs.</li>
+              <li>Find the unit operations that turn inputs into outputs.</li>
+              <li>Look for bottlenecks: energy, separations, yield, reliability, infrastructure.</li>
+              <li>Ask what has to become repeatable before deployment.</li>
+            </ol>
+          </article>
+          <article class="guide-card">
+            <p class="eyebrow">Process engineer contribution</p>
+            <h2>Where process engineering enters.</h2>
+            <p>
+              Process engineers define process windows, control impurities, close recycle loops, reduce energy intensity,
+              design QA gates, and translate prototypes into manufacturing systems that can be operated, maintained, and scaled.
+            </p>
+          </article>
         </div>
       </section>
 
@@ -167,7 +209,7 @@
       <section id="case-studies" class="section-shell" aria-labelledby="case-title">
         <div class="section-heading">
           <p class="eyebrow">Featured case studies</p>
-          <h2 id="case-title">Deeper process architectures from the atlas.</h2>
+          <h2 id="case-title">Start here: featured process architectures.</h2>
         </div>
         <div class="case-grid" id="caseStudyGrid"></div>
       </section>
@@ -175,14 +217,14 @@
       <section id="atlas" class="atlas-section section-shell" aria-labelledby="atlas-title">
         <div class="section-heading atlas-heading">
           <div>
-            <p class="eyebrow">Supplementary atlas index</p>
-            <h2 id="atlas-title">Full PFD Library.</h2>
+            <p class="eyebrow">Atlas index</p>
+            <h2 id="atlas-title">Complete PFD Library.</h2>
           </div>
           <div class="atlas-stats" id="atlasStats" aria-label="Atlas statistics"></div>
         </div>
         <p class="section-intro">
-          The complete existing PFD list remains here as the raw library. Search it, filter it, open details, or scan it
-          as a compact process index.
+          The complete index preserves the full technology list behind the project. The curated sections above explain the system;
+          this library contains the full terrain: a searchable map of future systems, chemicals, unit operations, bottlenecks, and scale triggers.
         </p>
 
         <div class="controls-panel" aria-label="Atlas search and filters">
@@ -222,7 +264,7 @@
     </main>
 
     <footer class="site-footer">
-      <p>A speculative engineering atlas for technologies that could make the future feel real.</p>
+      <p>A process-engineering atlas for frontier technologies that could make the future physically real.</p>
     </footer>
 
     <div class="modal" id="detailModal" aria-hidden="true">
