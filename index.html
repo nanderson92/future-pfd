@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Future Systems PFD Atlas</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand-lockup" href="#content" aria-label="Future Systems PFD Atlas home">
+          <span class="brand-mark" aria-hidden="true">PFD</span>
+          <span>
+            <strong>Future Systems PFD Atlas</strong>
+            <small>Process logic for speculative technology</small>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#concept">Concept</a>
+          <a href="#atlas">Atlas</a>
+          <a href="#process-logic">Process Logic</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content">
+      <section class="hero-section" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Engineering the distance between imagination and impact</p>
+          <h1 id="page-title">Future Systems PFD Atlas</h1>
+          <p class="subtitle">Turning sci-fi technologies into manufacturable process systems.</p>
+          <p class="hero-text">
+            I translate futuristic technologies into process flows, bottlenecks, scale-up risks, and deployment
+            pathways.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#atlas">Explore Technologies</a>
+            <a class="button secondary" href="#process-logic">View Process Logic</a>
+          </div>
+        </div>
+
+        <div class="hero-system" aria-label="Example process-flow system">
+          <div class="system-header">
+            <span>Speculative Concept</span>
+            <strong>Engineering Translation</strong>
+          </div>
+          <div class="system-flow">
+            <span>Feedstocks</span>
+            <span>Unit Operations</span>
+            <span>Quality Gates</span>
+            <span>Infrastructure</span>
+            <span>Deployment</span>
+          </div>
+          <div class="system-grid">
+            <div>
+              <small>Dominant Constraint</small>
+              <strong>Scale-up physics</strong>
+            </div>
+            <div>
+              <small>Readiness Gap</small>
+              <strong>Manufacturable reliability</strong>
+            </div>
+            <div>
+              <small>Engineer Focus</small>
+              <strong>Cost, safety, control</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="concept" class="concept-section section-shell" aria-labelledby="concept-title">
+        <div class="section-heading">
+          <p class="eyebrow">Core concept</p>
+          <h2 id="concept-title">Make sci-fi technology look like engineering.</h2>
+        </div>
+        <div class="concept-grid">
+          <p>
+            Futuristic technology becomes real through unit operations, materials, energy flows, recycle loops,
+            process control, quality attributes, manufacturing readiness, and deployment infrastructure.
+          </p>
+          <p>
+            This atlas reframes familiar future-city ideas as process systems: what goes in, what changes, what must
+            be separated or assembled, what must be verified, and what infrastructure has to exist before deployment
+            can matter.
+          </p>
+          <p class="scale-line">The future is not just invented. It is scaled.</p>
+        </div>
+      </section>
+
+      <section id="atlas" class="atlas-section section-shell" aria-labelledby="atlas-title">
+        <div class="section-heading atlas-heading">
+          <div>
+            <p class="eyebrow">Technology atlas</p>
+            <h2 id="atlas-title">Futuristic technologies as process-flow diagrams.</h2>
+          </div>
+          <div class="atlas-stats" id="atlasStats" aria-label="Atlas statistics"></div>
+        </div>
+
+        <div class="controls-panel" aria-label="Atlas search and filters">
+          <label class="search-control">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Search technology, bottleneck, pathway..." />
+          </label>
+          <div class="filter-group" id="categoryFilters" aria-label="Category filters"></div>
+        </div>
+
+        <div class="result-line" id="resultLine" aria-live="polite"></div>
+        <div class="technology-grid" id="technologyGrid"></div>
+      </section>
+
+      <section id="process-logic" class="pathways-section section-shell" aria-labelledby="pathways-title">
+        <div class="section-heading">
+          <p class="eyebrow">How we realistically get there</p>
+          <h2 id="pathways-title">Common pathways that turn possibility into deployment.</h2>
+        </div>
+        <div class="pathway-grid" id="pathwayGrid"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>A speculative engineering atlas for technologies that could make the future feel real.</p>
+    </footer>
+
+    <div class="modal" id="detailModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal></div>
+      <article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" type="button" data-close-modal aria-label="Close detail view">Close</button>
+        <div id="modalContent"></div>
+      </article>
+    </div>
+
+    <script src="./data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
