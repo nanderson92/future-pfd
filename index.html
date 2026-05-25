@@ -34,8 +34,8 @@
       <section class="hero-section" aria-labelledby="page-title">
         <div class="hero-stage">
           <div class="hero-copy">
-            <span class="hero-index">01</span>
-            <p class="eyebrow">Make sci-fi technology look like engineering</p>
+            <span class="hero-index">FSA-001</span>
+            <p class="eyebrow">Process architecture for frontier technology</p>
             <h1 id="page-title">Future Systems Atlas</h1>
             <p class="subtitle">Turning sci-fi technologies into manufacturable process systems.</p>
             <p class="hero-text">
@@ -43,72 +43,77 @@
               materials, unit operations, manufacturing systems, bottlenecks, and infrastructure that would have to exist
               before sci-fi becomes deployable.
             </p>
-            <div class="tagline-stack" aria-label="Project thesis statements">
-              <span>Sci-fi becomes real when it becomes a process flow.</span>
-              <span>Every futuristic technology has a hidden factory behind it.</span>
-              <span>The future is not just invented. It is scaled.</span>
-            </div>
+            <p class="hero-thesis">The future is not just invented. It is scaled.</p>
+            <p class="hero-secondary-thesis">Sci-fi becomes real when it becomes a process flow.</p>
             <div class="hero-actions">
-              <a class="button primary" href="#atlas">Explore the Atlas</a>
-              <a class="button secondary" href="#system-map">See the System Map</a>
+              <a class="button primary" href="#atlas">Trace the Process Flows</a>
+              <a class="button secondary" href="#system-map">View the Civilization Stack</a>
             </div>
             <div class="hero-metrics" id="heroMetrics" aria-label="Atlas summary"></div>
           </div>
 
-          <div class="club-figure" aria-hidden="true">
-            <div class="figure-orbit"></div>
-            <div class="figure-head"></div>
-            <div class="figure-neck"></div>
-            <div class="figure-ribbon"></div>
-            <div class="figure-chip chip-a">MRL</div>
-            <div class="figure-chip chip-b">QA</div>
-            <div class="figure-dock">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
+          <div class="hero-visual" aria-label="Process architecture preview">
+            <div class="process-plate">
+              <div class="plate-header">
+                <div>
+                  <span>PROCESS ARCHITECTURE PLATE</span>
+                  <h2>Atmospheric Water Harvesting</h2>
+                </div>
+                <strong>PFD-117</strong>
+              </div>
+              <div class="stream-strip" aria-label="Representative stream and equipment labels">
+                <span>S-101 Ambient air</span>
+                <span>Q-301 Heat input</span>
+                <span>P-401 Potable water</span>
+              </div>
+              <ol class="instrument-flow">
+                <li class="role-feed"><span>B-101</span> Ambient Air</li>
+                <li class="role-separation"><span>A-201</span> Sorbent Capture</li>
+                <li class="role-energy"><span>R-301</span> Regeneration</li>
+                <li class="role-separation"><span>HX-401</span> Condensation</li>
+                <li class="role-qa"><span>F-501</span> Purification</li>
+                <li class="role-infrastructure"><span>T-601</span> Storage</li>
+              </ol>
+              <div class="process-callouts">
+                <div><span>Bottleneck</span><strong>Energy use at low humidity</strong></div>
+                <div><span>Scale trigger</span><strong>Low-cost sorbents + waste heat</strong></div>
+                <div><span>Readiness gap</span><strong>MRL / IRL</strong></div>
+              </div>
+            </div>
+
+            <div class="civilization-stack-card">
+              <div class="stack-card-header">
+                <span>VISIBLE PRODUCT</span>
+                <strong>HIDDEN PROCESS SYSTEM</strong>
+              </div>
+              <div class="mini-stack" aria-label="Future civilization stack preview">
+                <span>Resources</span>
+                <span>Platform chemicals</span>
+                <span>Unit operations</span>
+                <span>Manufacturing systems</span>
+                <span>Infrastructure</span>
+                <span>Future worlds</span>
+              </div>
+              <p>Every card in the atlas asks what must become repeatable, safe, affordable, and integrated before the concept can leave the slide deck.</p>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div class="hero-system" aria-label="Project process logic">
-            <div class="system-header">
-              <span>Visible product</span>
-              <strong>Hidden process system</strong>
+      <section class="atlas-nav-shell section-shell" aria-labelledby="atlas-nav-title">
+        <div class="atlas-nav-card">
+          <div>
+            <p class="eyebrow">Atlas navigation</p>
+            <h2 id="atlas-nav-title">Explore by system layer, not just by technology name.</h2>
+          </div>
+          <div class="atlas-nav-groups">
+            <div>
+              <span>Future-system sectors</span>
+              <p><a href="#system-map">Energy</a> · <a href="#system-map">Carbon</a> · <a href="#system-map">Water</a> · <a href="#system-map">Materials</a> · <a href="#system-map">Manufacturing</a> · <a href="#system-map">Cities</a> · <a href="#system-map">Space</a></p>
             </div>
-            <div class="system-flow">
-              <span>Resources</span>
-              <span>Platform chemicals</span>
-              <span>Unit operations</span>
-              <span>Manufacturing readiness</span>
-              <span>Deployment infrastructure</span>
-            </div>
-            <div class="system-example" aria-label="Example PFD preview">
-              <div class="example-kicker">Example PFD</div>
-              <h2>Atmospheric Water Harvesting</h2>
-              <ol>
-                <li>Ambient air</li>
-                <li>Sorbent capture</li>
-                <li>Regeneration</li>
-                <li>Condensation</li>
-                <li>Purification</li>
-                <li>Storage</li>
-              </ol>
-              <p><strong>Bottleneck:</strong> energy use at low humidity.</p>
-              <p><strong>Scale trigger:</strong> low-cost sorbents plus renewable or waste heat.</p>
-            </div>
-            <div class="system-grid">
-              <div>
-                <small>Core identity</small>
-                <strong>Innovation to impact</strong>
-              </div>
-              <div>
-                <small>Main lens</small>
-                <strong>TRL + MRL + IRL</strong>
-              </div>
-              <div>
-                <small>Engineer focus</small>
-                <strong>Cost, safety, reliability</strong>
-              </div>
+            <div>
+              <span>Engineering lenses</span>
+              <p><a href="#chemical-spine">Chemicals</a> · <a href="#unit-ops">Unit operations</a> · <a href="#readiness">Bottlenecks</a> · <a href="#case-studies">Case studies</a> · <a href="#atlas">Full PFD index</a></p>
             </div>
           </div>
         </div>
@@ -119,19 +124,34 @@
           <p class="eyebrow">Project thesis</p>
           <h2 id="concept-title">The product is visible; the process system is hidden.</h2>
         </div>
-        <div class="concept-grid">
-          <p>
-            Most future-tech discourse stops at the visible product: flying cars, smart glass, fusion power,
-            vertical farms, artificial organs, space habitats. But the product is only the endpoint. Behind it is a
-            process system of feedstocks, reactors, separations, coatings, sensors, QA, reliability testing, maintenance,
-            and infrastructure.
-          </p>
-          <p>
-            This atlas treats speculative technologies as engineering systems. It asks what has to be separated,
-            reacted, purified, deposited, assembled, tested, recycled, and maintained before concept art can become a
-            city, factory, vehicle, medical device, or off-world system.
-          </p>
-          <p class="scale-line">The product is visible; the process system is hidden.</p>
+        <div class="visible-hidden-map">
+          <article class="concept-panel visible-panel">
+            <span>Visible product</span>
+            <h3>What people imagine</h3>
+            <ul>
+              <li>Flying cars</li>
+              <li>Smart glass towers</li>
+              <li>Fusion power</li>
+              <li>Vertical farms</li>
+              <li>Artificial organs</li>
+              <li>Space habitats</li>
+            </ul>
+          </article>
+          <div class="concept-transfer" aria-hidden="true">
+            <span>Process engineering translates the visible promise into the hidden system.</span>
+          </div>
+          <article class="concept-panel hidden-panel">
+            <span>Hidden process system</span>
+            <h3>What has to scale</h3>
+            <ul>
+              <li>Feedstocks and platform chemicals</li>
+              <li>Reactors, separations, coatings, and fabrication</li>
+              <li>Process windows and control loops</li>
+              <li>QA, reliability testing, and maintenance</li>
+              <li>Supply chains, utilities, safety, and infrastructure</li>
+              <li>Manufacturing readiness and cost reduction</li>
+            </ul>
+          </article>
         </div>
       </section>
 

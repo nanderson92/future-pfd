@@ -2305,3 +2305,704 @@ a {
     padding-top: 0.7rem;
   }
 }
+
+/* === Process-architecture redesign: remove generic dots/MacBook feel and make the page read as a PFD atlas === */
+:root {
+  --feed: #64748b;
+  --conversion: #2563eb;
+  --separation: #0891b2;
+  --fabrication: #7c3aed;
+  --energy: #d97706;
+  --qa: #059669;
+  --waste: #ea580c;
+  --infrastructure: #0f172a;
+  --paper: #eef3f7;
+  --panel: #f7f9fc;
+  --panel-soft: #ffffff;
+  --line: #d4dde7;
+  --line-strong: #94a3b8;
+  --muted: #536171;
+  --radius: 14px;
+}
+
+body {
+  background:
+    linear-gradient(115deg, rgba(37, 99, 235, 0.055), transparent 34%),
+    linear-gradient(245deg, rgba(8, 145, 178, 0.065), transparent 38%),
+    linear-gradient(180deg, #f7fbff 0%, #edf4f9 46%, #f8fbff 100%);
+  background-size: auto;
+}
+
+body::before {
+  content: "S-101 AIR → CAPTURE → SEPARATION → QA     H₂O → ELECTROLYSIS → H₂     CO₂ → MINERALIZATION → CONCRETE     SiO₂ → Si → WAFER → SENSOR";
+  position: fixed;
+  left: 2rem;
+  right: 2rem;
+  top: 7.2rem;
+  z-index: -1;
+  overflow: hidden;
+  white-space: nowrap;
+  color: rgba(15, 23, 42, 0.06);
+  font-family: var(--font-tech);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+.site-header {
+  border-bottom-color: rgba(15, 23, 42, 0.1);
+  background: rgba(248, 251, 255, 0.86);
+}
+
+.brand-mark {
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 42%),
+    linear-gradient(145deg, #0f172a, #2563eb 52%, #0891b2);
+}
+
+.site-nav a[href="#atlas"] {
+  background: #0f172a;
+}
+
+.hero-section {
+  padding: 1.4rem 0 1rem;
+}
+
+.hero-stage {
+  grid-template-columns: minmax(0, 0.92fr) minmax(34rem, 1.08fr) !important;
+  min-height: 38rem;
+  border: 1px solid rgba(15, 23, 42, 0.13);
+  border-radius: 28px;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.052) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 18% 18%, rgba(37, 99, 235, 0.13), transparent 30%),
+    radial-gradient(circle at 80% 14%, rgba(8, 145, 178, 0.14), transparent 28%),
+    linear-gradient(135deg, #f9fcff 0%, #edf5fb 52%, #f8fbff 100%);
+  background-size: 74px 74px, 74px 74px, auto, auto, auto;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+
+.hero-stage::before {
+  content: "RESOURCES ──▶ PLATFORM CHEMICALS ──▶ UNIT OPERATIONS ──▶ MANUFACTURING ──▶ INFRASTRUCTURE";
+  position: absolute;
+  left: clamp(1.25rem, 3vw, 2rem);
+  right: clamp(1.25rem, 3vw, 2rem);
+  bottom: 1.1rem;
+  z-index: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: rgba(15, 23, 42, 0.12);
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.hero-copy,
+.hero-visual {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-copy {
+  border-right: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px);
+}
+
+.hero-index {
+  color: rgba(15, 23, 42, 0.62);
+}
+
+.eyebrow {
+  color: #047481;
+  letter-spacing: 0.04em;
+}
+
+.hero-copy h1 {
+  max-width: 12ch;
+  color: #0f172a;
+}
+
+.subtitle {
+  color: #153a52;
+}
+
+.hero-thesis {
+  margin: 1.15rem 0 0;
+  border-left: 4px solid var(--conversion);
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.1), transparent 88%);
+  padding: 0.82rem 0.95rem;
+  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.hero-secondary-thesis {
+  margin: 0.55rem 0 0;
+  color: #536171;
+  font-family: var(--font-tech);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.button.primary {
+  background: #0f172a;
+  border-color: #0f172a;
+}
+
+.button.secondary {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.hero-metrics span {
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.hero-visual {
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(1.2rem, 3vw, 2.4rem);
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    rgba(248, 251, 255, 0.52);
+  background-size: 34px 34px, 34px 34px, auto;
+}
+
+.process-plate,
+.civilization-stack-card,
+.atlas-nav-card {
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(247, 250, 253, 0.78)),
+    #fff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+}
+
+.process-plate {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1rem, 2.2vw, 1.35rem);
+}
+
+.process-plate::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--feed), var(--conversion), var(--separation), var(--energy), var(--qa), var(--infrastructure));
+}
+
+.plate-header,
+.stack-card-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.plate-header span,
+.stack-card-header span,
+.process-callouts span,
+.atlas-nav-groups span {
+  display: block;
+  color: #64748b;
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.plate-header h2 {
+  margin: 0.35rem 0 0;
+  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 2.5vw, 2.35rem);
+  line-height: 1;
+}
+
+.plate-header > strong {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  padding: 0.42rem 0.65rem;
+  font-family: var(--font-tech);
+  font-size: 0.74rem;
+}
+
+.stream-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1rem 0;
+}
+
+.stream-strip span {
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.075);
+  color: #1e3a8a;
+  padding: 0.28rem 0.55rem;
+  font-family: var(--font-tech);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.instrument-flow {
+  list-style: none;
+  counter-reset: instrument;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+}
+
+.instrument-flow li {
+  position: relative;
+  min-height: 7.2rem;
+  display: grid;
+  align-content: space-between;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-top: 4px solid var(--node-color, var(--conversion));
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 251, 255, 0.62));
+  padding: 0.72rem;
+  color: #0f172a;
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.instrument-flow li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -0.58rem;
+  top: 50%;
+  width: 0.58rem;
+  height: 2px;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.instrument-flow li span {
+  display: block;
+  color: var(--node-color, var(--conversion));
+  font-family: var(--font-tech);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.role-feed { --node-color: var(--feed); }
+.role-conversion { --node-color: var(--conversion); }
+.role-separation { --node-color: var(--separation); }
+.role-energy { --node-color: var(--energy); }
+.role-qa { --node-color: var(--qa); }
+.role-infrastructure { --node-color: var(--infrastructure); }
+
+.process-callouts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.process-callouts div {
+  border-left: 3px solid #0f172a;
+  background: rgba(241, 245, 249, 0.8);
+  padding: 0.75rem;
+}
+
+.process-callouts strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: #0f172a;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.civilization-stack-card {
+  padding: 1rem;
+}
+
+.stack-card-header strong {
+  color: #0f172a;
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.mini-stack {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0.9rem 0;
+}
+
+.mini-stack span {
+  position: relative;
+  min-height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  background: rgba(248, 251, 255, 0.84);
+  color: #0f172a;
+  padding: 0.4rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1.08;
+}
+
+.mini-stack span:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -0.47rem;
+  width: 0.47rem;
+  height: 2px;
+  background: rgba(15, 23, 42, 0.26);
+}
+
+.civilization-stack-card p {
+  margin: 0;
+  color: #536171;
+}
+
+.atlas-nav-shell {
+  padding-top: 0.75rem;
+  padding-bottom: 2.6rem;
+}
+
+.atlas-nav-card {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.65fr) minmax(0, 1.35fr);
+  gap: 1rem;
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.atlas-nav-card h2 {
+  margin: 0;
+  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+  line-height: 1.07;
+}
+
+.atlas-nav-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.atlas-nav-groups div {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  background: rgba(248, 251, 255, 0.72);
+  padding: 0.85rem;
+}
+
+.atlas-nav-groups p {
+  margin: 0.35rem 0 0;
+  color: #536171;
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.atlas-nav-groups a {
+  color: #0f172a;
+  text-decoration: underline;
+  text-decoration-color: rgba(37, 99, 235, 0.32);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18rem;
+}
+
+.concept-section {
+  border-top: 0;
+  padding-top: 2.2rem;
+}
+
+.visible-hidden-map {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.36fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.concept-panel,
+.concept-transfer {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 22px;
+  box-shadow: var(--small-shadow);
+}
+
+.concept-panel {
+  padding: clamp(1rem, 2vw, 1.25rem);
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.78);
+  background-size: 34px 34px, 34px 34px, auto;
+}
+
+.visible-panel {
+  border-top: 4px solid var(--fabrication);
+}
+
+.hidden-panel {
+  border-top: 4px solid var(--qa);
+}
+
+.concept-panel span {
+  color: #64748b;
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.concept-panel h3 {
+  margin: 0.35rem 0 0.85rem;
+  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.concept-panel ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.concept-panel li {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 12px;
+  background: rgba(248, 251, 255, 0.72);
+  padding: 0.62rem 0.72rem;
+  color: #263445;
+  font-weight: 700;
+}
+
+.concept-transfer {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.12), rgba(8, 145, 178, 0.12)),
+    rgba(248, 251, 255, 0.8);
+  padding: 1rem;
+  color: #0f172a;
+  text-align: center;
+  font-family: var(--font-tech);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.concept-transfer span::before,
+.concept-transfer span::after {
+  content: "↓";
+  display: block;
+  margin: 0.5rem auto;
+  color: #2563eb;
+  font-size: 1.2rem;
+}
+
+.section-shell {
+  padding-top: 3.2rem;
+  padding-bottom: 3.2rem;
+}
+
+.section-heading h2,
+.author-note h2 {
+  color: #0f172a;
+}
+
+.master-map {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 26px;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.56);
+  background-size: 44px 44px, 44px 44px, auto;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.09);
+  padding: 1rem;
+}
+
+.stack-node,
+.sector-card,
+.chemical-card,
+.unit-card,
+.case-card,
+.compact-card,
+.readiness-panel,
+.bottleneck-panel,
+.readiness-grid article,
+.guide-card,
+.pathway-card,
+.technology-card,
+.controls-panel,
+.author-note {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 251, 255, 0.74)),
+    #fff;
+}
+
+.stack-node {
+  border-left: 5px solid #0f172a;
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0.055), transparent 36%),
+    rgba(255, 255, 255, 0.8);
+}
+
+.stack-index {
+  background: #0f172a;
+}
+
+.stack-arrow {
+  background: rgba(37, 99, 235, 0.11);
+  color: #0f172a;
+}
+
+.chemical-card .formula {
+  background: #0f172a;
+}
+
+.pfd-shell {
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    rgba(248, 251, 255, 0.7);
+  background-size: 30px 30px, 30px 30px, auto;
+}
+
+.pfd-flow li {
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.technology-card {
+  border-radius: 18px;
+}
+
+.compact-card {
+  border-radius: 18px;
+}
+
+@media (max-width: 1120px) {
+  .hero-stage {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-copy {
+    border-right: 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+  }
+
+  .hero-visual {
+    min-height: auto;
+  }
+
+  .instrument-flow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .instrument-flow li:not(:last-child)::after {
+    display: none;
+  }
+
+  .mini-stack {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mini-stack span:not(:last-child)::after {
+    display: none;
+  }
+
+  .atlas-nav-card,
+  .visible-hidden-map {
+    grid-template-columns: 1fr;
+  }
+
+  .concept-transfer span::before,
+  .concept-transfer span::after {
+    display: inline;
+    margin: 0 0.45rem;
+  }
+}
+
+@media (max-width: 820px) {
+  .hero-stage {
+    border-width: 1px;
+    border-radius: 22px;
+  }
+
+  .hero-copy h1 {
+    font-size: 3.1rem;
+  }
+
+  .process-callouts,
+  .atlas-nav-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .instrument-flow,
+  .mini-stack {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  body::before,
+  .hero-stage::before {
+    display: none;
+  }
+
+  .hero-copy,
+  .hero-visual {
+    padding: 1rem;
+  }
+
+  .hero-copy h1 {
+    font-size: 2.35rem;
+  }
+
+  .hero-thesis {
+    font-size: 1.15rem;
+  }
+
+  .plate-header,
+  .stack-card-header {
+    display: grid;
+  }
+
+  .instrument-flow,
+  .mini-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .instrument-flow li {
+    min-height: 4.7rem;
+  }
+
+  .process-callouts div {
+    padding: 0.7rem;
+  }
+}
