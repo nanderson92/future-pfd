@@ -160,7 +160,7 @@ function Atlas() {
                 <span>Op</span>
                 <span>Bottleneck</span>
                 <span>Evidence</span>
-                <span>TRL / MRL / IRL</span>
+                <span>Readiness</span>
               </div>
               {filtered.map(e => (
                 <div key={e.pid} className="atlas-row" onClick={() => setOpen(e)}>
@@ -171,7 +171,7 @@ function Atlas() {
                   <span className="meta">{ops.find(o => o.id === e.unitOp)?.label}</span>
                   <span className="meta">{bottlenecks.find(b => b.id === e.bottleneck)?.label}</span>
                   <span className="chip" data-evidence={e.evidence}><span className="dot" />{e.evidence}</span>
-                  <span className="meta tnum">{e.trl} / {e.mrl} / {e.irl}</span>
+                  <ReadinessMini trl={e.trl} mrl={e.mrl} irl={e.irl} tone={e.sector} />
                 </div>
               ))}
               {filtered.length === 0 && <div className="atlas-empty">No cards match this filter.</div>}
@@ -209,7 +209,7 @@ function AtlasCard({ entry, onClick }) {
 
       <div className="ac-ladder">
         <ReadinessRow label="TRL" value={trl} max={9}  tone={sector} />
-        <ReadinessRow label="MRL" value={mrl} max={10} tone={sector} />
+        <ReadinessRow label="MRL" value={mrl} max={9} tone={sector} />
         <ReadinessRow label="IRL" value={irl} max={9}  tone={sector} />
       </div>
 
@@ -235,6 +235,26 @@ function ReadinessRow({ label, value, max, tone }) {
       </span>
       <span className="rl-val tnum">{value}/{max}</span>
     </div>
+  );
+}
+
+function ReadinessMini({ trl, mrl, irl, tone }) {
+  const rows = [
+    { label: "T", v: trl, max: 9 },
+    { label: "M", v: mrl, max: 9 },
+    { label: "I", v: irl, max: 9 },
+  ];
+  return (
+    <span className="rmini" title={`TRL ${trl}/9 · MRL ${mrl}/9 · IRL ${irl}/9`}>
+      {rows.map(r => (
+        <span key={r.label} className="rmini-row">
+          <span className="rmini-lab">{r.label}</span>
+          <span className="rmini-bar">
+            <span className="rmini-fill" style={{ width: `${(r.v / r.max) * 100}%`, background: `var(--c-${tone})` }} />
+          </span>
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -309,9 +329,13 @@ function AtlasModal({ entry, onClose }) {
               <span className="meta">Evidence posture</span>
               <span className="chip" data-evidence={entry.evidence}><span className="dot" />{entry.evidence}</span>
             </div>
-            <div className="mm-row">
-              <span className="meta">Readiness (TRL / MRL / IRL)</span>
-              <span className="tnum"><strong>{entry.trl}</strong> / <strong>{entry.mrl}</strong> / <strong>{entry.irl}</strong></span>
+            <div className="mm-readiness-block">
+              <div className="meta" style={{ marginBottom: 10 }}>Readiness</div>
+              <div className="ac-ladder">
+                <ReadinessRow label="TRL" value={entry.trl} max={9}  tone={entry.sector} />
+                <ReadinessRow label="MRL" value={entry.mrl} max={9}  tone={entry.sector} />
+                <ReadinessRow label="IRL" value={entry.irl} max={9}  tone={entry.sector} />
+              </div>
             </div>
           </div>
         </div>
@@ -320,4 +344,4 @@ function AtlasModal({ entry, onClose }) {
   );
 }
 
-Object.assign(window, { Atlas, AtlasCard, AtlasModal });
+Object.assign(window, { Atlas, AtlasCard, AtlasModal, ReadinessRow, ReadinessMini });

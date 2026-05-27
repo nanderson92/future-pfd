@@ -518,7 +518,7 @@ function DefaultReadout({ planets, hoverPlanet, hoverTech, setFocused, onOpenTec
         </div>
         <div className="preview-readiness">
           <div className="rl-row"><span className="rl-label">TRL</span><span className="rl-bar">{[...Array(9)].map((_,i)=><span key={i} className={`rl-tick ${i<hoverTech.trl?"on":""}`} style={i<hoverTech.trl?{background:`var(--c-${hoverTech.sector})`}:null} />)}</span><span className="rl-val tnum">{hoverTech.trl}/9</span></div>
-          <div className="rl-row"><span className="rl-label">MRL</span><span className="rl-bar">{[...Array(10)].map((_,i)=><span key={i} className={`rl-tick ${i<hoverTech.mrl?"on":""}`} style={i<hoverTech.mrl?{background:`var(--c-${hoverTech.sector})`}:null} />)}</span><span className="rl-val tnum">{hoverTech.mrl}/10</span></div>
+          <div className="rl-row"><span className="rl-label">MRL</span><span className="rl-bar">{[...Array(9)].map((_,i)=><span key={i} className={`rl-tick ${i<hoverTech.mrl?"on":""}`} style={i<hoverTech.mrl?{background:`var(--c-${hoverTech.sector})`}:null} />)}</span><span className="rl-val tnum">{hoverTech.mrl}/9</span></div>
           <div className="rl-row"><span className="rl-label">IRL</span><span className="rl-bar">{[...Array(9)].map((_,i)=><span key={i} className={`rl-tick ${i<hoverTech.irl?"on":""}`} style={i<hoverTech.irl?{background:`var(--c-${hoverTech.sector})`}:null} />)}</span><span className="rl-val tnum">{hoverTech.irl}/9</span></div>
         </div>
         <button className="preview-open" onClick={() => onOpenTech(hoverTech)} style={{ borderColor: `var(--c-${hoverTech.sector})`, color: `var(--c-${hoverTech.sector})` }}>

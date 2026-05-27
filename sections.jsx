@@ -9,7 +9,7 @@ const { useState, useEffect, useRef, useMemo } = React;
 const DEFS = {
   pfd:           ["Process Flow Diagram",        "A schematic of how matter and energy move through a process — inputs in, transformations across, outputs out."],
   trl:           ["Technology Readiness Level",  "NASA scale 1–9. 1 = idea on paper. 9 = full system, operating in its real environment. Asks: does it work?"],
-  mrl:           ["Manufacturing Readiness Level","Scale 1–10. Asks: can we make it repeatedly at the right yield, quality, cost, and throughput?"],
+  mrl:           ["Manufacturing Readiness Level","Scale 1–9. Asks: can we make it repeatedly at the right yield, quality, cost, and throughput?"],
   irl:           ["Infrastructure Readiness Level","Scale 1–9. Asks: can it integrate? Do utilities, logistics, standards, maintenance, and users support it?"],
   "unit-op":     ["Unit operation",              "A single discrete physical step in a process — distillation, electrolysis, filtration, deposition, heat exchange, etc."],
   bottleneck:    ["Bottleneck",                  "The constraint most likely to block scale-up — energy intensity, dilute separations, supply chain, reliability, cost."],
@@ -43,7 +43,7 @@ function FieldGuide() {
     { term: "unit-op",    glyph: "◍", lead: "Unit op", body: "One discrete physical step — distilling, electrolyzing, filtering, coating. Every process is a chain of unit ops, like Lego bricks of chemical engineering." },
     { term: "spine",      glyph: "⬡", lead: "Spine", body: "The handful of molecules every future depends on: H₂, CO₂, NH₃, Si, Li, H₂O. Master these and many seemingly distant fields unlock at once." },
     { term: "trl",        glyph: "T",  lead: "TRL · 1–9", body: "Technology Readiness Level. NASA's 1–9 scale: 1 = sketch on paper, 9 = working in the real world. Asks: does the underlying mechanism work yet?" },
-    { term: "mrl",        glyph: "M",  lead: "MRL · 1–10", body: "Manufacturing Readiness Level. Asks whether we can make the thing not once in a lab but a million times — at the right yield, quality, cost, and pace." },
+    { term: "mrl",        glyph: "M",  lead: "MRL · 1–9", body: "Manufacturing Readiness Level. Asks whether we can make the thing not once in a lab but a million times — at the right yield, quality, cost, and pace." },
     { term: "irl",        glyph: "I",  lead: "IRL · 1–9", body: "Infrastructure Readiness Level. Asks whether the world around the tech is ready: supply chains, utilities, standards, regulators, technicians, and users." },
     { term: "bottleneck", glyph: "◐", lead: "Bottleneck", body: "What actually blocks scale-up. Usually not the core invention but adjacent constraints — energy supply, separations, raw materials, capital, permitting." },
     { term: "evidence",   glyph: "✓",  lead: "Evidence", body: "How we know what we claim. Direct = demonstrated already. Roadmap = a credible plan exists. Analogue = inferred from a related working system." },
@@ -102,29 +102,33 @@ function Nav() {
     <nav className="nav">
       <div className="nav-inner">
         <a className="nav-brand" href="#top">
-          <span className="mark">F<br/>S</span>
+          <span className="mark">FS</span>
           <span className="nav-brand-label">
             <span className="l1">Future Systems Atlas</span>
-            <span className="l2">FSA-001 · Process architecture for frontier tech</span>
+            <span className="l2">FSA-001 · Process architecture</span>
           </span>
         </a>
         <div className="nav-links">
-          <a href="#guide">Guide</a>
-          <a href="#galaxy">Map</a>
-          <a href="#cases">Cases</a>
-          <a href="#system">Stack</a>
-          <a href="#chemicals">Chem</a>
-          <a href="#unitops">Ops</a>
-          <a href="#readiness">Ready</a>
-          <a href="#pathways">Scale-up</a>
-          <a href="#atlas">Index</a>
-          <a href="#sources">Sources</a>
+          {[
+            ["#guide",     "Guide"],
+            ["#cases",     "Cases"],
+            ["#galaxy",    "Map"],
+            ["#readiness", "Readiness"],
+            ["#atlas",     "Atlas"],
+            ["#sources",   "Sources"],
+          ].map(([href, label], i) => (
+            <React.Fragment key={href}>
+              {i > 0 && <span className="nav-sep" aria-hidden="true">·</span>}
+              <a href={href}>
+                <span className="nav-num">{String(i + 1).padStart(2, "0")}</span>
+                <span className="nav-label">{label}</span>
+              </a>
+            </React.Fragment>
+          ))}
         </div>
         <div className="nav-status">
           <span className="pulse" />
-          <span>LIVE</span>
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span>{coord}</span>
+          <span>LIVE · {coord}</span>
         </div>
       </div>
     </nav>
@@ -161,18 +165,9 @@ function Hero() {
           Concepts become deployable when their inputs, operations, bottlenecks, and integration constraints are understood.
         </div>
 
-        <div className="hero-stats">
-          <div className="hero-stat"><div className="n">115</div><div className="label">Technology<br/>cards</div></div>
-          <div className="hero-stat"><div className="n">201</div><div className="label">Source<br/>records</div></div>
-          <div className="hero-stat"><div className="n">37</div><div className="label">Unit<br/>operations</div></div>
-          <div className="hero-stat"><div className="n">32</div><div className="label">Chemical /<br/>material nodes</div></div>
-          <div className="hero-stat"><div className="n">24</div><div className="label">Bottleneck<br/>classes</div></div>
-          <div className="hero-stat"><div className="n">3</div><div className="label">Evidence<br/>postures</div></div>
-        </div>
-
         <div className="hero-actions">
-          <a className="btn primary" href="#cases">View flagship cases <span className="arrow">→</span></a>
-          <a className="btn" href="#atlas">Browse the atlas <span className="arrow">→</span></a>
+          <a className="btn primary" href="#atlas">Browse the atlas <span className="arrow">→</span></a>
+          <a className="btn" href="#cases">View cases <span className="arrow">→</span></a>
           <a className="btn" href="#sources">Evidence layer <span className="arrow">→</span></a>
         </div>
       </div>
@@ -645,7 +640,7 @@ function Readiness() {
                   </div>
                   <div className="ready-bar-label">
                     {i === 0 && `Atlas avg ${stats.trl} / 9`}
-                    {i === 1 && `Atlas avg ${stats.mrl} / 10`}
+                    {i === 1 && `Atlas avg ${stats.mrl} / 9`}
                     {i === 2 && `Atlas avg ${stats.irl} / 9`}
                     {i === 3 && `Pilot → commercial`}
                   </div>
@@ -716,7 +711,7 @@ function Pathways() {
     },
     {
       id: "atscale", label: "At scale",
-      gates: ["MRL 9–10", "IRL 8–9"], dip: 0.25,
+      gates: ["MRL 9", "IRL 8–9"], dip: 0.25,
       ask: "Can the world support thousands?",
       desc: "Industry standard. Supply chains, codes, workforce all aligned.",
       kills: "Inputs become the new bottleneck.",

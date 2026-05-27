@@ -1131,6 +1131,52 @@ body[data-motion="off"] .stack-node { animation: none; }
 }
 .mm-row:last-child { border-bottom: none; }
 
+.mm-readiness-block {
+  display: flex; flex-direction: column;
+  gap: 4px;
+  padding: 14px 0 4px;
+}
+.mm-readiness-block .ac-ladder {
+  background: var(--bg-1);
+  padding: 12px 14px;
+  border: var(--hairline) solid var(--rule);
+}
+
+/* Compact readiness mini-graph for atlas table rows */
+.rmini {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  max-width: 130px;
+}
+.rmini-row {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  align-items: center;
+  gap: 6px;
+}
+.rmini-lab {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+  text-align: right;
+}
+.rmini-bar {
+  position: relative;
+  height: 5px;
+  background: var(--bg-1);
+  border: var(--hairline) solid var(--rule);
+  overflow: hidden;
+}
+.rmini-fill {
+  display: block;
+  height: 100%;
+  background: var(--fg-muted);
+  transition: width 0.25s var(--ease-out);
+}
+
 /* ════════════════════════════════════════════════════════════
    ════ FIELD GUIDE ═══════════════════════════════════════════
    ════════════════════════════════════════════════════════════ */

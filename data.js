@@ -208,7 +208,7 @@ window.FSA = (() => {
   const ENTRIES = RAW.map(([name, sector, chemical, unitOp, bottleneck, evidence], i) => {
     const pid = `PFD-${String(100 + i + 1).padStart(3, "0")}`;
     const trl = Math.max(1, Math.min(9, 2 + ((i * 7) % 8)));
-    const mrl = Math.max(1, Math.min(10, 1 + ((i * 5 + 3) % 8)));
+    const mrl = Math.max(1, Math.min(9, 1 + ((i * 5 + 3) % 8)));
     const irl = Math.max(1, Math.min(9, 1 + ((i * 3 + 5) % 7)));
     return {
       pid, name, sector, chemical, unitOp, bottleneck, evidence,
