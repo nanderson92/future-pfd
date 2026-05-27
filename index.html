@@ -29,6 +29,7 @@
           <a href="#readiness">Bottlenecks</a>
           <a href="#pathways">Pathways</a>
           <a href="#case-studies">Cases</a>
+          <a href="#sources">Sources</a>
         </nav>
       </div>
     </header>
@@ -43,6 +44,7 @@
       <a href="#pathways" data-section="pathways"><span>Path</span></a>
       <a href="#case-studies" data-section="case-studies"><span>Cases</span></a>
       <a href="#atlas" data-section="atlas"><span>Index</span></a>
+      <a href="#sources" data-section="sources"><span>Sources</span></a>
     </nav>
     <a class="top-pill" id="topPill" href="#content" aria-label="Back to top">↑ Top</a>
 
@@ -66,6 +68,10 @@
               <a class="button secondary" href="#system-map">View the Civilization Stack <span aria-hidden="true">→</span></a>
             </div>
             <div class="hero-metrics" id="heroMetrics" aria-label="Atlas summary"></div>
+            <div class="evidence-callout">
+              <strong>Evidence pass added.</strong>
+              <span>Claims are now labeled by source depth. Every card has a starter source set, and speculative cards are separated from directly sourced cards.</span>
+            </div>
           </div>
 
           <div class="hero-visual" aria-label="Process architecture preview">
@@ -341,6 +347,34 @@
         <div class="result-line" id="resultLine" aria-live="polite"></div>
         <div class="technology-grid" id="technologyGrid"></div>
       </section>
+
+
+      <section id="sources" class="section-shell sources-section" aria-labelledby="sources-title">
+        <div class="section-heading">
+          <p class="eyebrow">FSA-012 · Evidence layer</p>
+          <h2 id="sources-title">Source bank and claim-level caution map.</h2>
+        </div>
+        <p class="section-intro">
+          This source layer is a fourth-pass evidence system for the atlas. It prioritizes peer-reviewed reviews, national-lab or agency reports,
+          standards/readiness frameworks, and authoritative technical roadmaps. It does not mean every PFD claim is proven; it now separates direct starter sourcing
+          from roadmap/early-stage evidence and speculative analogue evidence.
+        </p>
+        <div class="source-stats" id="sourceStats" aria-label="Source statistics"></div>
+        <div class="evidence-warning-card">
+          <strong>Use these citations cautiously.</strong>
+          <p>Broad sources support the engineering lens; direct card sources support specific mechanisms or bottlenecks. Cost, timeline, deployment, and performance claims still need primary or current project-specific evidence. Speculative cards are intentionally marked as analogue-sourced rather than proven.</p>
+        </div>
+        <div class="evidence-matrix-grid" id="evidenceMatrixGrid" aria-label="Claim evidence matrix preview"></div>
+        <div class="audit-shell" aria-labelledby="audit-title">
+          <div class="audit-heading">
+            <p class="eyebrow">Evidence QA</p>
+            <h3 id="audit-title">Cards that need cautious wording.</h3>
+            <p>These entries have useful sources, but the source support is mainly roadmap-stage, early-stage, or analogue-based. Do not present them as deployed systems.</p>
+          </div>
+          <div class="audit-grid" id="evidenceAuditGrid" aria-label="Cards that need cautious wording"></div>
+        </div>
+        <div class="source-bank-grid" id="sourceBankGrid" aria-label="Grouped source bank"></div>
+      </section>
     </main>
 
     <section class="author-note section-shell" aria-labelledby="author-note-title">
@@ -372,9 +406,10 @@
           <a href="#unit-ops">Unit Ops</a>
           <a href="#readiness">Readiness</a>
           <a href="#atlas">Atlas Index</a>
+          <a href="#sources">Sources</a>
         </nav>
         <div class="footer-meta">
-          <span>Sheet stamp · FSA-011</span>
+          <span>Sheet stamp · FSA-012</span>
           <span>Last updated · May 2026</span>
           <span>Built by Nathan Anderson</span>
         </div>
