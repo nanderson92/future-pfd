@@ -54,3 +54,14 @@ This pass improves honesty and source ordering, but it is still not a final cita
 3. Keep speculative cards in the atlas only if they are clearly labeled as process-architecture thought experiments.
 4. Add a small public download link for `SOURCES.md`, `EVIDENCE_MATRIX.csv`, and `CARD_SOURCE_AUDIT.csv` if you want technical reviewers to inspect the evidence layer.
 5. Remove or soften any performance, cost, deployment, or timeline claim not directly supported by a source in the matrix.
+
+
+## Source integration pass
+
+The fifth pass moved the source layer into the reading flow:
+- Added section evidence panels for the thesis, reader protocol, chemical spine, unit operations, readiness frameworks, pathways, and case studies.
+- Added an evidence-status filter in the atlas index.
+- Reworked source chips to display compact source labels rather than generic groups.
+- Added source-search in the Sources section.
+- Added modal support/limitation cards so users can see what each source supports and where it stops.
+- Fixed duplicated author-note text.

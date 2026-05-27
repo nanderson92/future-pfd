@@ -14,6 +14,8 @@
     bottleneck: "All",
     chemical: "All",
     unitOperation: "All",
+    evidenceStatus: "All",
+    sourceQuery: "",
     view: "compact"
   };
 
@@ -34,6 +36,7 @@
     evidenceMatrixGrid: $("#evidenceMatrixGrid"),
     evidenceAuditGrid: $("#evidenceAuditGrid"),
     sourceBankGrid: $("#sourceBankGrid"),
+    sourceSearch: $("#sourceSearch"),
     search: $("#searchInput"),
     clearSearch: $("#clearSearch"),
     resetFilters: $("#resetFilters"),
@@ -43,6 +46,16 @@
     bottleneckFilters: $("#bottleneckFilters"),
     chemicalFilters: $("#chemicalFilters"),
     unitFilters: $("#unitFilters"),
+    evidenceFilters: $("#evidenceFilters"),
+    sectionPanels: {
+      concept: $("#conceptSourcePanel"),
+      readerProtocol: $("#readerProtocolSourcePanel"),
+      chemicals: $("#chemicalSourcePanel"),
+      unitOperations: $("#unitSourcePanel"),
+      readiness: $("#readinessSourcePanel"),
+      pathways: $("#pathwaySourcePanel"),
+      cases: $("#caseSourcePanel")
+    },
     grid: $("#technologyGrid"),
     resultLine: $("#resultLine"),
     stats: $("#atlasStats"),
@@ -142,8 +155,12 @@
     return `<div class="pill-list">${topList(items, limit).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>`;
   }
 
+  function uniqueKeys(keys = []) {
+    return [...new Set((keys || []).filter(Boolean))];
+  }
+
   function recordsForKeys(keys = []) {
-    return [...new Set(keys)].map((key) => sourceByKey.get(key)).filter(Boolean);
+    return uniqueKeys(keys).map((key) => sourceByKey.get(key)).filter(Boolean);
   }
 
   function evidenceClass(status = "") {
@@ -154,9 +171,42 @@
     return "caution";
   }
 
+  function compactOrg(name = "") {
+    return name
+      .replace("National Academies of Sciences, Engineering, and Medicine", "NASEM")
+      .replace("International Energy Agency", "IEA")
+      .replace("U.S. Department of Energy", "DOE")
+      .replace("Department of Energy", "DOE")
+      .replace("National Institute of Standards and Technology", "NIST")
+      .replace("National Aeronautics and Space Administration", "NASA")
+      .replace("U.S. Environmental Protection Agency", "EPA")
+      .replace("Food and Drug Administration", "FDA")
+      .replace("Government Accountability Office", "GAO")
+      .replace("U.S. Geological Survey", "USGS")
+      .replace("International Renewable Energy Agency", "IRENA");
+  }
+
+  function sourceLabel(source) {
+    const firstSentence = source.citation.split(".")[0] || source.citation;
+    const yearMatch = source.citation.match(/(?:19|20)\d{2}/);
+    const org = compactOrg(firstSentence).split("/")[0].trim();
+    const shortOrg = org.length > 32 ? `${org.slice(0, 29)}…` : org;
+    return `${shortOrg}${yearMatch ? ` ${yearMatch[0]}` : ""}`;
+  }
+
+  function sourceTierClass(source) {
+    return source.tier === "Tier 1" ? "tier-one" : source.tier === "Tier 2" ? "tier-two" : "tier-three";
+  }
+
   function sourceChip(source, index) {
     const number = String(index + 1).padStart(2, "0");
-    return `<a class="source-chip" href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(source.supports)}"><span>[${number}]</span>${escapeHtml(source.citation.split(".").slice(0, 2).join("."))}</a>`;
+    return `
+      <a class="source-chip ${sourceTierClass(source)}" href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" title="Supports: ${escapeHtml(source.supports)} Limit: ${escapeHtml(source.limitation)}">
+        <span>[${number}]</span>
+        <b>${escapeHtml(sourceLabel(source))}</b>
+        <small>${escapeHtml(source.group)}</small>
+      </a>
+    `;
   }
 
   function sourceList(keys = [], limit = 4) {
@@ -171,7 +221,37 @@
 
   function sourceMini(keys = [], limit = 3) {
     const sources = recordsForKeys(keys).slice(0, limit);
-    return sources.length ? `<div class="source-mini">${sources.map((source, index) => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">[${index + 1}] ${escapeHtml(source.group)}</a>`).join("")}</div>` : "";
+    return sources.length ? `<div class="source-mini">${sources.map((source, index) => `<a class="${sourceTierClass(source)}" href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(source.supports)}"><span>[${index + 1}]</span>${escapeHtml(sourceLabel(source))}</a>`).join("")}</div>` : "";
+  }
+
+  function sourceDetailCards(keys = [], limit = 6) {
+    const sources = recordsForKeys(keys).slice(0, limit);
+    if (!sources.length) return `<p class="source-support-empty">No direct source records mapped yet.</p>`;
+    return `
+      <div class="source-detail-grid">
+        ${sources.map((source, index) => `
+          <article class="source-detail-card ${sourceTierClass(source)}">
+            <a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer"><span>[${index + 1}]</span>${escapeHtml(sourceLabel(source))}</a>
+            <p><strong>Supports:</strong> ${escapeHtml(source.supports)}</p>
+            <p><strong>Limit:</strong> ${escapeHtml(source.limitation)}</p>
+          </article>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function sectionEvidencePanel(title, claim, keys = [], status = "Supported as framing", limit = 4) {
+    return `
+      <article class="section-evidence-card">
+        <div>
+          <span class="evidence-label">Evidence for this section</span>
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(claim)}</p>
+          ${evidenceBadge(status)}
+        </div>
+        ${sourceList(keys, limit)}
+      </article>
+    `;
   }
 
   function pfdMarkup(steps, variant = "mini", title = "Simplified PFD", id = "PFD") {
@@ -250,7 +330,9 @@
       tech.unitOperations.join(" "),
       (tech.criticalParameters || []).join(" "),
       tech.bottlenecks.join(" "),
-      tech.bottleneckTags.join(" ")
+      tech.bottleneckTags.join(" "),
+      tech.evidenceStatus,
+      tech.evidenceNote
     ]
       .join(" ")
       .toLowerCase();
@@ -264,7 +346,8 @@
       const inBottleneck = state.bottleneck === "All" || tech.bottleneckTags.includes(state.bottleneck);
       const inChemical = state.chemical === "All" || tech.chemicals.includes(state.chemical) || tech.materials.includes(state.chemical);
       const inUnit = state.unitOperation === "All" || tech.unitOperations.includes(state.unitOperation);
-      return inQuery && inSector && inBottleneck && inChemical && inUnit;
+      const inEvidence = state.evidenceStatus === "All" || tech.evidenceStatus === state.evidenceStatus;
+      return inQuery && inSector && inBottleneck && inChemical && inUnit && inEvidence;
     });
   }
 
@@ -352,7 +435,7 @@
               </div>
               <div class="evidence-strip">
                 ${evidenceBadge(chemical.evidenceStatus)}
-                ${sourceMini(chemical.sourceKeys, 2)}
+                ${sourceMini(chemical.sourceKeys, 3)}
               </div>
               <button type="button" class="inline-link" data-filter-type="chemical" data-filter-value="${escapeHtml(chemical.name)}">
                 <span aria-hidden="true">→</span> ${count} related PFD${count === 1 ? "" : "s"}
@@ -379,7 +462,7 @@
               <p class="scale-note">${escapeHtml(operation.scaleChallenge)}</p>
               <div class="evidence-strip compact">
                 ${evidenceBadge(operation.evidenceStatus)}
-                ${sourceMini(operation.sourceKeys, 2)}
+                ${sourceMini(operation.sourceKeys, 3)}
               </div>
               <button type="button" class="inline-link" data-filter-type="unitOperation" data-filter-value="${escapeHtml(operation.name)}">
                 ${count === 0 ? "Coming soon" : `→ ${count} mapped PFD${count === 1 ? "" : "s"}`}
@@ -488,6 +571,75 @@
       .join("");
   }
 
+
+  function renderSectionEvidencePanels() {
+    const panels = elements.sectionPanels || {};
+    if (panels.concept) {
+      panels.concept.innerHTML = sectionEvidencePanel(
+        "Visible product vs. hidden process system",
+        "The atlas thesis is supported as an engineering framing: frontier technologies usually require feedstocks, unit operations, QA/reliability systems, manufacturing readiness, and infrastructure before deployment.",
+        [...(sectionSourceKeys.thesis || []), ...(sectionSourceKeys.hiddenSystems || [])],
+        "Supported as framing",
+        5
+      );
+    }
+    if (panels.readerProtocol) {
+      panels.readerProtocol.innerHTML = sectionEvidencePanel(
+        "Reader protocol",
+        "The protocol uses a process-systems lens: trace inputs, transformations, control limits, QA gates, readiness, and integration constraints before treating a concept as deployable.",
+        [...(sectionSourceKeys.thesis || []), ...(sectionSourceKeys.readiness || [])],
+        "Supported as engineering lens",
+        4
+      );
+    }
+    if (panels.chemicals) {
+      panels.chemicals.innerHTML = sectionEvidencePanel(
+        "Chemical spine",
+        "The named chemicals and materials recur because clean-energy, semiconductor, water, carbon-management, and space-infrastructure systems are constrained by supply, purity, conversion, separation, and materials durability.",
+        sectionSourceKeys.chemicals || [],
+        "Partially supported",
+        5
+      );
+    }
+    if (panels.unitOperations) {
+      panels.unitOperations.innerHTML = sectionEvidencePanel(
+        "Recurring unit operations",
+        "Separation, heat transfer, deposition, impurity control, recycle, and QA appear repeatedly as scale-up gates across unrelated frontier technologies.",
+        sectionSourceKeys.unitOperations || [],
+        "Supported as engineering lens",
+        5
+      );
+    }
+    if (panels.readiness) {
+      panels.readiness.innerHTML = sectionEvidencePanel(
+        "TRL is not enough",
+        "Readiness sources justify separating technical maturity from manufacturing maturity, infrastructure integration, reliability, and economic deployment constraints.",
+        sectionSourceKeys.readiness || [],
+        "Supported",
+        5
+      );
+    }
+    if (panels.pathways) {
+      panels.pathways.innerHTML = sectionEvidencePanel(
+        "Scale-up pathways",
+        "The repeated moves listed here are cross-domain patterns, not universal laws; the sources support them as common deployment levers across energy, water, semiconductors, bio, and advanced manufacturing.",
+        sectionSourceKeys.pathways || [],
+        "Supported as cross-domain pattern",
+        5
+      );
+    }
+    if (panels.cases) {
+      const caseKeys = uniqueKeys(atlas.featuredCaseIds.flatMap((id) => techById.get(id)?.sourceKeys || [])).slice(0, 8);
+      panels.cases.innerHTML = sectionEvidencePanel(
+        "Featured case studies",
+        "Featured cards use direct citations first, then chemical/unit-operation/framework sources. The evidence status badge controls how strongly each case should be written.",
+        caseKeys,
+        "Direct and roadmap evidence mixed",
+        6
+      );
+    }
+  }
+
   function renderSources() {
     if (!elements.sourceStats || !elements.evidenceMatrixGrid || !elements.sourceBankGrid) return;
     const tierOneCount = sourceBank.filter((source) => source.tier === "Tier 1").length;
@@ -570,9 +722,14 @@
       `).join("");
     }
 
-    const groups = [...new Set(sourceBank.map((source) => source.group))];
-    elements.sourceBankGrid.innerHTML = groups.map((group) => {
-      const groupSources = sourceBank.filter((source) => source.group === group);
+    const sourceQuery = state.sourceQuery.trim().toLowerCase();
+    const visibleSources = sourceBank.filter((source) => {
+      if (!sourceQuery) return true;
+      return [source.group, source.tier, source.type, source.citation, source.supports, source.limitation].join(" ").toLowerCase().includes(sourceQuery);
+    });
+    const groups = [...new Set(visibleSources.map((source) => source.group))];
+    elements.sourceBankGrid.innerHTML = groups.length ? groups.map((group) => {
+      const groupSources = visibleSources.filter((source) => source.group === group);
       return `
         <article class="source-group-card">
           <div class="source-group-head">
@@ -581,17 +738,22 @@
           </div>
           <div class="source-group-list">
             ${groupSources.map((source, index) => `
-              <a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">
-                <b>[${String(index + 1).padStart(2, "0")}] ${escapeHtml(source.tier)}</b>
+              <a class="${sourceTierClass(source)}" href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">
+                <b>[${String(index + 1).padStart(2, "0")}] ${escapeHtml(source.tier)} · ${escapeHtml(source.type)}</b>
                 <strong>${escapeHtml(source.citation)}</strong>
-                <em>${escapeHtml(source.supports)}</em>
+                <em>Supports: ${escapeHtml(source.supports)}</em>
                 <small>Limit: ${escapeHtml(source.limitation)}</small>
               </a>
             `).join("")}
           </div>
         </article>
       `;
-    }).join("");
+    }).join("") : `
+      <div class="empty-state source-empty">
+        <h3>No source records match this search.</h3>
+        <p>Try a broader term such as DOE, NASEM, water, semiconductor, readiness, manufacturing, or membrane.</p>
+      </div>
+    `;
   }
 
   function filterButton(label, count, type, value, active) {
@@ -638,6 +800,14 @@
         filterButton(operation.name, operation.appearsIn.length, "unitOperation", operation.name, state.unitOperation === operation.name)
       )
     ].join("");
+
+    if (elements.evidenceFilters) {
+      const statuses = [...new Set(technologies.map((tech) => tech.evidenceStatus))];
+      elements.evidenceFilters.innerHTML = [
+        filterButton("All", technologies.length, "evidenceStatus", "All", state.evidenceStatus === "All"),
+        ...statuses.map((status) => filterButton(status, countBy(technologies, (tech) => tech.evidenceStatus === status), "evidenceStatus", status, state.evidenceStatus === status))
+      ].join("");
+    }
   }
 
   function renderTechnologyCard(tech) {
@@ -714,6 +884,7 @@
         <div class="compact-cell evidence-cell">
           <span>Evidence</span>
           ${evidenceBadge(tech.evidenceStatus)}
+          ${sourceMini(tech.sourceKeys, 2)}
         </div>
         <div class="compact-action">
           <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Open <span aria-hidden="true">→</span></button>
@@ -780,7 +951,8 @@
       <div class="modal-body">
         ${modalSection("Why it feels futuristic", `<p>${escapeHtml(futuristicReason(tech))}</p>`)}
         ${modalSection("Realistic process architecture", `<p>${escapeHtml(tech.realisticPathway)}</p>`)}
-        ${modalSection("Evidence status", `<div class="modal-evidence-status">${evidenceBadge(tech.evidenceStatus)}<p>${escapeHtml(tech.evidenceNote)}</p></div>${sourceList(tech.sourceKeys, 6)}`)}
+        ${modalSection("Evidence status", `<div class="modal-evidence-status">${evidenceBadge(tech.evidenceStatus)}<p>${escapeHtml(tech.evidenceNote)}</p></div>${sourceList(tech.sourceKeys, 8)}`)}
+        ${modalSection("What the sources support / do not support", sourceDetailCards(tech.sourceKeys, 8))}
         ${modalSection("Simplified PFD", pfdMarkup(tech.pfdSteps, "detail", "Detailed PFD", tech.id.toUpperCase().slice(0, 9)))}
         <div class="modal-columns">
           ${modalSection("Key inputs", staticPills(tech.inputs))}
@@ -820,13 +992,15 @@
       sector: value === "All" ? technologies.length : countBy(technologies, (tech) => tech.category === value),
       bottleneck: value === "All" ? technologies.length : countBy(technologies, (tech) => tech.bottleneckTags.includes(value)),
       chemical: value === "All" ? technologies.length : (chemicals.find((item) => item.name === value)?.relatedTechnologies.length || 0),
-      unitOperation: value === "All" ? technologies.length : (unitOperations.find((item) => item.name === value)?.appearsIn.length || 0)
+      unitOperation: value === "All" ? technologies.length : (unitOperations.find((item) => item.name === value)?.appearsIn.length || 0),
+      evidenceStatus: value === "All" ? technologies.length : countBy(technologies, (tech) => tech.evidenceStatus === value)
     }[type];
     if (countFor === 0 && value !== "All") return;
     if (type === "sector") state.sector = state.sector === value ? "All" : value;
     if (type === "bottleneck") state.bottleneck = state.bottleneck === value ? "All" : value;
     if (type === "chemical") state.chemical = state.chemical === value ? "All" : value;
     if (type === "unitOperation") state.unitOperation = state.unitOperation === value ? "All" : value;
+    if (type === "evidenceStatus") state.evidenceStatus = state.evidenceStatus === value ? "All" : value;
     renderFilters();
     renderLibrary();
     $("#atlas").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -846,6 +1020,7 @@
       state.bottleneck = "All";
       state.chemical = "All";
       state.unitOperation = "All";
+      state.evidenceStatus = "All";
       elements.search.value = "";
       renderFilters();
       renderLibrary();
@@ -854,6 +1029,11 @@
     elements.search.addEventListener("input", (event) => {
       state.query = event.target.value;
       renderLibrary();
+    });
+
+    elements.sourceSearch?.addEventListener("input", (event) => {
+      state.sourceQuery = event.target.value;
+      renderSources();
     });
 
     document.addEventListener("click", (event) => {
@@ -930,6 +1110,7 @@
     renderBottlenecksAndReadiness();
     renderPathways();
     renderCaseStudies();
+    renderSectionEvidencePanels();
     renderSources();
     renderFilters();
     renderLibrary();

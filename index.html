@@ -69,8 +69,8 @@
             </div>
             <div class="hero-metrics" id="heroMetrics" aria-label="Atlas summary"></div>
             <div class="evidence-callout">
-              <strong>Evidence pass added.</strong>
-              <span>Claims are now labeled by source depth. Every card has a starter source set, and speculative cards are separated from directly sourced cards.</span>
+              <strong>Sources are integrated.</strong>
+              <span>Cards, section theses, and modals now carry visible evidence status, citation chips, source-support notes, and limitation language.</span>
             </div>
           </div>
 
@@ -193,6 +193,7 @@
             </ul>
           </article>
         </div>
+        <div class="section-source-panel" id="conceptSourcePanel" aria-label="Evidence for project thesis"></div>
       </section>
 
       <section id="read-atlas" class="section-shell compact-guide" aria-labelledby="read-atlas-title">
@@ -218,6 +219,7 @@
             </p>
           </article>
         </div>
+        <div class="section-source-panel compact" id="readerProtocolSourcePanel" aria-label="Evidence for reader protocol"></div>
       </section>
 
       <section id="system-map" class="section-shell" aria-labelledby="system-map-title">
@@ -239,6 +241,7 @@
           polymers quietly determine which futures can actually scale. This section maps the recurring chemical and
           material backbones behind clean energy, smart cities, semiconductors, synthetic fuels, and off-world industry.
         </p>
+        <div class="section-source-panel" id="chemicalSourcePanel" aria-label="Evidence for chemical spine"></div>
         <div class="chemical-grid" id="chemicalGrid"></div>
       </section>
 
@@ -252,6 +255,7 @@
           preventing fouling, depositing uniform films, purifying trace contaminants, controlling interfaces, and proving
           reliability over thousands of cycles.
         </p>
+        <div class="section-source-panel" id="unitSourcePanel" aria-label="Evidence for unit operations"></div>
         <div class="unit-grid" id="unitOperationGrid"></div>
       </section>
 
@@ -260,6 +264,7 @@
           <p class="eyebrow">FSA-007 · Bottlenecks and readiness</p>
           <h2 id="readiness-title">Most future systems are blocked by MRL, IRL, and process economics.</h2>
         </div>
+        <div class="section-source-panel" id="readinessSourcePanel" aria-label="Evidence for readiness frameworks"></div>
         <div class="readiness-layout">
           <div class="readiness-panel">
             <h3>Readiness map</h3>
@@ -282,6 +287,7 @@
           materials, cheaper clean energy, stronger separations, process control, modular manufacturing, reliability testing,
           supply-chain redesign, and infrastructure deployment.
         </p>
+        <div class="section-source-panel" id="pathwaySourcePanel" aria-label="Evidence for scale-up pathways"></div>
         <div class="pathway-grid" id="pathwayGrid"></div>
       </section>
 
@@ -290,6 +296,7 @@
           <p class="eyebrow">FSA-009 · Featured case studies</p>
           <h2 id="case-title">Start here: featured process architectures.</h2>
         </div>
+        <div class="section-source-panel compact" id="caseSourcePanel" aria-label="Evidence for featured case studies"></div>
         <div class="case-grid" id="caseStudyGrid"></div>
       </section>
 
@@ -338,6 +345,10 @@
               <span class="filter-label">Unit operation</span>
               <div class="filter-group compact-filters" id="unitFilters" aria-label="Unit operation filters"></div>
             </div>
+            <div>
+              <span class="filter-label">Evidence status</span>
+              <div class="filter-group compact-filters" id="evidenceFilters" aria-label="Evidence-status filters"></div>
+            </div>
           </div>
           <div class="filter-actions">
             <button class="reset-filters" id="resetFilters" type="button">Reset filters</button>
@@ -352,14 +363,18 @@
       <section id="sources" class="section-shell sources-section" aria-labelledby="sources-title">
         <div class="section-heading">
           <p class="eyebrow">FSA-012 · Evidence layer</p>
-          <h2 id="sources-title">Source bank and claim-level caution map.</h2>
+          <h2 id="sources-title">Integrated citations, source bank, and caution map.</h2>
         </div>
         <p class="section-intro">
-          This source layer is a fourth-pass evidence system for the atlas. It prioritizes peer-reviewed reviews, national-lab or agency reports,
-          standards/readiness frameworks, and authoritative technical roadmaps. It does not mean every PFD claim is proven; it now separates direct starter sourcing
-          from roadmap/early-stage evidence and speculative analogue evidence.
+          This evidence layer is integrated into the atlas rather than isolated at the end: section claims, cards, compact rows, and detail modals carry source chips,
+          source-support notes, and limitation language. The source bank prioritizes peer-reviewed reviews, national-lab or agency reports, standards/readiness
+          frameworks, and authoritative technical roadmaps. Citation presence does not mean every PFD claim is proven.
         </p>
         <div class="source-stats" id="sourceStats" aria-label="Source statistics"></div>
+        <label class="source-search-control">
+          <span>Search source bank</span>
+          <input id="sourceSearch" type="search" placeholder="Search source, organization, topic, support note, limitation..." />
+        </label>
         <div class="evidence-warning-card">
           <strong>Use these citations cautiously.</strong>
           <p>Broad sources support the engineering lens; direct card sources support specific mechanisms or bottlenecks. Cost, timeline, deployment, and performance claims still need primary or current project-specific evidence. Speculative cards are intentionally marked as analogue-sourced rather than proven.</p>
