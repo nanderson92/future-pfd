@@ -233,7 +233,7 @@ body[data-motion="off"] .twinkle { animation: none; }
 }
 .nav-inner {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 32px;
   padding: 14px var(--gutter);
@@ -276,7 +276,7 @@ body[data-motion="off"] .twinkle { animation: none; }
 }
 
 .nav-links {
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: flex-end;
   gap: 4px;
   font-family: var(--font-meta);
   font-size: 11px;
@@ -350,6 +350,69 @@ body[data-motion="off"] .nav-status .pulse { animation: none; }
 .section .frame { display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
 @media (max-width: 1100px) {
   .section .frame { grid-template-columns: 1fr; gap: 24px; }
+}
+.section .frame.frame-flat { display: block; }
+
+/* Feature section — promoted header for the key Atlas section */
+.section-feature {
+  padding-top: 72px;
+  padding-bottom: 120px;
+  border-top: 2px solid var(--rule);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,
+      color-mix(in oklab, var(--c-energy) 4%, transparent),
+      transparent 70%);
+}
+.atlas-banner {
+  max-width: var(--col-max);
+  margin: 0 auto 56px;
+  padding: 0 var(--gutter);
+  display: flex; flex-direction: column;
+  gap: 24px;
+}
+.atlas-banner-meta {
+  display: inline-flex; align-items: center; gap: 14px;
+  font-family: var(--font-meta);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.atlas-banner-meta .atlas-banner-code {
+  color: var(--c-energy);
+  font-weight: 600;
+}
+.atlas-banner-meta .sep { opacity: 0.5; }
+.atlas-banner-title {
+  font-family: var(--font-headline);
+  font-size: clamp(72px, 11vw, 168px);
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  margin: 0;
+  text-wrap: balance;
+  color: var(--fg);
+}
+[data-mono="serif"] .atlas-banner-title { font-weight: 400; letter-spacing: -0.025em; }
+.atlas-banner-title .glyph {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--c-energy);
+  font-weight: 400;
+  padding: 0 0.04em;
+}
+.atlas-banner-lede {
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--fg-muted);
+  max-width: 60ch;
+  margin: 0;
+  text-wrap: pretty;
+  padding-left: 16px;
+  border-left: 2px solid var(--c-energy);
+}
+@media (max-width: 700px) {
+  .atlas-banner-title { font-size: clamp(56px, 14vw, 96px); }
 }
 
 .section-stamp {
@@ -464,41 +527,62 @@ body[data-motion="off"] .nav-status .pulse { animation: none; }
   margin-bottom: 36px;
 }
 .hero-meta .sep { color: var(--fg-faint); opacity: 0.4; }
+
+.hero-kicker {
+  display: inline-flex; align-items: center; gap: 14px;
+  font-family: var(--font-meta);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: var(--hairline) solid var(--rule);
+}
+.hero-kicker::before {
+  content: "";
+  width: 28px; height: 1px;
+  background: var(--c-energy);
+}
+
 .hero h1 {
   font-family: var(--font-headline);
-  font-size: clamp(48px, 7.2vw, 112px);
-  line-height: 0.94;
-  letter-spacing: -0.04em;
+  font-size: clamp(40px, 5.6vw, 84px);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
   font-weight: 500;
   text-wrap: balance;
-  max-width: 14ch;
+  max-width: 22ch;
 }
-[data-mono="serif"] .hero h1 { font-weight: 400; letter-spacing: -0.025em; }
+[data-mono="serif"] .hero h1 { font-weight: 400; letter-spacing: -0.02em; }
 .hero h1 .glyph {
   display: inline-block;
   font-family: var(--font-serif);
   font-style: italic;
   color: var(--c-energy);
   font-weight: 400;
-  padding: 0 0.05em;
+  padding: 0 0.04em;
 }
 [data-mono="serif"] .hero h1 .glyph { font-family: var(--font-serif); }
 .hero .lede {
   margin-top: 36px;
   font-size: 19px;
-  max-width: 60ch;
+  max-width: 58ch;
   color: var(--fg-muted);
-  line-height: 1.45;
+  line-height: 1.5;
   text-wrap: pretty;
 }
-.hero-thesis {
-  margin-top: 32px;
-  font-family: var(--font-meta);
-  font-size: 12px; letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--fg);
-  padding-left: 14px;
+.hero-byline {
+  margin-top: 22px;
+  padding-left: 16px;
   border-left: 2px solid var(--c-energy);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--fg);
+  max-width: 56ch;
+  text-wrap: pretty;
 }
 .hero-stats {
   margin-top: 64px;

@@ -126,10 +126,6 @@ function Nav() {
             </React.Fragment>
           ))}
         </div>
-        <div className="nav-status">
-          <span className="pulse" />
-          <span>LIVE · {coord}</span>
-        </div>
       </div>
     </nav>
   );
@@ -151,19 +147,20 @@ function Hero() {
           <span className="sep">▣</span>
           <span>N. Anderson · ChBE</span>
         </div>
+        <div className="hero-kicker">Future Systems Atlas</div>
         <h1>
-          The future is not<br />
-          just invented.<br />
-          It is <span className="glyph">scaled</span>.
+          A process-flow map of the technologies<br />
+          people call <span className="glyph">&ldquo;the future.&rdquo;</span>
         </h1>
         <p className="lede">
-          An independent atlas of 115 frontier technologies, each decomposed into
-          inputs, unit operations, bottlenecks, readiness gaps, and deployment
-          constraints — the hidden process system behind every visible product.
+          Flying cars, fusion plants, smart buildings, vertical farms, artificial organs,
+          and space habitats only become real when materials, energy, manufacturing,
+          quality control, infrastructure, and supply chains can support them.
         </p>
-        <div className="hero-thesis">
-          Concepts become deployable when their inputs, operations, bottlenecks, and integration constraints are understood.
-        </div>
+        <p className="hero-byline">
+          I built this atlas to translate futuristic technologies into the processes
+          and systems that would have to exist underneath them.
+        </p>
 
         <div className="hero-actions">
           <a className="btn primary" href="#atlas">Browse the atlas <span className="arrow">→</span></a>

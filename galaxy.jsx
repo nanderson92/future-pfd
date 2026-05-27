@@ -150,14 +150,25 @@ function GalaxyMap() {
   };
 
   return (
-    <section id="galaxy" className="section section-galaxy">
-      <div className="frame">
-        <SectionHead
-          code="FSA-010 · Interactive atlas"
-          kicker="115 cards · 7 sectors"
-          title="The atlas as a star chart."
-          lede="Every technology has a planet (its sector), a position (its readiness), and a chemical signature. Hover, focus, and trace the spine of molecules that connects them."
-        />
+    <section id="galaxy" className="section section-galaxy section-feature">
+      <div className="atlas-banner">
+        <div className="atlas-banner-meta">
+          <span className="atlas-banner-code">FSA-010</span>
+          <span className="sep">▣</span>
+          <span>Interactive map</span>
+          <span className="sep">▣</span>
+          <span>115 cards · 7 sectors</span>
+        </div>
+        <h2 className="atlas-banner-title">
+          The <span className="glyph">Atlas</span>.
+        </h2>
+        <p className="atlas-banner-lede">
+          Every technology has a planet (its sector), a position (its readiness),
+          and a chemical signature. Hover, focus, and trace the spine of molecules
+          that connects them.
+        </p>
+      </div>
+      <div className="frame frame-flat">
 
         {/* Top filter strip */}
         <div className="galaxy-filters">
