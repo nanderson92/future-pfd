@@ -34,3 +34,8 @@ Current evidence-status counts:
 - Speculative / analogue-sourced: 13 cards
 
 See `SOURCE_INTEGRATION_NOTES.md`, `SOURCES.md`, `EVIDENCE_MATRIX.csv`, and `CARD_SOURCE_AUDIT.csv` for the audit layer.
+
+
+## Recruiter hierarchy pass
+
+The latest build implements a recruiter/startup-founder hierarchy pass: stronger hero proof, three flagship cases directly under the hero, a “What this demonstrates about me” section, a renamed Process Architecture Index, grouped unit-operation failure modes, a plain-English readiness explainer, and a collapsed evidence appendix. See `RECRUITER_HIERARCHY_PASS.md` for details.

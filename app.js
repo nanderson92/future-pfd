@@ -127,6 +127,40 @@
     return `This is futuristic because it makes ${tech.name.toLowerCase()} look usable in the real world. The hard part is not the image of the technology; it is the controlled process architecture, quality window, and infrastructure needed to make it repeatable.`;
   }
 
+  function caseProblem(tech) {
+    const custom = {
+      "Atmospheric water harvesting": "Make potable water without pipes, rain, or seawater by pulling moisture from air.",
+      "Micromodular printed electronics": "Place tiny functional microdevices accurately enough that printed interconnects can turn them into working circuits.",
+      "Fusion power plants": "Turn high-performance plasma experiments into maintainable net-electric power plants.",
+      "Synthetic fuel from air and water": "Make drop-in fuel from CO2, water, and clean electricity without pretending the chemistry alone solves cost."
+    };
+    return custom[tech.name] || `Turn ${tech.name.toLowerCase()} from a concept into an operable process system.`;
+  }
+
+  function whyChemEMatters(tech) {
+    const custom = {
+      "Atmospheric water harvesting": "ChemE matters because sorbent selection, heat input, condensation, water polishing, and humidity-dependent mass transfer control viability.",
+      "Micromodular printed electronics": "ChemE matters because suspension stability, wetting, deposition, drying, interfacial transport, and process windows determine placement fidelity.",
+      "Fusion power plants": "ChemE matters because tritium handling, coolant loops, heat extraction, material degradation, separations, and maintenance cycles decide whether a reactor becomes a plant.",
+      "Synthetic fuel from air and water": "ChemE matters because DAC, electrolysis, catalytic conversion, product separation, recycle, heat integration, and fuel certification set the economics."
+    };
+    return custom[tech.name] || "ChemE matters because the bottleneck is usually a coupled materials, transport, separation, control, quality, or scale-up problem.";
+  }
+
+  const pathwayExamples = {
+    "Better materials": ["Fusion blankets", "sorbent AWH", "solid-state batteries"],
+    "Cheaper clean energy": ["DAC", "green hydrogen", "synthetic fuels"],
+    "Advanced manufacturing": ["semiconductor fabs", "printed electronics", "additive manufacturing"],
+    "High-throughput experimentation": ["catalysts", "cell lines", "process windows"],
+    "Process control and automation": ["semiconductor fabs", "biomanufacturing", "metal additive manufacturing"],
+    "Modular factories": ["green hydrogen skids", "DAC modules", "water treatment units"],
+    "Better separations": ["PFAS treatment", "brine mining", "desalination"],
+    "Supply-chain redesign": ["lithium", "copper", "semiconductor gases"],
+    "Policy and infrastructure deployment": ["AAM vertiports", "hydrogen pipelines", "CO2 storage hubs"],
+    "Reliability testing": ["fusion materials", "battery cycling", "implants"],
+    "Cost reduction through scale": ["solar PV", "electrolyzers", "batteries"]
+  };
+
   function countBy(items, predicate) {
     return items.filter(predicate).length;
   }
@@ -352,14 +386,14 @@
   }
 
   function renderHeroMetrics() {
-    const featuredCount = technologies.filter((tech) => tech.featured).length;
+    const evidencePostures = new Set(technologies.map((tech) => tech.evidenceStatus)).size;
     elements.heroMetrics.innerHTML = `
-      <span><strong>${technologies.length}</strong> technologies mapped</span>
-      <span><strong>${Object.keys(sectors).length}</strong> future-system sectors</span>
-      <span><strong>${chemicals.length}</strong> chemicals / materials</span>
-      <span><strong>${unitOperations.length}</strong> recurring unit ops</span>
+      <span><strong>${technologies.length}</strong> technology cards</span>
+      <span><strong>${sourceBank.length}</strong> source records</span>
+      <span><strong>${unitOperations.length}</strong> unit operations</span>
+      <span><strong>${chemicals.length}</strong> chemical/material nodes</span>
       <span><strong>${bottleneckTaxonomy.length}</strong> bottleneck classes</span>
-      <span><strong>${featuredCount}</strong> featured case studies</span>
+      <span><strong>${evidencePostures}</strong> evidence postures</span>
     `;
   }
 
@@ -537,6 +571,9 @@
                     <span>${String(index + 1).padStart(2, "0")}</span>
                     <h3>${escapeHtml(pathway.title)}</h3>
                     <p>${escapeHtml(pathway.text)}</p>
+                    <div class="pathway-examples">
+                      ${(pathwayExamples[pathway.title] || []).map((example) => `<b>${escapeHtml(example)}</b>`).join("")}
+                    </div>
                   </article>
                 `)
                 .join("")}
@@ -548,28 +585,36 @@
   }
 
   function renderCaseStudies() {
-    const cases = atlas.featuredCaseIds.map((id) => techById.get(id)).filter(Boolean);
+    const starterCaseIds = ["atmospheric-water-harvesting", "micromodular-printed-electronics", "fusion-power-plants"];
+    const cases = starterCaseIds.map((id) => techById.get(id)).filter(Boolean);
     elements.caseStudyGrid.innerHTML = cases
       .map(
         (tech) => `
-          <article class="case-card teaser-card" style="${styleForTech(tech)}">
+          <article class="case-card teaser-card flagship-case" style="${styleForTech(tech)}">
             <div class="card-kicker">
-              <span class="category-badge outlined">${escapeHtml(tech.originalCategory)}</span>
+              <span class="category-badge outlined">${escapeHtml(tech.originalCategory || tech.category)}</span>
               <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">View case study <span aria-hidden="true">→</span></button>
             </div>
             <h3>${escapeHtml(tech.name)}</h3>
-            <p class="promise">${escapeHtml(tech.sciFiPromise)}</p>
-            <div class="case-label">Process architecture teaser</div>
-            ${pfdMarkup(tech.pfdSteps, "case", "Featured PFD", tech.id.toUpperCase().slice(0, 9))}
+            <dl class="case-brief">
+              <div><dt>Problem</dt><dd>${escapeHtml(caseProblem(tech))}</dd></div>
+              <div><dt>Process architecture</dt><dd>${escapeHtml(tech.pfdSteps.join(" → "))}</dd></div>
+              <div><dt>Main bottleneck</dt><dd>${escapeHtml(tech.bottleneckTags[0] || tech.bottlenecks[0] || "Scale-up uncertainty")}</dd></div>
+              <div><dt>Why ChemE matters</dt><dd>${escapeHtml(whyChemEMatters(tech))}</dd></div>
+            </dl>
+            <div class="case-label">Simplified process flow</div>
+            ${pfdMarkup(tech.pfdSteps, "case", "Flagship PFD", tech.id.toUpperCase().slice(0, 9))}
             <div class="case-evidence">
               ${evidenceBadge(tech.evidenceStatus)}
-              ${sourceMini(tech.sourceKeys, 3)}
+              <span class="source-count">${recordsForKeys(tech.sourceKeys).length} source records</span>
+              ${sourceMini(tech.sourceKeys, 2)}
             </div>
           </article>
         `
       )
-      .join("");
+      .join("") + `<a class="case-index-link" href="#atlas">Browse the full Process Architecture Index <span aria-hidden="true">→</span></a>`;
   }
+
 
 
   function renderSectionEvidencePanels() {
@@ -837,7 +882,7 @@
         ${readinessBars(tech.readiness)}
         <div class="evidence-panel-inline">
           <div>${evidenceBadge(tech.evidenceStatus)}<p>${escapeHtml(tech.evidenceNote)}</p></div>
-          ${sourceMini(tech.sourceKeys, 3)}
+          <div class="evidence-card-action"><span>${recordsForKeys(tech.sourceKeys).length} source records</span><button class="detail-button small" type="button" data-tech="${escapeHtml(tech.id)}">View evidence →</button></div>
         </div>
         <div class="tag-block">
           <span>Chemicals / materials</span>
@@ -884,7 +929,7 @@
         <div class="compact-cell evidence-cell">
           <span>Evidence</span>
           ${evidenceBadge(tech.evidenceStatus)}
-          ${sourceMini(tech.sourceKeys, 2)}
+          ${sourceMini(tech.sourceKeys, 1)}
         </div>
         <div class="compact-action">
           <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Open <span aria-hidden="true">→</span></button>
@@ -896,7 +941,7 @@
   function renderLibrary() {
     const matches = filteredTechnologies();
     const noun = matches.length === 1 ? "PFD" : "PFDs";
-    const activeFilters = [state.sector, state.bottleneck, state.chemical, state.unitOperation].filter((item) => item !== "All");
+    const activeFilters = [state.sector, state.bottleneck, state.chemical, state.unitOperation, state.evidenceStatus].filter((item) => item !== "All");
     const filterText = activeFilters.length ? ` filtered by ${activeFilters.map(escapeHtml).join(" + ")}` : "";
     const searchText = state.query.trim() ? ` matching "${escapeHtml(state.query.trim())}"` : "";
 
