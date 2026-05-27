@@ -275,16 +275,25 @@
   }
 
   function sectionEvidencePanel(title, claim, keys = [], status = "Supported as framing", limit = 4) {
+    const sources = recordsForKeys(keys).slice(0, limit);
+    const sourceCount = recordsForKeys(keys).length;
     return `
-      <article class="section-evidence-card">
-        <div>
-          <span class="evidence-label">Evidence for this section</span>
-          <h3>${escapeHtml(title)}</h3>
+      <details class="section-evidence-card section-evidence-details">
+        <summary>
+          <div>
+            <span class="evidence-label">Evidence basis</span>
+            <h3>${escapeHtml(title)}</h3>
+          </div>
+          <div class="evidence-summary-meta">
+            ${evidenceBadge(status)}
+            <span>${sourceCount} source record${sourceCount === 1 ? "" : "s"}</span>
+          </div>
+        </summary>
+        <div class="evidence-details-body">
           <p>${escapeHtml(claim)}</p>
-          ${evidenceBadge(status)}
+          ${sources.length ? sourceList(keys, limit) : `<div class="source-list empty">Source expansion needed.</div>`}
         </div>
-        ${sourceList(keys, limit)}
-      </article>
+      </details>
     `;
   }
 
@@ -453,6 +462,7 @@
               ${foundational ? `<div class="foundational-ribbon">★ Foundational</div>` : ""}
               <div class="formula">${formulaHtml(chemical.formula)}</div>
               <h3>${escapeHtml(chemical.name)}</h3>
+              <p class="card-meta-line">${count} related system${count === 1 ? "" : "s"} · Main bottleneck: ${escapeHtml(chemical.bottlenecks[0])}</p>
               <p>${escapeHtml(chemical.role)}</p>
               <dl>
                 <div><dt>Made / sourced from</dt><dd>${escapeHtml(chemical.madeFrom)}</dd></div>
@@ -467,10 +477,10 @@
                 <span>Related unit operations</span>
                 ${staticPills(chemical.unitOperations, 4)}
               </div>
-              <div class="evidence-strip">
-                ${evidenceBadge(chemical.evidenceStatus)}
+              <details class="evidence-strip evidence-strip-details">
+                <summary>${evidenceBadge(chemical.evidenceStatus)}<span>${recordsForKeys(chemical.sourceKeys).length} sources</span></summary>
                 ${sourceMini(chemical.sourceKeys, 3)}
-              </div>
+              </details>
               <button type="button" class="inline-link" data-filter-type="chemical" data-filter-value="${escapeHtml(chemical.name)}">
                 <span aria-hidden="true">→</span> ${count} related PFD${count === 1 ? "" : "s"}
               </button>
@@ -482,7 +492,12 @@
   }
 
   function renderUnitOperations() {
-    elements.unitOperationGrid.innerHTML = unitOperations
+    const orderedOperations = [...unitOperations].sort((a, b) => {
+      const mappedDelta = Number(b.appearsIn.length > 0) - Number(a.appearsIn.length > 0);
+      if (mappedDelta) return mappedDelta;
+      return b.appearsIn.length - a.appearsIn.length || a.name.localeCompare(b.name);
+    });
+    elements.unitOperationGrid.innerHTML = orderedOperations
       .map(
         (operation, index) => {
           const count = operation.appearsIn.length;
@@ -490,14 +505,14 @@
           return `
             <article class="unit-card family-${family} ${count === 0 ? "is-unmapped" : ""}">
               <span>${String(index + 1).padStart(2, "0")}</span>
-              ${count === 0 ? `<div class="coming-soon">Defined, not yet mapped</div>` : ""}
+              ${count === 0 ? `<div class="coming-soon">Expansion candidate</div>` : ""}
               <h3>${escapeHtml(operation.name)}</h3>
               <p>${escapeHtml(operation.description)}</p>
               <p class="scale-note">${escapeHtml(operation.scaleChallenge)}</p>
-              <div class="evidence-strip compact">
-                ${evidenceBadge(operation.evidenceStatus)}
+              <details class="evidence-strip compact evidence-strip-details">
+                <summary>${evidenceBadge(operation.evidenceStatus)}<span>${recordsForKeys(operation.sourceKeys).length} sources</span></summary>
                 ${sourceMini(operation.sourceKeys, 3)}
-              </div>
+              </details>
               <button type="button" class="inline-link" data-filter-type="unitOperation" data-filter-value="${escapeHtml(operation.name)}">
                 ${count === 0 ? "Coming soon" : `→ ${count} mapped PFD${count === 1 ? "" : "s"}`}
               </button>
@@ -596,6 +611,7 @@
               <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">View case study <span aria-hidden="true">→</span></button>
             </div>
             <h3>${escapeHtml(tech.name)}</h3>
+            <p class="case-signal"><strong>What this shows:</strong> Process decomposition, bottleneck framing, manufacturability judgment, and evidence discipline.</p>
             <dl class="case-brief">
               <div><dt>Problem</dt><dd>${escapeHtml(caseProblem(tech))}</dd></div>
               <div><dt>Process architecture</dt><dd>${escapeHtml(tech.pfdSteps.join(" → "))}</dd></div>
@@ -863,7 +879,7 @@
           <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Details <span aria-hidden="true">→</span></button>
         </div>
         <h3>${escapeHtml(tech.name)}</h3>
-        <div class="card-label">Sci-fi promise</div>
+        <div class="card-label">Visible capability</div>
         <p class="promise">${escapeHtml(tech.sciFiPromise)}</p>
         <div class="card-label">Engineering pathway</div>
         <p class="pathway">${escapeHtml(tech.realisticPathway)}</p>
@@ -880,10 +896,6 @@
           </div>
         </div>
         ${readinessBars(tech.readiness)}
-        <div class="evidence-panel-inline">
-          <div>${evidenceBadge(tech.evidenceStatus)}<p>${escapeHtml(tech.evidenceNote)}</p></div>
-          <div class="evidence-card-action"><span>${recordsForKeys(tech.sourceKeys).length} source records</span><button class="detail-button small" type="button" data-tech="${escapeHtml(tech.id)}">View evidence →</button></div>
-        </div>
         <div class="tag-block">
           <span>Chemicals / materials</span>
           ${chipList([...tech.chemicals, ...tech.materials], "chemical", 5)}
@@ -900,6 +912,11 @@
           <span>Bottleneck tags</span>
           ${chipList(tech.bottleneckTags, "bottleneck", 4)}
         </div>
+        <details class="evidence-panel-inline card-evidence-details">
+          <summary>${evidenceBadge(tech.evidenceStatus)}<span>${recordsForKeys(tech.sourceKeys).length} source records</span></summary>
+          <p>${escapeHtml(tech.evidenceNote)}</p>
+          ${sourceMini(tech.sourceKeys, 4)}
+        </details>
         <p class="engineer-question">${escapeHtml(tech.processQuestion)}</p>
       </article>
     `;
@@ -929,7 +946,7 @@
         <div class="compact-cell evidence-cell">
           <span>Evidence</span>
           ${evidenceBadge(tech.evidenceStatus)}
-          ${sourceMini(tech.sourceKeys, 1)}
+          <small>${recordsForKeys(tech.sourceKeys).length} sources</small>
         </div>
         <div class="compact-action">
           <button class="detail-button" type="button" data-tech="${escapeHtml(tech.id)}">Open <span aria-hidden="true">→</span></button>
@@ -996,8 +1013,6 @@
       <div class="modal-body">
         ${modalSection("Why it feels futuristic", `<p>${escapeHtml(futuristicReason(tech))}</p>`)}
         ${modalSection("Realistic process architecture", `<p>${escapeHtml(tech.realisticPathway)}</p>`)}
-        ${modalSection("Evidence status", `<div class="modal-evidence-status">${evidenceBadge(tech.evidenceStatus)}<p>${escapeHtml(tech.evidenceNote)}</p></div>${sourceList(tech.sourceKeys, 8)}`)}
-        ${modalSection("What the sources support / do not support", sourceDetailCards(tech.sourceKeys, 8))}
         ${modalSection("Simplified PFD", pfdMarkup(tech.pfdSteps, "detail", "Detailed PFD", tech.id.toUpperCase().slice(0, 9)))}
         <div class="modal-columns">
           ${modalSection("Key inputs", staticPills(tech.inputs))}
@@ -1017,6 +1032,7 @@
           <span>Process engineer's question</span>
           <strong>${escapeHtml(tech.processQuestion)}</strong>
         </div>
+        ${modalSection("Evidence and source limits", `<details class="modal-source-details"><summary>${evidenceBadge(tech.evidenceStatus)}<span>${recordsForKeys(tech.sourceKeys).length} source records</span></summary><div class="modal-evidence-status"><p>${escapeHtml(tech.evidenceNote)}</p></div>${sourceList(tech.sourceKeys, 8)}<h5>What the sources support / do not support</h5>${sourceDetailCards(tech.sourceKeys, 8)}</details>`)}
         ${modalSection("Related technologies", relatedLinks(tech))}
       </div>
     `;
