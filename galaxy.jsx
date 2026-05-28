@@ -20,6 +20,29 @@ const SECTOR_DESC = {
   space:         "Launch, propulsion, ISRU, on-orbit manufacturing, habitats — the hardware of getting off-planet and staying.",
 };
 
+const ATLAS_LENSES = [
+  { id: "sectors", label: "Sectors", code: "01", section: null,
+    title: "Seven future domains",
+    body: "The outer planets are the main doors into the atlas. Pick a sector first, then read its moons as technology pathways." },
+  { id: "chemicals", label: "Chemicals", code: "02", section: "chemicals",
+    title: "Chemical spine",
+    body: "This layer traces recurring molecules and materials, such as H₂, CO₂, NH₃, Si, Li, H₂O, across otherwise separate futures." },
+  { id: "unitops", label: "Unit ops", code: "03", section: "unitops",
+    title: "Unit-operation layer",
+    body: "This layer asks what physical operations actually make the future work: separation, electrolysis, deposition, heat exchange, fermentation, and purification." },
+  { id: "bottlenecks", label: "Bottlenecks", code: "04", section: "pathways",
+    title: "Scale-up constraints",
+    body: "This layer surfaces the limiting step: energy intensity, dilute feeds, material durability, manufacturing yield, cost, siting, or infrastructure." },
+  { id: "readiness", label: "Readiness", code: "05", section: "readiness",
+    title: "TRL · MRL · IRL",
+    body: "This layer separates whether the science works, whether manufacturing can repeat it, and whether the surrounding infrastructure can absorb it." },
+  { id: "evidence", label: "Evidence", code: "06", section: "sources",
+    title: "Evidence posture",
+    body: "This layer keeps the sci-fi honest: direct demonstrations, roadmap claims, and analogues from adjacent industries are visibly different." },
+];
+
+const lensById = (id) => ATLAS_LENSES.find(l => l.id === id) || ATLAS_LENSES[0];
+
 function GalaxyMap() {
   const sectors = window.FSA.SECTORS;
   const entries = window.FSA.ENTRIES;
@@ -30,34 +53,62 @@ function GalaxyMap() {
   const [hoverTech, setHoverTech] = React.useState(null);
   const [hoverPlanet, setHoverPlanet] = React.useState(null);
   const [highlightChem, setHighlightChem] = React.useState(null);
+  const [highlightOp, setHighlightOp] = React.useState(null);
+  const [highlightBottleneck, setHighlightBottleneck] = React.useState(null);
   const [evidenceFilter, setEvidenceFilter] = React.useState(null);
   const [readinessMin, setReadinessMin] = React.useState(1);
   const [openTech, setOpenTech] = React.useState(null);
+  const [activeLens, setActiveLens] = React.useState("sectors");
 
   // Listen for cross-section navigation events
   React.useEffect(() => {
     const onChem = (e) => {
       setHighlightChem(e.detail);
+      setHighlightOp(null);
+      setHighlightBottleneck(null);
+      setActiveLens("chemicals");
       setFocused(null);
-      const el = document.getElementById("galaxy");
+      const el = document.getElementById("top");
       if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
     };
     const onSector = (e) => {
       setFocused(e.detail);
-      const el = document.getElementById("galaxy");
+      setActiveLens("sectors");
+      const el = document.getElementById("top");
       if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
     };
     const onTech = (e) => {
       const entry = window.FSA.ENTRIES.find(x => x.pid === e.detail);
       if (entry) setOpenTech(entry);
     };
+    const onLens = (e) => {
+      const lensId = e.detail || "sectors";
+      if (!ATLAS_LENSES.some(l => l.id === lensId)) return;
+      setActiveLens(lensId);
+      if (lensId !== "chemicals") setHighlightChem(null);
+      if (lensId !== "unitops") setHighlightOp(null);
+      if (lensId !== "bottlenecks") setHighlightBottleneck(null);
+      const el = document.getElementById("top");
+      if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
+    };
+    const onReset = () => {
+      setFocused(null);
+      setActiveLens("sectors");
+      clearOrbitFilters();
+      const el = document.getElementById("top");
+      if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
+    };
     window.addEventListener("fsa:focus-chemical", onChem);
     window.addEventListener("fsa:focus-sector", onSector);
     window.addEventListener("fsa:open-tech", onTech);
+    window.addEventListener("fsa:set-lens", onLens);
+    window.addEventListener("fsa:reset-orbit", onReset);
     return () => {
       window.removeEventListener("fsa:focus-chemical", onChem);
       window.removeEventListener("fsa:focus-sector", onSector);
       window.removeEventListener("fsa:open-tech", onTech);
+      window.removeEventListener("fsa:set-lens", onLens);
+      window.removeEventListener("fsa:reset-orbit", onReset);
     };
   }, []);
 
@@ -126,6 +177,28 @@ function GalaxyMap() {
 
   const planetById = id => planets.find(p => p.id === id);
 
+  const scrollToAtlas = () => {
+    const el = document.getElementById("atlas");
+    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
+  };
+
+  const openAtlasForSector = (sectorId) => {
+    window.dispatchEvent(new CustomEvent("fsa:atlas-sector", { detail: sectorId }));
+    scrollToAtlas();
+  };
+
+  const openAtlasWithFilter = (filter) => {
+    window.dispatchEvent(new CustomEvent("fsa:atlas-filter", { detail: filter }));
+    scrollToAtlas();
+  };
+
+  const openLensSection = (lensId = activeLens) => {
+    const lens = lensById(lensId);
+    if (!lens.section) return;
+    const el = document.getElementById(lens.section);
+    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
+  };
+
   // Twinkle field — deterministic positions
   const twinkles = React.useMemo(() => {
     const seeded = (n) => {
@@ -146,29 +219,46 @@ function GalaxyMap() {
     if (t.ready < readinessMin) return false;
     if (evidenceFilter && t.evidence !== evidenceFilter) return false;
     if (highlightChem && t.chemical !== highlightChem) return false;
+    if (highlightOp && t.unitOp !== highlightOp) return false;
+    if (highlightBottleneck && t.bottleneck !== highlightBottleneck) return false;
     return true;
   };
 
+  const clearOrbitFilters = () => {
+    setReadinessMin(1);
+    setEvidenceFilter(null);
+    setHighlightChem(null);
+    setHighlightOp(null);
+    setHighlightBottleneck(null);
+  };
+
+  const visibleCount = entries.filter(isMoonVisible).length;
+  const filterCount = [readinessMin > 1, evidenceFilter, highlightChem, highlightOp, highlightBottleneck].filter(Boolean).length;
+
+  React.useEffect(() => {
+    window.dispatchEvent(new CustomEvent("fsa:orbit-state", {
+      detail: {
+        activeLens,
+        focused,
+        visibleCount,
+        filters: { readinessMin, evidenceFilter, highlightChem, highlightOp, highlightBottleneck }
+      }
+    }));
+  }, [activeLens, focused, visibleCount, readinessMin, evidenceFilter, highlightChem, highlightOp, highlightBottleneck]);
+
   return (
-    <section id="galaxy" className="section section-galaxy section-feature">
-      <div className="atlas-banner">
-        <div className="atlas-banner-meta">
-          <span className="atlas-banner-code">FSA-010</span>
-          <span className="sep">▣</span>
-          <span>Interactive map</span>
-          <span className="sep">▣</span>
-          <span>115 cards · 7 sectors</span>
-        </div>
-        <h2 className="atlas-banner-title">
-          The <span className="glyph">Atlas</span>.
-        </h2>
-        <p className="atlas-banner-lede">
-          Every technology has a planet (its sector), a position (its readiness),
-          and a chemical signature. Hover, focus, and trace the spine of molecules
-          that connects them.
-        </p>
-      </div>
+    <section id="top" className="section section-galaxy section-feature orbit-home" data-lens={activeLens}>
       <div className="frame frame-flat">
+        <div className="orbit-home-head">
+          <div className="orbit-system-tag">
+            <span>FSA · 001</span>
+            <span className="sep">▣</span>
+            <span>Interactive process atlas</span>
+            <span className="sep">▣</span>
+            <span>115 cards · 7 orbits</span>
+          </div>
+          <a className="orbit-index-jump" href="#atlas">Open full index →</a>
+        </div>
 
         {/* Top filter strip */}
         <div className="galaxy-filters">
@@ -193,15 +283,75 @@ function GalaxyMap() {
               ))}
             </div>
           </div>
-          {(readinessMin > 1 || evidenceFilter || highlightChem || focused) && (
+          {(filterCount > 0 || focused) && (
             <button className="gf-reset" onClick={() => {
-              setReadinessMin(1); setEvidenceFilter(null); setHighlightChem(null); setFocused(null);
+              clearOrbitFilters(); setFocused(null); setActiveLens("sectors");
             }}>Reset all ×</button>
           )}
         </div>
 
-        <div className="galaxy">
-          <div className="galaxy-stage" data-focused={focused ? "true" : "false"}>
+        <div className="galaxy orbit-galaxy">
+          <div className="galaxy-stage" data-focused={focused ? "true" : "false"} data-lens={activeLens}>
+            <div className="orbit-hero-card">
+              <div className="meta">CENTRAL INTERFACE · CLICK THE SYSTEM</div>
+              <h1>Future systems are process flows.</h1>
+              <p>The planet system is the website. Select a sector, switch the engineering lens, then open moons as process cards. Everything below is supporting instrumentation.</p>
+              <div className="orbit-actions">
+                <button onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); }}>Reset orbit</button>
+                <a href="#guide">How to read it</a>
+              </div>
+            </div>
+            <OrbitLensDock
+              activeLens={activeLens}
+              sectors={sectors}
+              entries={entries}
+              planets={planets}
+              chems={chems}
+              unitOps={window.FSA.UNIT_OPS}
+              bottlenecks={bottlenecks}
+              focused={focused}
+              setFocused={setFocused}
+              highlightChem={highlightChem}
+              setHighlightChem={setHighlightChem}
+              highlightOp={highlightOp}
+              setHighlightOp={setHighlightOp}
+              highlightBottleneck={highlightBottleneck}
+              setHighlightBottleneck={setHighlightBottleneck}
+              readinessMin={readinessMin}
+              setReadinessMin={setReadinessMin}
+              evidenceFilter={evidenceFilter}
+              setEvidenceFilter={setEvidenceFilter}
+              visibleCount={visibleCount}
+              filterCount={filterCount}
+              clearOrbitFilters={clearOrbitFilters}
+              onOpenAtlas={openAtlasWithFilter}
+            />
+            <div className="orbit-path-hint" aria-label="How to use the orbit system">
+              <div><b>01</b><span>Pick a planet</span></div>
+              <div><b>02</b><span>Switch a lens</span></div>
+              <div><b>03</b><span>Open a moon</span></div>
+            </div>
+            <div className="orbit-lens-rail" aria-label="Atlas layers">
+              {ATLAS_LENSES.map((lens) => (
+                <button key={lens.id}
+                  type="button"
+                  className={activeLens === lens.id ? "active" : ""}
+                  onClick={() => setActiveLens(lens.id)}
+                  title={lens.title}
+                  aria-pressed={activeLens === lens.id}>
+                  <b>{lens.code}</b><span>{lens.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="orbit-state-strip">
+              <span className="meta">Mission control</span>
+              <b>{lensById(activeLens).label}</b>
+              <span>{visibleCount}/{entries.length} moons visible</span>
+              {focusedPlanet && <span>Focused: {focusedPlanet.label}</span>}
+              {highlightChem && <span>Spine: {highlightChem}</span>}
+              {highlightOp && <span>Unit op: {window.FSA.UNIT_OPS.find(o => o.id === highlightOp)?.label}</span>}
+              {highlightBottleneck && <span>Bottleneck active</span>}
+            </div>
             <GalaxyChrome focused={focusedPlanet} />
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="galaxy-svg">
               <defs>
@@ -236,6 +386,18 @@ function GalaxyMap() {
                 ))}
               </g>
 
+              <g className="lens-rings" aria-hidden="true">
+                {ATLAS_LENSES.map((lens, i) => {
+                  const rr = 116 + i * 42;
+                  return (
+                    <g key={lens.id} className={activeLens === lens.id ? "active" : ""}>
+                      <ellipse cx={CX} cy={CY} rx={rr} ry={rr * 0.86} fill="none" />
+                      <text x={CX + rr + 8} y={CY - rr * 0.12} className="lens-ring-label">{lens.code} · {lens.label.toUpperCase()}</text>
+                    </g>
+                  );
+                })}
+              </g>
+
               {/* Chemical-spine connections */}
               {chemLinks.length > 0 && (
                 <g className="chem-links">
@@ -258,7 +420,11 @@ function GalaxyMap() {
 
               {/* Central hub */}
               <g className="hub"
-                 onClick={() => { setFocused(null); setHighlightChem(null); }}
+                 onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); }}
+                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); } }}
+                 role="button"
+                 tabIndex="0"
+                 aria-label="Reset orbit to full atlas"
                  style={{ cursor: "pointer" }}>
                 <circle cx={CX} cy={CY} r="80" fill="url(#hub-glow)" opacity="0.45" />
                 <circle cx={CX} cy={CY} r="56" fill="none" stroke="var(--fg-faint)" strokeOpacity="0.3" strokeWidth="0.6" />
@@ -286,8 +452,9 @@ function GalaxyMap() {
                 const isFocused = focused === p.id;
                 const isHover = hoverPlanet === p.id;
                 const isDimmed = focused && !isFocused;
-                const techHasHighlight = highlightChem ? p.allTechs.some(t => t.chemical === highlightChem) : true;
-                const planetOpacity = isDimmed ? 0.22 : (techHasHighlight ? 1 : 0.4);
+                const pVisibleCount = p.allTechs.filter(isMoonVisible).length;
+                const hasVisible = pVisibleCount > 0;
+                const planetOpacity = isDimmed ? 0.22 : (hasVisible ? 1 : 0.16);
 
                 return (
                   <g key={p.id}
@@ -305,8 +472,17 @@ function GalaxyMap() {
 
                     {/* Planet body (clickable) */}
                     <g onClick={() => setFocused(isFocused ? null : p.id)}
+                       onKeyDown={(event) => {
+                         if (event.key === "Enter" || event.key === " ") {
+                           event.preventDefault();
+                           setFocused(isFocused ? null : p.id);
+                         }
+                       }}
                        onMouseEnter={() => setHoverPlanet(p.id)}
                        onMouseLeave={() => setHoverPlanet(null)}
+                       role="button"
+                       tabIndex="0"
+                       aria-label={`Focus ${p.label} sector`}
                        style={{ cursor: "pointer" }}>
                       {/* Hover halo */}
                       <circle cx="0" cy="0" r={p.radius + 12}
@@ -359,7 +535,7 @@ function GalaxyMap() {
                     </g>
 
                     {/* Planet label (static — outside rotating groups, relative coords) */}
-                    <PlanetLabel planet={p} focused={isFocused || isHover} CX={CX} CY={CY} />
+                    <PlanetLabel planet={p} focused={isFocused || isHover} CX={CX} CY={CY} visibleCount={pVisibleCount} />
                   </g>
                 );
               })}
@@ -370,13 +546,20 @@ function GalaxyMap() {
           <aside className="galaxy-panel">
             {focusedPlanet ? (
               <FocusReadout planet={focusedPlanet}
+                            activeLens={activeLens}
+                            setActiveLens={setActiveLens}
+                            onOpenLayer={openLensSection}
                             onClose={() => setFocused(null)}
                             onOpenTech={setOpenTech}
+                            onOpenAtlas={openAtlasForSector}
                             bottlenecks={bottlenecks} />
             ) : (
               <DefaultReadout planets={planets}
                               hoverPlanet={hoverPlanet}
                               hoverTech={hoverTech}
+                              activeLens={activeLens}
+                              setActiveLens={setActiveLens}
+                              onOpenLayer={openLensSection}
                               setFocused={setFocused}
                               onOpenTech={setOpenTech} />
             )}
@@ -392,7 +575,7 @@ function GalaxyMap() {
             {chems.slice(0, 10).map(c => (
               <button key={c.sym}
                 className={`gc-pill ${highlightChem === c.sym ? "active" : ""}`}
-                onClick={() => setHighlightChem(highlightChem === c.sym ? null : c.sym)}>
+                onClick={() => { setActiveLens("chemicals"); setHighlightChem(highlightChem === c.sym ? null : c.sym); }}>
                 <span className="gc-pill-sym">{c.sym}</span>
                 <span className="gc-pill-name">{c.name}</span>
               </button>
@@ -402,6 +585,18 @@ function GalaxyMap() {
             )}
           </div>
         </div>
+
+        {(highlightOp || highlightBottleneck || evidenceFilter || readinessMin > 1) && (
+          <div className="orbit-filter-status">
+            <span className="meta">Active orbit filters</span>
+            <span>{visibleCount} / {entries.length} moons visible</span>
+            {highlightOp && <b>Unit op: {window.FSA.UNIT_OPS.find(o => o.id === highlightOp)?.label}</b>}
+            {highlightBottleneck && <b>Bottleneck: {bottlenecks.find(b => b.id === highlightBottleneck)?.label}</b>}
+            {evidenceFilter && <b>Evidence: {evidenceFilter}</b>}
+            {readinessMin > 1 && <b>TRL floor: {readinessMin}</b>}
+            <button onClick={clearOrbitFilters}>Clear filters ×</button>
+          </div>
+        )}
 
         {/* Legend */}
         <div className="galaxy-legend">
@@ -436,16 +631,130 @@ function GalaxyMap() {
   );
 }
 
+
+function OrbitLensDock({ activeLens, sectors, entries, planets, chems, unitOps, bottlenecks, focused, setFocused, highlightChem, setHighlightChem, highlightOp, setHighlightOp, highlightBottleneck, setHighlightBottleneck, readinessMin, setReadinessMin, evidenceFilter, setEvidenceFilter, visibleCount, filterCount, clearOrbitFilters, onOpenAtlas }) {
+  const lens = lensById(activeLens);
+  const sectorItems = planets.map(p => ({ id: p.id, label: p.label, count: p.allTechs.length, avg: p.avgR }));
+  const topChems = chems.slice(0, 12).map(c => ({ ...c, count: entries.filter(e => e.chemical === c.sym).length })).filter(c => c.count > 0);
+  const opItems = unitOps.map(o => ({ ...o, count: entries.filter(e => e.unitOp === o.id).length }));
+  const bottleneckItems = bottlenecks.slice(0, 10).map(b => ({ ...b, count: entries.filter(e => e.bottleneck === b.id).length })).filter(b => b.count > 0).sort((a,b) => b.count - a.count).slice(0, 8);
+
+  const atlasFilterForLens = () => {
+    if (focused) return { sector: focused };
+    if (activeLens === "chemicals" && highlightChem) return { chem: highlightChem };
+    if (activeLens === "unitops" && highlightOp) return { op: highlightOp };
+    if (activeLens === "bottlenecks" && highlightBottleneck) return { bn: highlightBottleneck };
+    if (activeLens === "evidence" && evidenceFilter) return { ev: evidenceFilter };
+    return {};
+  };
+
+  const showOpenIndex = focused || highlightChem || highlightOp || highlightBottleneck || evidenceFilter;
+
+  return (
+    <div className="orbit-lens-dock" data-lens={activeLens}>
+      <div className="old-head">
+        <span className="meta">{lens.code} · {lens.label}</span>
+        <span className="old-count">{visibleCount}/{entries.length} moons</span>
+      </div>
+      <div className="old-title">{lens.title}</div>
+
+      {activeLens === "sectors" && (
+        <div className="old-grid sectors">
+          {sectorItems.map(s => (
+            <button key={s.id} className={focused === s.id ? "active" : ""} data-sector={s.id} onClick={() => setFocused(focused === s.id ? null : s.id)}>
+              <span className="old-dot" />
+              <span>{s.label}</span>
+              <b>{s.count}</b>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {activeLens === "chemicals" && (
+        <div className="old-grid chemicals">
+          {topChems.map(c => (
+            <button key={c.sym} className={highlightChem === c.sym ? "active" : ""} data-sector={c.color} onClick={() => { setHighlightChem(highlightChem === c.sym ? null : c.sym); setHighlightOp(null); setHighlightBottleneck(null); }}>
+              <span>{c.sym}</span>
+              <b>{c.count}</b>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {activeLens === "unitops" && (
+        <div className="old-grid unitops">
+          {opItems.map(o => (
+            <button key={o.id} className={highlightOp === o.id ? "active" : ""} onClick={() => { setHighlightOp(highlightOp === o.id ? null : o.id); setHighlightChem(null); setHighlightBottleneck(null); }}>
+              <span>{o.label}</span>
+              <b>{o.count}</b>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {activeLens === "bottlenecks" && (
+        <div className="old-grid bottlenecks">
+          {bottleneckItems.map(b => (
+            <button key={b.id} className={highlightBottleneck === b.id ? "active" : ""} onClick={() => { setHighlightBottleneck(highlightBottleneck === b.id ? null : b.id); setHighlightChem(null); setHighlightOp(null); }}>
+              <span>{b.label}</span>
+              <b>{b.count}</b>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {activeLens === "readiness" && (
+        <div className="old-readiness">
+          <label>
+            <span>Readiness floor</span>
+            <strong>TRL ≥ {readinessMin}</strong>
+          </label>
+          <input type="range" min="1" max="9" value={readinessMin} onChange={e => setReadinessMin(Number(e.target.value))} />
+          <p>Raise the floor to hide earlier-stage moons and surface technologies closer to deployment.</p>
+        </div>
+      )}
+
+      {activeLens === "evidence" && (
+        <div className="old-grid evidence">
+          {["direct", "roadmap", "analogue"].map(ev => (
+            <button key={ev} className={evidenceFilter === ev ? "active" : ""} data-evidence={ev} onClick={() => setEvidenceFilter(evidenceFilter === ev ? null : ev)}>
+              <span className="old-dot" />
+              <span>{ev}</span>
+              <b>{entries.filter(e => e.evidence === ev).length}</b>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="old-actions">
+        {filterCount > 0 && <button onClick={clearOrbitFilters}>Clear layer filters ×</button>}
+        {showOpenIndex && <button onClick={() => onOpenAtlas(atlasFilterForLens())}>Open matching index →</button>}
+      </div>
+    </div>
+  );
+}
+
 /* ── A single moon (rendered inside a rotating <g>) ─────── */
 function Moon({ t, planet, visible, onHover, onOpen }) {
   const ev = t.evidence;
   const baseR = 3.6;
+  const openMoon = (event) => {
+    event.stopPropagation();
+    if (!visible) return;
+    onOpen(t);
+  };
   return (
     <g className="moon"
+       role="button"
+       tabIndex={visible ? 0 : -1}
+       aria-label={`Open ${t.name} process card`}
+       onFocus={() => onHover(t)}
+       onBlur={() => onHover(null)}
        onMouseEnter={() => onHover(t)}
        onMouseLeave={() => onHover(null)}
-       onClick={(e) => { e.stopPropagation(); onOpen(t); }}
-       style={{ cursor: "pointer", opacity: visible ? 1 : 0.12, transition: "opacity 0.25s" }}>
+       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openMoon(event); } }}
+       onClick={openMoon}
+       style={{ cursor: visible ? "pointer" : "default", opacity: visible ? 1 : 0.12, transition: "opacity 0.25s" }}>
       <line x1="0" y1="0" x2={t.lx} y2={t.ly}
         stroke={`var(--c-${planet.id})`} strokeOpacity="0.1" strokeWidth="0.5" />
       <circle cx={t.lx} cy={t.ly} r={baseR + 5} fill={`var(--c-${planet.id})`} opacity="0" className="moon-halo" />
@@ -458,7 +767,7 @@ function Moon({ t, planet, visible, onHover, onOpen }) {
   );
 }
 
-function PlanetLabel({ planet, focused, CX, CY }) {
+function PlanetLabel({ planet, focused, CX, CY, visibleCount }) {
   // Compute outward direction in absolute coords, then offset locally
   const dx = planet.x - CX;
   const dy = planet.y - CY;
@@ -477,7 +786,9 @@ function PlanetLabel({ planet, focused, CX, CY }) {
         {planet.label.toUpperCase()}
       </text>
       <text x={lx} y={ly + 13} textAnchor={anchor} className="pl-meta">
-        {planet.allTechs.length} ENTRIES · TRL ø {planet.avgR.toFixed(1)}
+        {visibleCount != null && visibleCount !== planet.allTechs.length
+          ? `${visibleCount}/${planet.allTechs.length} VISIBLE · TRL ø ${planet.avgR.toFixed(1)}`
+          : `${planet.allTechs.length} ENTRIES · TRL ø ${planet.avgR.toFixed(1)}`}
       </text>
     </g>
   );
@@ -504,7 +815,7 @@ function GalaxyChrome({ focused }) {
   );
 }
 
-function DefaultReadout({ planets, hoverPlanet, hoverTech, setFocused, onOpenTech }) {
+function DefaultReadout({ planets, hoverPlanet, hoverTech, activeLens, setActiveLens, onOpenLayer, setFocused, onOpenTech }) {
   // Tech-hover preview takes priority
   if (hoverTech) {
     const planet = planets.find(p => p.id === hoverTech.sector);
@@ -547,10 +858,11 @@ function DefaultReadout({ planets, hoverPlanet, hoverTech, setFocused, onOpenTec
         <div className="readout-title">{planet ? planet.label : "Sector overview"}</div>
         <div className="meta dim">{planet ? `${planet.allTechs.length} entries · TRL ø ${planet.avgR.toFixed(1)}` : "Hover any planet or moon · click to focus"}</div>
       </div>
+      <LensModule activeLens={activeLens} setActiveLens={setActiveLens} onOpenLayer={onOpenLayer} />
       <div className="readout-body">
         <p>
           {planet ? SECTOR_DESC[planet.id]
-                  : "The atlas separates 115 frontier technologies across seven sectors. Each sector is a planet; each technology is a moon on a readiness orbit. Hover for a quick read, click to drill in. Use the readiness floor and evidence filter above to thin the field."}
+                  : "This orbit system is the site map. Each sector is a planet; each technology is a moon; the rings encode readiness and evidence. Hover for a quick read, click to make a sector the page, or open a moon as a process card."}
         </p>
       </div>
       <div className="readout-list">
@@ -568,7 +880,33 @@ function DefaultReadout({ planets, hoverPlanet, hoverTech, setFocused, onOpenTec
   );
 }
 
-function FocusReadout({ planet, onClose, onOpenTech, bottlenecks }) {
+function LensModule({ activeLens, setActiveLens, onOpenLayer, compact = false }) {
+  const lens = lensById(activeLens);
+  return (
+    <div className={`lens-module ${compact ? "compact" : ""}`} data-lens={activeLens}>
+      <div className="lens-module-head">
+        <span className="meta">ACTIVE LENS</span>
+        <span className="lens-code">{lens.code}</span>
+      </div>
+      <div className="lens-module-title">{lens.title}</div>
+      <p>{lens.body}</p>
+      <div className="lens-mini-grid">
+        {ATLAS_LENSES.map(l => (
+          <button key={l.id}
+            className={activeLens === l.id ? "active" : ""}
+            onClick={() => setActiveLens(l.id)}>
+            {l.code}
+          </button>
+        ))}
+      </div>
+      {lens.section && (
+        <button className="lens-jump" onClick={() => onOpenLayer(activeLens)}>Open supporting layer →</button>
+      )}
+    </div>
+  );
+}
+
+function FocusReadout({ planet, activeLens, setActiveLens, onOpenLayer, onClose, onOpenTech, onOpenAtlas, bottlenecks }) {
   const bnTally = {};
   planet.allTechs.forEach(t => { bnTally[t.bottleneck] = (bnTally[t.bottleneck] || 0) + 1; });
   const bnSorted = Object.entries(bnTally).sort((a, b) => b[1] - a[1]).slice(0, 4);
@@ -583,6 +921,8 @@ function FocusReadout({ planet, onClose, onOpenTech, bottlenecks }) {
       <div className="readout-body">
         <p>{SECTOR_DESC[planet.id]}</p>
       </div>
+
+      <LensModule activeLens={activeLens} setActiveLens={setActiveLens} onOpenLayer={onOpenLayer} compact />
 
       <div className="readout-section">
         <div className="meta">Top bottlenecks</div>
@@ -614,7 +954,10 @@ function FocusReadout({ planet, onClose, onOpenTech, bottlenecks }) {
         </div>
       </div>
 
-      <button className="readout-back" onClick={onClose}>← Back to galaxy</button>
+      <div className="readout-actions">
+        <button className="readout-back" onClick={onClose}>← Back to full orbit</button>
+        <button className="readout-open-index" onClick={() => onOpenAtlas(planet.id)}>Open filtered index →</button>
+      </div>
     </div>
   );
 }

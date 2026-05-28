@@ -18,6 +18,26 @@ function Atlas() {
   const [view, setView] = React.useState("cards"); // cards | compact
   const [open, setOpen] = React.useState(null);
 
+  React.useEffect(() => {
+    const applyFilter = (detail = {}) => {
+      setSector(detail.sector || null);
+      setBn(detail.bn || null);
+      setEv(detail.ev || null);
+      setChem(detail.chem || null);
+      setOp(detail.op || null);
+      setQ(detail.q || "");
+      setView("cards");
+    };
+    const onSector = (e) => applyFilter({ sector: e.detail });
+    const onFilter = (e) => applyFilter(e.detail || {});
+    window.addEventListener("fsa:atlas-sector", onSector);
+    window.addEventListener("fsa:atlas-filter", onFilter);
+    return () => {
+      window.removeEventListener("fsa:atlas-sector", onSector);
+      window.removeEventListener("fsa:atlas-filter", onFilter);
+    };
+  }, []);
+
   const filtered = React.useMemo(() => {
     return entries.filter(e => {
       if (sector && e.sector !== sector) return false;

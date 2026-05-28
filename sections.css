@@ -2444,3 +2444,1056 @@ body[data-motion="off"] .hub circle animate { animation-play-state: paused; }
   text-transform: uppercase;
   margin-top: 8px;
 }
+
+/* ════════════════════════════════════════════════════════════
+   ORBIT-FIRST HOMEPAGE PASS
+   The map becomes the primary website surface; all other sections
+   read as supporting instruments below it.
+   ════════════════════════════════════════════════════════════ */
+.orbit-home {
+  min-height: calc(100vh - 58px);
+  padding: 26px 0 78px;
+  border-top: none;
+  background:
+    radial-gradient(circle at 52% 38%, color-mix(in oklab, var(--c-water) 10%, transparent), transparent 36%),
+    radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--c-energy) 7%, transparent), transparent 30%),
+    linear-gradient(180deg, color-mix(in oklab, var(--bg) 96%, var(--paper)), var(--bg));
+}
+
+.orbit-home .frame {
+  max-width: min(1720px, 100vw);
+}
+
+.orbit-home-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+
+.orbit-system-tag,
+.orbit-index-jump {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.orbit-system-tag {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.orbit-system-tag .sep { opacity: 0.45; }
+.orbit-index-jump {
+  color: var(--fg-muted);
+  padding: 7px 10px;
+  border: var(--hairline) solid var(--rule);
+  background: color-mix(in oklab, var(--paper) 60%, transparent);
+}
+.orbit-index-jump:hover {
+  color: var(--fg);
+  border-color: var(--fg-muted);
+}
+
+.orbit-home .galaxy-filters {
+  position: relative;
+  z-index: 4;
+  background: color-mix(in oklab, var(--paper) 84%, transparent);
+  backdrop-filter: blur(12px);
+  border-color: color-mix(in oklab, var(--rule) 80%, transparent);
+  padding: 10px 14px;
+}
+
+.orbit-galaxy {
+  grid-template-columns: minmax(0, 1fr) 380px;
+  min-height: clamp(680px, 78vh, 900px);
+  border-color: color-mix(in oklab, var(--rule) 86%, transparent);
+  box-shadow:
+    0 24px 90px color-mix(in oklab, black 32%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--fg) 3%, transparent);
+}
+
+.orbit-galaxy .galaxy-stage {
+  min-height: clamp(680px, 78vh, 900px);
+  background:
+    radial-gradient(circle at 50% 52%, color-mix(in oklab, var(--fg) 6%, transparent) 0 9%, transparent 26%),
+    radial-gradient(circle at 50% 52%, color-mix(in oklab, var(--c-energy) 7%, transparent), transparent 42%),
+    radial-gradient(circle at 35% 20%, color-mix(in oklab, var(--c-space) 8%, transparent), transparent 38%),
+    var(--paper);
+}
+
+.orbit-galaxy .galaxy-svg {
+  min-height: clamp(680px, 78vh, 900px);
+  transform: scale(1.03);
+  transform-origin: center;
+}
+
+.orbit-hero-card {
+  position: absolute;
+  z-index: 5;
+  top: 28px;
+  left: 28px;
+  width: min(350px, calc(100% - 56px));
+  padding: 20px 22px 18px;
+  background: color-mix(in oklab, var(--bg) 66%, transparent);
+  border: var(--hairline) solid color-mix(in oklab, var(--fg) 18%, var(--rule));
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 50px color-mix(in oklab, black 24%, transparent);
+}
+
+.orbit-hero-card h1 {
+  margin-top: 10px;
+  font-family: var(--font-headline);
+  font-size: clamp(31px, 3vw, 52px);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  color: var(--fg);
+  max-width: 9.5ch;
+}
+.orbit-hero-card p {
+  margin-top: 14px;
+  color: var(--fg-muted);
+  font-size: 13.5px;
+  line-height: 1.48;
+  text-wrap: pretty;
+}
+.orbit-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.orbit-actions button,
+.orbit-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border: var(--hairline) solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+}
+.orbit-actions button:first-child {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+.orbit-actions a:hover,
+.orbit-actions button:hover {
+  border-color: var(--fg);
+}
+
+.orbit-lens-rail {
+  position: absolute;
+  z-index: 5;
+  left: 28px;
+  right: 28px;
+  bottom: 22px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  pointer-events: none;
+}
+.orbit-lens-rail span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: color-mix(in oklab, var(--bg) 54%, transparent);
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 74%, transparent);
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+}
+.orbit-lens-rail b {
+  color: var(--fg-muted);
+  font-weight: 500;
+}
+
+.orbit-galaxy .galaxy-panel {
+  min-height: clamp(680px, 78vh, 900px);
+  background: color-mix(in oklab, var(--bg-1) 92%, transparent);
+}
+
+.readout-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.readout-open-index {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--fg);
+  padding: 10px 12px;
+  border: var(--hairline) solid var(--fg);
+  border-radius: var(--radius-sm);
+}
+.readout-open-index:hover {
+  background: var(--c-energy);
+  border-color: var(--c-energy);
+}
+
+.orbit-home .galaxy-chems,
+.orbit-home .galaxy-legend {
+  background: color-mix(in oklab, var(--paper) 86%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+/* Make the rest of the page feel secondary to the orbit stage. */
+.orbit-home + .section,
+.orbit-home ~ .section {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--bg) 96%, var(--paper)), var(--bg));
+}
+
+@media (min-width: 1280px) {
+  .orbit-galaxy .galaxy-stage { border-right-color: color-mix(in oklab, var(--rule) 80%, transparent); }
+}
+
+@media (max-width: 1180px) {
+  .orbit-galaxy {
+    grid-template-columns: 1fr;
+  }
+  .orbit-galaxy .galaxy-panel {
+    min-height: unset;
+    border-top: var(--hairline) solid var(--rule);
+  }
+  .orbit-hero-card {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    margin: 18px 18px 0;
+  }
+  .orbit-galaxy .galaxy-svg {
+    transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .orbit-home { padding-top: 16px; }
+  .orbit-home-head { align-items: flex-start; flex-direction: column; }
+  .orbit-index-jump { width: 100%; text-align: center; }
+  .orbit-galaxy,
+  .orbit-galaxy .galaxy-stage,
+  .orbit-galaxy .galaxy-svg {
+    min-height: 620px;
+  }
+  .orbit-hero-card {
+    margin: 12px;
+    padding: 16px;
+  }
+  .orbit-hero-card h1 {
+    max-width: none;
+    font-size: clamp(30px, 10vw, 42px);
+  }
+  .orbit-lens-rail {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .orbit-lens-rail span {
+    padding: 7px 8px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   CONTINUE PASS — make the orbit map behave like the site
+   ════════════════════════════════════════════════════════════ */
+.nav {
+  background: color-mix(in oklab, var(--bg) 72%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--rule) 68%, transparent);
+  box-shadow: 0 8px 30px color-mix(in oklab, black 16%, transparent);
+}
+.nav-inner {
+  max-width: min(1720px, 100vw);
+}
+.nav-brand .mark {
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--fg) 18%, transparent), 0 0 26px color-mix(in oklab, var(--c-water) 22%, transparent);
+}
+.command-links a {
+  border: var(--hairline) solid transparent;
+}
+.command-links a:hover {
+  border-color: color-mix(in oklab, var(--fg) 18%, transparent);
+  background: color-mix(in oklab, var(--paper) 64%, transparent);
+}
+
+.orbit-home {
+  padding-top: 18px;
+}
+.orbit-home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, color-mix(in oklab, var(--bg) 86%, transparent), transparent 10%, transparent 90%, color-mix(in oklab, var(--bg) 86%, transparent)),
+    radial-gradient(circle at 50% 44%, color-mix(in oklab, var(--c-water) 10%, transparent), transparent 48%);
+  opacity: 0.9;
+}
+.orbit-home .frame { position: relative; z-index: 1; }
+
+.orbit-galaxy {
+  min-height: clamp(760px, 84vh, 980px);
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 23vw, 430px);
+}
+.orbit-galaxy .galaxy-stage,
+.orbit-galaxy .galaxy-svg,
+.orbit-galaxy .galaxy-panel {
+  min-height: clamp(760px, 84vh, 980px);
+}
+.orbit-galaxy .galaxy-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 50% 52%, transparent 0 24%, color-mix(in oklab, var(--fg) 4%, transparent) 24.3% 24.6%, transparent 25%),
+    radial-gradient(circle at 50% 52%, transparent 0 34%, color-mix(in oklab, var(--fg) 3%, transparent) 34.3% 34.6%, transparent 35%),
+    radial-gradient(circle at 50% 52%, transparent 0 44%, color-mix(in oklab, var(--fg) 2.5%, transparent) 44.3% 44.6%, transparent 45%);
+  mix-blend-mode: screen;
+  opacity: 0.72;
+}
+.orbit-galaxy .galaxy-stage[data-focused="true"] .orbit-hero-card {
+  opacity: 0.58;
+  transform: scale(0.92);
+  transform-origin: top left;
+}
+.orbit-galaxy .galaxy-stage[data-focused="true"] .orbit-hero-card:hover {
+  opacity: 1;
+  transform: scale(1);
+}
+.orbit-galaxy .galaxy-stage[data-lens="chemicals"] .lens-rings .active ellipse,
+.orbit-galaxy .galaxy-stage[data-lens="unitops"] .lens-rings .active ellipse,
+.orbit-galaxy .galaxy-stage[data-lens="bottlenecks"] .lens-rings .active ellipse,
+.orbit-galaxy .galaxy-stage[data-lens="readiness"] .lens-rings .active ellipse,
+.orbit-galaxy .galaxy-stage[data-lens="evidence"] .lens-rings .active ellipse,
+.orbit-galaxy .galaxy-stage[data-lens="sectors"] .lens-rings .active ellipse {
+  stroke: var(--fg);
+  stroke-width: 0.85;
+  stroke-opacity: 0.45;
+  stroke-dasharray: 2 5;
+}
+.lens-rings ellipse {
+  stroke: var(--fg-faint);
+  stroke-width: 0.45;
+  stroke-opacity: 0.12;
+}
+.lens-ring-label {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.13em;
+  fill: var(--fg-faint);
+  opacity: 0.38;
+}
+.lens-rings .active .lens-ring-label {
+  fill: var(--fg);
+  opacity: 0.82;
+}
+
+.orbit-lens-rail {
+  pointer-events: auto;
+}
+.orbit-lens-rail button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: color-mix(in oklab, var(--bg) 54%, transparent);
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 74%, transparent);
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.orbit-lens-rail button:hover,
+.orbit-lens-rail button.active {
+  color: var(--fg);
+  border-color: color-mix(in oklab, var(--fg) 34%, transparent);
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+  transform: translateY(-1px);
+}
+.orbit-lens-rail button.active b {
+  color: var(--c-water);
+}
+.orbit-lens-rail button b {
+  color: var(--fg-muted);
+  font-weight: 500;
+}
+
+.lens-module {
+  margin: 14px 0;
+  padding: 14px;
+  border: var(--hairline) solid color-mix(in oklab, var(--fg) 15%, var(--rule));
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--paper) 86%, transparent), color-mix(in oklab, var(--bg) 78%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fg) 3%, transparent);
+}
+.lens-module.compact {
+  margin-top: 12px;
+}
+.lens-module-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.lens-code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--c-water);
+}
+.lens-module-title {
+  margin-top: 8px;
+  font-family: var(--font-headline);
+  font-size: 17px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.lens-module p {
+  margin-top: 7px;
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.lens-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 12px;
+}
+.lens-mini-grid button {
+  padding: 6px 0;
+  border: var(--hairline) solid var(--rule);
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  background: color-mix(in oklab, var(--bg) 54%, transparent);
+}
+.lens-mini-grid button.active,
+.lens-mini-grid button:hover {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+.lens-jump {
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border: var(--hairline) solid color-mix(in oklab, var(--fg) 24%, var(--rule));
+  color: var(--fg);
+  background: color-mix(in oklab, var(--paper) 75%, transparent);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.lens-jump:hover {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* Make lower sections feel like instrument drawers under the primary map. */
+.orbit-home ~ .section .frame {
+  max-width: min(1340px, calc(100vw - 48px));
+}
+.orbit-home ~ .section .section-stamp {
+  opacity: 0.92;
+}
+.orbit-home ~ .section:not(.section-author)::before {
+  content: "SUPPORTING INSTRUMENT";
+  position: absolute;
+  top: 18px;
+  right: max(24px, calc((100vw - 1340px) / 2));
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--fg-faint);
+  opacity: 0.55;
+}
+
+@media (max-width: 1180px) {
+  .orbit-galaxy {
+    min-height: unset;
+  }
+  .orbit-galaxy .galaxy-stage,
+  .orbit-galaxy .galaxy-svg {
+    min-height: 690px;
+  }
+  .orbit-galaxy .galaxy-panel {
+    min-height: unset;
+  }
+}
+@media (max-width: 760px) {
+  .orbit-galaxy .galaxy-stage,
+  .orbit-galaxy .galaxy-svg {
+    min-height: 650px;
+  }
+  .orbit-lens-rail button {
+    font-size: 8px;
+    padding: 7px 8px;
+  }
+  .lens-mini-grid { grid-template-columns: repeat(3, 1fr); }
+  .lens-ring-label { display: none; }
+  .orbit-home ~ .section:not(.section-author)::before { display: none; }
+}
+.orbit-lens-rail button span {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  backdrop-filter: none;
+}
+
+/* ════════════════════════════════════════════════════════════
+   CONTINUE PASS 3 — functional orbital lens dock
+   Lenses now act as controls inside the map instead of labels only.
+   ════════════════════════════════════════════════════════════ */
+.orbit-lens-dock {
+  position: absolute;
+  z-index: 6;
+  top: 28px;
+  right: 28px;
+  width: min(340px, calc(100% - 56px));
+  padding: 14px;
+  border: var(--hairline) solid color-mix(in oklab, var(--fg) 15%, var(--rule));
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--bg) 66%, transparent), color-mix(in oklab, var(--paper) 72%, transparent));
+  box-shadow: 0 18px 55px color-mix(in oklab, black 22%, transparent);
+  backdrop-filter: blur(18px);
+}
+.orbit-lens-dock .old-head,
+.orbit-lens-dock .old-actions,
+.orbit-filter-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.orbit-lens-dock .old-count {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--fg-faint);
+  text-transform: uppercase;
+}
+.orbit-lens-dock .old-title {
+  margin-top: 7px;
+  font-family: var(--font-headline);
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--fg);
+}
+.old-grid {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+.old-grid.sectors,
+.old-grid.evidence {
+  grid-template-columns: 1fr;
+}
+.old-grid.chemicals {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.old-grid.unitops,
+.old-grid.bottlenecks {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.old-grid button,
+.old-actions button {
+  min-width: 0;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 82%, transparent);
+  background: color-mix(in oklab, var(--bg) 50%, transparent);
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 7px 8px;
+  transition: transform 0.16s ease, border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+.old-grid button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  text-align: left;
+}
+.old-grid.chemicals button {
+  grid-template-columns: minmax(0, 1fr) auto;
+  text-align: center;
+}
+.old-grid.unitops button,
+.old-grid.bottlenecks button {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.old-grid button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.old-grid button b {
+  color: var(--fg-faint);
+  font-weight: 500;
+}
+.old-grid button:hover,
+.old-grid button.active,
+.old-actions button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--fg) 32%, transparent);
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+  color: var(--fg);
+}
+.old-grid button.active {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fg) 18%, transparent), 0 0 24px color-mix(in oklab, var(--fg) 8%, transparent);
+}
+.old-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: currentColor;
+  opacity: 0.75;
+}
+.old-grid button[data-sector="energy"] { color: var(--c-energy); }
+.old-grid button[data-sector="carbon"] { color: var(--c-carbon); }
+.old-grid button[data-sector="water"] { color: var(--c-water); }
+.old-grid button[data-sector="materials"] { color: var(--c-materials); }
+.old-grid button[data-sector="manufacturing"] { color: var(--c-manufacturing); }
+.old-grid button[data-sector="cities"] { color: var(--c-cities); }
+.old-grid button[data-sector="space"] { color: var(--c-space); }
+.old-grid button[data-evidence="direct"] .old-dot { background: var(--fg); }
+.old-grid button[data-evidence="roadmap"] .old-dot { background: transparent; }
+.old-grid button[data-evidence="analogue"] .old-dot { background: transparent; border-style: dashed; }
+.old-readiness {
+  margin-top: 12px;
+  padding: 11px;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 82%, transparent);
+  background: color-mix(in oklab, var(--paper) 55%, transparent);
+}
+.old-readiness label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.old-readiness strong { color: var(--fg); font-weight: 500; }
+.old-readiness input {
+  width: 100%;
+  margin-top: 10px;
+}
+.old-readiness p {
+  margin-top: 8px;
+  color: var(--fg-faint);
+  font-size: 11.5px;
+  line-height: 1.38;
+}
+.old-actions {
+  margin-top: 10px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.old-actions button:last-child {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+.orbit-filter-status {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+  border: var(--hairline) solid color-mix(in oklab, var(--fg) 18%, var(--rule));
+  backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+.orbit-filter-status b {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg);
+  font-weight: 500;
+  padding: 4px 7px;
+  border: var(--hairline) solid var(--rule);
+  background: color-mix(in oklab, var(--bg) 42%, transparent);
+}
+.orbit-filter-status button {
+  margin-left: auto;
+  border: var(--hairline) solid var(--rule);
+  background: transparent;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 8px;
+}
+.orbit-filter-status button:hover {
+  color: var(--fg);
+  border-color: var(--fg-muted);
+}
+
+@media (max-width: 1180px) {
+  .orbit-lens-dock {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: auto;
+    margin: 10px 18px 0;
+  }
+}
+@media (max-width: 760px) {
+  .orbit-lens-dock {
+    margin: 10px 12px 0;
+    padding: 12px;
+  }
+  .old-grid.chemicals { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .old-grid.unitops,
+  .old-grid.bottlenecks { grid-template-columns: 1fr; }
+  .orbit-filter-status button { margin-left: 0; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   CONTINUE PASS 4 — persistent orbit controls
+   Keeps the planet system present after users scroll into drawers.
+   ════════════════════════════════════════════════════════════ */
+.orbit-dock {
+  position: fixed;
+  left: 16px;
+  top: 50%;
+  z-index: 18;
+  transform: translateY(-50%);
+  width: 54px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 76%, transparent);
+  background: color-mix(in oklab, var(--bg) 72%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 18px 50px color-mix(in oklab, black 20%, transparent);
+}
+.orbit-dock-hub,
+.orbit-dock-index {
+  width: 40px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  border: var(--hairline) solid color-mix(in oklab, var(--fg) 18%, var(--rule));
+  background: color-mix(in oklab, var(--paper) 66%, transparent);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.orbit-dock-hub span {
+  font-size: 10px;
+  line-height: 1;
+}
+.orbit-dock-hub b {
+  display: block;
+  margin-top: 2px;
+  font-size: 7px;
+  font-weight: 500;
+  color: var(--fg-faint);
+  letter-spacing: 0.16em;
+}
+.orbit-dock-index {
+  min-height: 32px;
+  font-size: 8px;
+  color: var(--fg-muted);
+}
+.orbit-dock-hub:hover,
+.orbit-dock-index:hover {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+.orbit-dock-hub:hover b { color: var(--bg); opacity: 0.68; }
+.orbit-dock-block {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding-top: 8px;
+  border-top: var(--hairline) solid color-mix(in oklab, var(--rule) 68%, transparent);
+}
+.orbit-dock-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.orbit-dock-planets,
+.orbit-dock-lenses {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+}
+.orbit-dock-planets button {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 90%, transparent);
+  background: color-mix(in oklab, var(--paper) 48%, transparent);
+}
+.orbit-dock-planets button span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 14px currentColor;
+}
+.orbit-dock-planets button[data-sector="energy"] { color: var(--c-energy); }
+.orbit-dock-planets button[data-sector="carbon"] { color: var(--c-carbon); }
+.orbit-dock-planets button[data-sector="water"] { color: var(--c-water); }
+.orbit-dock-planets button[data-sector="materials"] { color: var(--c-materials); }
+.orbit-dock-planets button[data-sector="manufacturing"] { color: var(--c-manufacturing); }
+.orbit-dock-planets button[data-sector="cities"] { color: var(--c-cities); }
+.orbit-dock-planets button[data-sector="space"] { color: var(--c-space); }
+.orbit-dock-planets button:hover,
+.orbit-dock-lenses button:hover {
+  transform: translateX(2px);
+  border-color: currentColor;
+}
+.orbit-dock-lenses button {
+  width: 28px;
+  height: 22px;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 82%, transparent);
+  background: color-mix(in oklab, var(--paper) 45%, transparent);
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  transition: transform 0.16s ease, border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+.orbit-dock-lenses button:hover {
+  color: var(--fg);
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+}
+.orbit-state-strip {
+  position: absolute;
+  z-index: 5;
+  left: 28px;
+  bottom: 76px;
+  max-width: calc(100% - 56px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 75%, transparent);
+  background: color-mix(in oklab, var(--bg) 52%, transparent);
+  backdrop-filter: blur(12px);
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+.orbit-state-strip b,
+.orbit-state-strip span:not(.meta) {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 74%, transparent);
+  background: color-mix(in oklab, var(--paper) 46%, transparent);
+}
+.orbit-state-strip b {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+  font-weight: 500;
+}
+.orbit-galaxy .planet {
+  transition: opacity 0.35s var(--ease-out), filter 0.35s var(--ease-out);
+}
+.orbit-galaxy .planet[style*="0.16"] {
+  filter: grayscale(0.55) saturate(0.55);
+}
+
+@media (max-width: 1500px) {
+  .orbit-dock { display: none; }
+}
+@media (max-width: 760px) {
+  .orbit-state-strip {
+    left: 12px;
+    right: 12px;
+    bottom: 112px;
+    max-width: none;
+    font-size: 10px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   CONTINUE PASS 5 — publish polish
+   Active orbit state, onboarding micro-guide, keyboard focus,
+   and reduced-motion safeguards.
+   ════════════════════════════════════════════════════════════ */
+.orbit-path-hint {
+  position: absolute;
+  z-index: 5;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(390px, calc(100% - 760px));
+  min-width: 300px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  pointer-events: none;
+}
+.orbit-path-hint div {
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px;
+  border: var(--hairline) solid color-mix(in oklab, var(--rule) 74%, transparent);
+  background: color-mix(in oklab, var(--bg) 46%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fg) 3%, transparent);
+}
+.orbit-path-hint b {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: var(--c-water);
+  font-weight: 600;
+}
+.orbit-path-hint span {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.orbit-dock-planets button.active,
+.orbit-dock-lenses button.active {
+  border-color: currentColor;
+  background: color-mix(in oklab, var(--fg) 12%, var(--paper));
+  box-shadow: 0 0 20px color-mix(in oklab, currentColor 28%, transparent);
+}
+.orbit-dock-lenses button.active {
+  color: var(--fg);
+  background: color-mix(in oklab, var(--paper) 86%, transparent);
+}
+.orbit-dock-lenses button.active span::after {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 1px;
+  margin: 2px auto 0;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.hub:focus-visible,
+.planet [role="button"]:focus-visible,
+.moon:focus-visible,
+.orbit-lens-rail button:focus-visible,
+.orbit-lens-dock button:focus-visible,
+.orbit-dock button:focus-visible,
+.orbit-dock a:focus-visible,
+.readout button:focus-visible,
+.gc-pill:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+.moon:focus-visible .moon-halo {
+  opacity: 0.14;
+}
+
+@media (max-width: 1320px) {
+  .orbit-path-hint {
+    display: none;
+  }
+}
+@media (max-width: 1180px) {
+  .orbit-path-hint {
+    position: relative;
+    display: grid;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: auto;
+    min-width: 0;
+    margin: 10px 18px 0;
+  }
+}
+@media (max-width: 760px) {
+  .orbit-path-hint {
+    grid-template-columns: 1fr;
+    margin: 10px 12px 0;
+  }
+  .orbit-path-hint div {
+    grid-template-columns: 34px 1fr;
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+  .moon-orbit,
+  .twinkles circle,
+  .topology .drift,
+  .topology .drift-far,
+  .topology .drift-mid,
+  .topology .drift-near,
+  .topology .twinkle {
+    animation: none !important;
+  }
+}

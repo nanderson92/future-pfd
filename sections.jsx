@@ -105,16 +105,15 @@ function Nav() {
           <span className="mark">FS</span>
           <span className="nav-brand-label">
             <span className="l1">Future Systems Atlas</span>
-            <span className="l2">FSA-001 · Process architecture</span>
+            <span className="l2">FSA-001 · interactive process map</span>
           </span>
         </a>
-        <div className="nav-links">
+        <div className="nav-links command-links">
           {[
+            ["#top",       "Map"],
             ["#guide",     "Guide"],
             ["#cases",     "Cases"],
-            ["#galaxy",    "Map"],
-            ["#readiness", "Readiness"],
-            ["#atlas",     "Atlas"],
+            ["#atlas",     "Index"],
             ["#sources",   "Sources"],
           ].map(([href, label], i) => (
             <React.Fragment key={href}>
