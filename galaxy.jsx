@@ -192,18 +192,65 @@ function GalaxyMap() {
   const focusedPlanet = focused ? planets.find(p => p.id === focused) : null;
 
   const targetCamera = React.useMemo(() => {
-    const baseZoom = focusedPlanet ? 1.54 : 0.74;
-    const zoom = baseZoom * navCamera.zoomScale;
-    const focusX = focusedPlanet ? CX : CX;
-    const focusY = focusedPlanet ? CY : CY;
-    const anchorX = focusedPlanet ? focusedPlanet.x : CX;
-    const anchorY = focusedPlanet ? focusedPlanet.y : CY;
-    return {
-      zoom,
-      tx: focusX - zoom * anchorX + navCamera.panX,
-      ty: focusY - zoom * anchorY + navCamera.panY
+    const boundsForPlanet = (planet, mode = "all") => {
+      const moonReach = mode === "focus" ? 236 : 228;
+      const halo = mode === "focus" ? 120 : 96;
+      return {
+        minX: planet.x - planet.radius - moonReach - halo,
+        maxX: planet.x + planet.radius + moonReach + halo,
+        minY: planet.y - planet.radius - moonReach - halo,
+        maxY: planet.y + planet.radius + moonReach + halo,
+      };
     };
-  }, [focusedPlanet, navCamera.zoomScale, navCamera.panX, navCamera.panY]);
+
+    const mergeBounds = (items) => items.reduce((acc, b) => ({
+      minX: Math.min(acc.minX, b.minX),
+      maxX: Math.max(acc.maxX, b.maxX),
+      minY: Math.min(acc.minY, b.minY),
+      maxY: Math.max(acc.maxY, b.maxY),
+    }));
+
+    const fitBounds = (bounds, options = {}) => {
+      const padX = options.padX ?? 110;
+      const padY = options.padY ?? 110;
+      const centerX = options.centerX ?? CX;
+      const centerY = options.centerY ?? CY;
+      const minZoom = options.minZoom ?? 0.62;
+      const maxZoom = options.maxZoom ?? 1.52;
+      const boxW = Math.max(1, bounds.maxX - bounds.minX);
+      const boxH = Math.max(1, bounds.maxY - bounds.minY);
+      const fitZoom = Math.min((W - padX * 2) / boxW, (H - padY * 2) / boxH);
+      const zoom = Math.max(minZoom, Math.min(maxZoom, fitZoom)) * navCamera.zoomScale;
+      const anchorX = (bounds.minX + bounds.maxX) / 2;
+      const anchorY = (bounds.minY + bounds.maxY) / 2;
+      return {
+        zoom,
+        tx: centerX - zoom * anchorX + navCamera.panX,
+        ty: centerY - zoom * anchorY + navCamera.panY,
+      };
+    };
+
+    if (focusedPlanet) {
+      return fitBounds(boundsForPlanet(focusedPlanet, "focus"), {
+        padX: 180,
+        padY: 160,
+        centerX: CX,
+        centerY: CY + 12,
+        minZoom: 0.92,
+        maxZoom: 1.16,
+      });
+    }
+
+    const fullBounds = mergeBounds(planets.map((planet) => boundsForPlanet(planet, "all")));
+    return fitBounds(fullBounds, {
+      padX: 160,
+      padY: 132,
+      centerX: CX,
+      centerY: CY + 6,
+      minZoom: 0.62,
+      maxZoom: 0.74,
+    });
+  }, [planets, focusedPlanet, navCamera.zoomScale, navCamera.panX, navCamera.panY]);
 
   const [camera, setCamera] = React.useState(targetCamera);
   const cameraRef = React.useRef(targetCamera);
