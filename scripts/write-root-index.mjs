@@ -1,4 +1,20 @@
-<!doctype html>
+import { existsSync, readdirSync, rmSync, writeFileSync } from "fs";
+import { resolve } from "path";
+import { fileURLToPath } from "url";
+
+const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
+const assetDir = resolve(root, "dist", "assets");
+
+if (existsSync(assetDir)) {
+  const keep = new Set(["index.js", "index.css", "AtlasMap.js", "favicon.svg"]);
+  for (const file of readdirSync(assetDir)) {
+    if (!keep.has(file)) {
+      rmSync(resolve(assetDir, file), { force: true });
+    }
+  }
+}
+
+const html = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -48,14 +64,17 @@
 
       boot().catch((error) => {
         console.error(error);
-        root.innerHTML = `
+        root.innerHTML = \`
           <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#07110f;color:#f4f8f6">
             <section style="max-width:680px;border:1px solid rgba(230,242,255,.18);border-radius:8px;padding:24px;background:rgba(230,242,255,.05)">
               <h1 style="margin:0 0 12px;font-size:28px">Future Systems Atlas could not load.</h1>
               <p style="margin:0;color:#aab8b8;line-height:1.6">The static build assets are missing or blocked. Run <code>npm run build</code> and deploy this root page with the generated <code>dist/</code> folder.</p>
             </section>
-          </main>`;
+          </main>\`;
       });
     </script>
   </body>
 </html>
+`;
+
+writeFileSync(resolve(root, "index.html"), html);

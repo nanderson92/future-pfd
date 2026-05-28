@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
+    "dev": "node scripts/prepare-vite-index.mjs && vite --host 127.0.0.1",
+    "build": "node scripts/prepare-vite-index.mjs && vite build && node scripts/write-root-index.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test:smoke": "playwright test"
   },

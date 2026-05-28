@@ -1,14 +1,14 @@
 export default {
   testDir: "tests",
-  testMatch: "atlas.smoke.spec.js",
+  testMatch: "root-static.spec.js",
   timeout: 30000,
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: "http://127.0.0.1:4180",
     channel: "msedge"
   },
   webServer: {
-    command: "npm run preview -- --port 4173",
-    url: "http://127.0.0.1:4173",
+    command: "node scripts/static-root-server.mjs",
+    url: "http://127.0.0.1:4180",
     reuseExistingServer: true,
     timeout: 120000
   }

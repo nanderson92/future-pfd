@@ -3,3 +3,5 @@ node_modules/
 npm-debug.log*
 preview.log
 preview.err
+root-server.log
+root-server.err
