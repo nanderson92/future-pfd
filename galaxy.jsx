@@ -59,6 +59,8 @@ function GalaxyMap() {
   const [readinessMin, setReadinessMin] = React.useState(1);
   const [openTech, setOpenTech] = React.useState(null);
   const [activeLens, setActiveLens] = React.useState("sectors");
+  const [mapSearch, setMapSearch] = React.useState("");
+  const [mobilePanel, setMobilePanel] = React.useState("camera");
   const [navCamera, setNavCamera] = React.useState({ zoomScale: 1, panX: 0, panY: 0 });
 
   const resetCameraNav = React.useCallback(() => {
@@ -356,6 +358,13 @@ function GalaxyMap() {
     if (highlightChem && t.chemical !== highlightChem) return false;
     if (highlightOp && t.unitOp !== highlightOp) return false;
     if (highlightBottleneck && t.bottleneck !== highlightBottleneck) return false;
+    const q = mapSearch.trim().toLowerCase();
+    if (q) {
+      const bn = bottlenecks.find(b => b.id === t.bottleneck)?.label || "";
+      const op = window.FSA.UNIT_OPS.find(o => o.id === t.unitOp)?.label || "";
+      const haystack = `${t.name} ${t.pid} ${t.sector} ${t.chemical} ${bn} ${op}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
     return true;
   };
 
@@ -365,10 +374,11 @@ function GalaxyMap() {
     setHighlightChem(null);
     setHighlightOp(null);
     setHighlightBottleneck(null);
+    setMapSearch("");
   };
 
   const visibleCount = entries.filter(isMoonVisible).length;
-  const filterCount = [readinessMin > 1, evidenceFilter, highlightChem, highlightOp, highlightBottleneck].filter(Boolean).length;
+  const filterCount = [readinessMin > 1, evidenceFilter, highlightChem, highlightOp, highlightBottleneck, mapSearch.trim()].filter(Boolean).length;
 
   React.useEffect(() => {
     window.dispatchEvent(new CustomEvent("fsa:orbit-state", {
@@ -431,7 +441,7 @@ function GalaxyMap() {
         <div className="galaxy orbit-galaxy" data-focused={focused ? "true" : "false"} data-lens={activeLens} data-sector={focused || "all"}>
           <div className="galaxy-stage" data-focused={focused ? "true" : "false"} data-lens={activeLens}>
             <div className="orbit-hero-card">
-              <div className="meta">CENTRAL INTERFACE · CLICK THE SYSTEM</div>
+              <div className="meta">115 frontier technologies · process-engineering map</div>
               <h1>Navigate the future as a process map.</h1>
               <p>The planets are the website. Pick a system, then the camera moves into its technology moons, process constraints, and evidence layer.</p>
               <div className="orbit-actions">
@@ -464,6 +474,15 @@ function GalaxyMap() {
               clearOrbitFilters={clearOrbitFilters}
               onOpenAtlas={openAtlasWithFilter}
             />
+            <div className="map-search" role="search" aria-label="Find a technology on the map">
+              <span className="map-search-icon">⌕</span>
+              <input
+                type="search"
+                placeholder="Find a technology… fusion, DAC, lithium, water"
+                value={mapSearch}
+                onChange={event => setMapSearch(event.target.value)} />
+              {mapSearch && <button type="button" onClick={() => setMapSearch("")} aria-label="Clear map search">×</button>}
+            </div>
             <div className="orbit-path-hint" aria-label="How to use the orbit system">
               <div><b>01</b><span>Pick a planet</span></div>
               <div><b>02</b><span>Switch a lens</span></div>
@@ -489,6 +508,7 @@ function GalaxyMap() {
               {highlightChem && <span>Spine: {highlightChem}</span>}
               {highlightOp && <span>Unit op: {window.FSA.UNIT_OPS.find(o => o.id === highlightOp)?.label}</span>}
               {highlightBottleneck && <span>Bottleneck active</span>}
+              {mapSearch && <span>Search: {mapSearch}</span>}
             </div>
             <GalaxyChrome focused={focusedPlanet} activeLens={activeLens} visibleCount={visibleCount} />
             <div className="map-page-tabs" aria-label="Map support pages">
@@ -513,6 +533,31 @@ function GalaxyMap() {
               planets={planets}
               onFocus={focusSector}
               onFullOrbit={() => { setFocused(null); resetCameraNav(); }}
+            />
+            <MobileMapConsole
+              activeTab={mobilePanel}
+              setActiveTab={setMobilePanel}
+              focusedPlanet={focusedPlanet}
+              sectors={sectors}
+              planets={planets}
+              focused={focused}
+              onFocus={focusSector}
+              onFullOrbit={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); resetCameraNav(); }}
+              navCamera={navCamera}
+              onNudge={nudgeCamera}
+              onZoom={changeCameraZoom}
+              onReset={resetCameraNav}
+              activeLens={activeLens}
+              setActiveLens={setActiveLens}
+              readinessMin={readinessMin}
+              setReadinessMin={setReadinessMin}
+              evidenceFilter={evidenceFilter}
+              setEvidenceFilter={setEvidenceFilter}
+              visibleCount={visibleCount}
+              totalCount={entries.length}
+              hoverTech={hoverTech}
+              hoverPlanet={hoverPlanet}
+              clearOrbitFilters={clearOrbitFilters}
             />
             {focusedPlanet && (
               <div className="sector-lock-banner" data-sector={focusedPlanet.id}>
@@ -693,6 +738,7 @@ function GalaxyMap() {
                         strokeWidth="0.6" strokeDasharray="2 3" />
                       <circle cx="0" cy="0" r={p.radius}
                         fill={`url(#hatch-${p.id})`} />
+                      <SectorSurface planet={p} focused={isFocused || isHover} />
                       <circle cx="0" cy="0" r={p.radius} fill="none"
                         stroke={`var(--c-${p.id})`} strokeWidth={isFocused ? 1.8 : 1.2} />
                       <ellipse cx="0" cy="0" rx={p.radius * 0.92} ry={p.radius * 0.28}
@@ -881,6 +927,70 @@ function SectorJumpNav({ sectors, focused, planets, onFocus, onFullOrbit }) {
   );
 }
 
+function MobileMapConsole({ activeTab, setActiveTab, focusedPlanet, sectors, planets, focused, onFocus, onFullOrbit, navCamera, onNudge, onZoom, onReset, activeLens, setActiveLens, readinessMin, setReadinessMin, evidenceFilter, setEvidenceFilter, visibleCount, totalCount, hoverTech, hoverPlanet, clearOrbitFilters }) {
+  const tabs = [
+    ["camera", "Camera"],
+    ["sectors", "Sectors"],
+    ["readout", "Readout"],
+    ["filter", "Filter"],
+  ];
+  const countFor = (id) => planets.find(p => p.id === id)?.allTechs.length || 0;
+  const hoveredPlanet = hoverPlanet ? planets.find(p => p.id === hoverPlanet) : null;
+  return (
+    <div className="mobile-map-console" aria-label="Mobile map controls">
+      <div className="mmc-tabs" role="tablist" aria-label="Map control tabs">
+        {tabs.map(([id, label]) => (
+          <button key={id} type="button" role="tab" aria-selected={activeTab === id} className={activeTab === id ? "active" : ""} onClick={() => setActiveTab(id)}>{label}</button>
+        ))}
+      </div>
+
+      {activeTab === "camera" && (
+        <div className="mmc-panel mmc-camera">
+          <div className="mmc-title"><span>Camera</span><b>{focusedPlanet ? focusedPlanet.label : "Full orbit"}</b></div>
+          <div className="mmc-pad">
+            <button type="button" onClick={() => onNudge(0, 86)}>↑</button>
+            <button type="button" onClick={() => onNudge(92, 0)}>←</button>
+            <button type="button" onClick={onReset}>⌾</button>
+            <button type="button" onClick={() => onNudge(-92, 0)}>→</button>
+            <button type="button" onClick={() => onNudge(0, -86)}>↓</button>
+          </div>
+          <div className="mmc-zoom"><button type="button" onClick={() => onZoom(-0.12)}>−</button><span>{Math.round(navCamera.zoomScale * 100)}%</span><button type="button" onClick={() => onZoom(0.12)}>+</button></div>
+          <button type="button" className="mmc-wide" onClick={onFullOrbit}>Full orbit</button>
+        </div>
+      )}
+
+      {activeTab === "sectors" && (
+        <div className="mmc-panel mmc-sectors">
+          <button type="button" className={!focused ? "active" : ""} onClick={onFullOrbit}>All sectors · {totalCount}</button>
+          {sectors.map(s => <button key={s.id} type="button" className={focused === s.id ? "active" : ""} data-sector={s.id} onClick={() => onFocus(s.id)}><span className="sjn-dot" />{s.label}<b>{countFor(s.id)}</b></button>)}
+        </div>
+      )}
+
+      {activeTab === "readout" && (
+        <div className="mmc-panel mmc-readout">
+          <div className="mmc-title"><span>Readout</span><b>{visibleCount}/{totalCount} moons</b></div>
+          <p>{focusedPlanet ? `${focusedPlanet.label}: ${SECTOR_DESC[focusedPlanet.id]}` : "Pick a sector planet or search for a technology. Hovering or tapping a moon opens its process card."}</p>
+          {hoverTech && <div className="mmc-callout"><b>{hoverTech.name}</b><span>{hoverTech.pid} · {hoverTech.chemical} · {hoverTech.evidence}</span></div>}
+          {!hoverTech && hoveredPlanet && <div className="mmc-callout"><b>{hoveredPlanet.label}</b><span>{hoveredPlanet.allTechs.length} process moons</span></div>}
+        </div>
+      )}
+
+      {activeTab === "filter" && (
+        <div className="mmc-panel mmc-filter">
+          <label className="mmc-range"><span>TRL floor</span><b>{readinessMin}</b><input type="range" min="1" max="9" value={readinessMin} onChange={e => setReadinessMin(Number(e.target.value))} /></label>
+          <div className="mmc-filter-grid">
+            {ATLAS_LENSES.map(lens => <button key={lens.id} type="button" className={activeLens === lens.id ? "active" : ""} onClick={() => setActiveLens(lens.id)}>{lens.code} · {lens.label}</button>)}
+          </div>
+          <div className="mmc-filter-grid evidence">
+            {["direct", "roadmap", "analogue"].map(ev => <button key={ev} type="button" className={evidenceFilter === ev ? "active" : ""} data-evidence={ev} onClick={() => setEvidenceFilter(evidenceFilter === ev ? null : ev)}>{ev}</button>)}
+          </div>
+          <button type="button" className="mmc-wide" onClick={clearOrbitFilters}>Clear filters</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function OrbitLensDock({ activeLens, sectors, entries, planets, chems, unitOps, bottlenecks, focused, setFocused, highlightChem, setHighlightChem, highlightOp, setHighlightOp, highlightBottleneck, setHighlightBottleneck, readinessMin, setReadinessMin, evidenceFilter, setEvidenceFilter, visibleCount, filterCount, clearOrbitFilters, onOpenAtlas }) {
   const lens = lensById(activeLens);
@@ -1007,14 +1117,64 @@ function Moon({ t, planet, visible, onHover, onOpen }) {
        style={{ cursor: visible ? "pointer" : "default", opacity: visible ? 1 : 0.12, transition: "opacity 0.25s" }}>
       <line x1="0" y1="0" x2={t.lx} y2={t.ly}
         stroke={`var(--c-${planet.id})`} strokeOpacity="0.1" strokeWidth="0.5" />
+      <circle cx={t.lx} cy={t.ly} r="22" fill="transparent" pointerEvents="all" />
       <circle cx={t.lx} cy={t.ly} r={baseR + 5} fill={`var(--c-${planet.id})`} opacity="0" className="moon-halo" />
       <circle cx={t.lx} cy={t.ly} r={baseR}
         fill={ev === "direct" ? `var(--c-${planet.id})` : "var(--bg)"}
         stroke={`var(--c-${planet.id})`}
         strokeWidth={ev === "analogue" ? 0.8 : 1.2}
         strokeDasharray={ev === "analogue" ? "1.5 1.5" : null} />
+      <text x={t.lx + 18} y={t.ly + 4} className="moon-label" fill={`var(--c-${planet.id})`}>{t.name}</text>
     </g>
   );
+}
+
+function SectorSurface({ planet, focused }) {
+  const c = `var(--c-${planet.id})`;
+  const r = planet.radius;
+  if (planet.id === "energy") {
+    return <g className="planet-surface planet-surface-energy" aria-hidden="true">
+      <circle cx="0" cy="0" r={r * 0.72} fill="none" stroke={c} strokeOpacity={focused ? 0.34 : 0.2} strokeWidth="1.1" strokeDasharray="8 10" />
+      <path d={`M ${-r*0.52} ${-r*0.10} C ${-r*0.16} ${-r*0.38}, ${r*0.15} ${r*0.32}, ${r*0.54} ${r*0.02}`} fill="none" stroke={c} strokeOpacity="0.45" strokeWidth="1.2" />
+    </g>;
+  }
+  if (planet.id === "water") {
+    return <g className="planet-surface planet-surface-water" aria-hidden="true">
+      {[ -0.34, -0.12, 0.10, 0.32 ].map((dy, i) => <path key={i} d={`M ${-r*0.70} ${r*dy} C ${-r*0.30} ${r*(dy-0.12)}, ${r*0.25} ${r*(dy+0.12)}, ${r*0.72} ${r*dy}`} fill="none" stroke={c} strokeOpacity="0.38" strokeWidth="1" />)}
+    </g>;
+  }
+  if (planet.id === "materials") {
+    return <g className="planet-surface planet-surface-materials" aria-hidden="true">
+      <path d={`M 0 ${-r*0.70} L ${r*0.55} ${-r*0.08} L ${r*0.28} ${r*0.62} L ${-r*0.48} ${r*0.42} L ${-r*0.62} ${-r*0.22} Z`} fill="none" stroke={c} strokeOpacity="0.35" strokeWidth="1.1" />
+      <line x1={-r*0.48} y1={r*0.42} x2={r*0.55} y2={-r*0.08} stroke={c} strokeOpacity="0.2" />
+    </g>;
+  }
+  if (planet.id === "space") {
+    return <g className="planet-surface planet-surface-space" aria-hidden="true">
+      <ellipse cx="0" cy="0" rx={r*1.22} ry={r*0.32} fill="none" stroke={c} strokeOpacity="0.45" strokeWidth="1.2" />
+      <ellipse cx="0" cy="0" rx={r*0.78} ry={r*0.22} fill="none" stroke={c} strokeOpacity="0.3" strokeWidth="0.8" />
+    </g>;
+  }
+  if (planet.id === "cities") {
+    return <g className="planet-surface planet-surface-cities" aria-hidden="true">
+      {[-0.45,-0.20,0.05,0.30,0.52].map((x,i) => <line key={`v${i}`} x1={r*x} y1={-r*0.55} x2={r*x} y2={r*0.55} stroke={c} strokeOpacity="0.2" />)}
+      {[-0.36,-0.10,0.16,0.42].map((y,i) => <line key={`h${i}`} x1={-r*0.62} y1={r*y} x2={r*0.62} y2={r*y} stroke={c} strokeOpacity="0.2" />)}
+    </g>;
+  }
+  if (planet.id === "manufacturing") {
+    return <g className="planet-surface planet-surface-manufacturing" aria-hidden="true">
+      {[ -0.44, -0.18, 0.08, 0.34 ].map((x,i) => <rect key={i} x={r*x} y={-r*0.48 + i*8} width={r*0.18} height={r*0.96 - i*16} fill="none" stroke={c} strokeOpacity="0.26" />)}
+      <path d={`M ${-r*0.62} ${r*0.42} H ${r*0.62}`} stroke={c} strokeOpacity="0.35" />
+    </g>;
+  }
+  if (planet.id === "carbon") {
+    return <g className="planet-surface planet-surface-carbon" aria-hidden="true">
+      <circle cx={-r*0.18} cy={-r*0.08} r={r*0.20} fill="none" stroke={c} strokeOpacity="0.32" />
+      <circle cx={r*0.20} cy={r*0.12} r={r*0.24} fill="none" stroke={c} strokeOpacity="0.28" />
+      <line x1={-r*0.02} y1={r*0.02} x2={r*0.05} y2={r*0.05} stroke={c} strokeOpacity="0.34" />
+    </g>;
+  }
+  return null;
 }
 
 function PlanetLabel({ planet, focused, CX, CY, visibleCount }) {
@@ -1078,6 +1238,7 @@ function DefaultReadout({ planets, hoverPlanet, hoverTech, activeLens, setActive
           <div className="readout-title" style={{ color: `var(--c-${hoverTech.sector})` }}>{hoverTech.name}</div>
           <div className="meta dim">{planet?.label} · {hoverTech.evidence}</div>
         </div>
+        {hoverTech.description && <p className="preview-desc">{hoverTech.description}</p>}
         <div className="preview-grid">
           <div className="preview-cell">
             <div className="meta">Spine</div>

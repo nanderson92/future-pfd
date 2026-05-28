@@ -220,6 +220,7 @@ function AtlasCard({ entry, onClick }) {
         <span className="chip" data-evidence={evidence}><span className="dot" />{evidence}</span>
       </div>
       <div className="ac-name">{name}</div>
+      {entry.description && <p className="ac-desc">{entry.description}</p>}
 
       <div className="ac-spine">
         <div className="ac-spine-glyph" style={{ borderColor: `var(--c-${sector})`, color: `var(--c-${sector})` }}>
@@ -293,14 +294,12 @@ function AtlasModal({ entry, onClose }) {
   const opLabel = window.FSA.UNIT_OPS.find(o => o.id === entry.unitOp)?.label;
   const chem = window.FSA.CHEMICALS.find(c => c.sym === entry.chemical);
 
-  // Synthesize a plausible mini-PFD
-  const steps = [
-    ["B-101", "Feedstock prep"],
-    ["A-201", opLabel || "Unit op"],
-    ["R-301", "Transformation"],
-    ["S-401", "Separation"],
-    ["F-501", "Polishing"],
-    ["T-601", "Output"],
+  const steps = entry.flow || [
+    ["P-101", "Process input"],
+    ["U-201", opLabel || "Unit operation"],
+    ["C-301", "Control window"],
+    ["Q-401", "Verification"],
+    ["O-501", "Deployable output"],
   ];
 
   return (
@@ -310,6 +309,7 @@ function AtlasModal({ entry, onClose }) {
           <div>
             <div className="meta">{entry.pid} · {entry.sector}</div>
             <div className="modal-title">{entry.name}</div>
+            {entry.description && <p className="modal-deck">{entry.description}</p>}
           </div>
           <button className="modal-close" onClick={onClose}>Close ×</button>
         </div>

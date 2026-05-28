@@ -111,10 +111,11 @@ function Nav() {
         <div className="nav-links command-links">
           {[
             ["#map",       "Map"],
-            ["#guide",     "Guide"],
             ["#cases",     "Cases"],
+            ["#guide",     "Guide"],
             ["#atlas",     "Index"],
             ["#sources",   "Sources"],
+            ["#about",     "About"],
           ].map(([href, label], i) => (
             <React.Fragment key={href}>
               {i > 0 && <span className="nav-sep" aria-hidden="true">·</span>}
@@ -194,8 +195,8 @@ function CaseStudies() {
         <SectionHead
           code="FSA-002 · Start here"
           kicker="Featured PFDs"
-          title="Three case studies in process architecture."
-          lede="Each visible product is rendered as a process-flow diagram: feedstocks in, unit operations across, the bottleneck called out, and the trigger that unlocks scale."
+          title="Six case studies in process architecture."
+          lede="Six representative systems are rendered as process-flow diagrams: feedstocks in, unit operations across, bottleneck called out, readiness gap named, and engineering judgment made explicit."
         />
         <div className="cases-stage">
           <div className="cases-tabs">
@@ -277,6 +278,12 @@ function CasePFD({ cse }) {
           <div className="pfd-foot-val">{cse.readiness}</div>
         </div>
       </div>
+      {cse.reasoning && (
+        <div className="case-reasoning">
+          <div className="meta">Engineering judgment</div>
+          <p>{cse.reasoning}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -877,7 +884,7 @@ function Evidence() {
       <div className="frame">
         <SectionHead
           code="FSA-012 · Evidence layer"
-          kicker="Three postures · 46 sources"
+          kicker="Three postures · 244 sources"
           title="Every claim is tagged so speculative concepts do not read like deployed systems."
           lede="The atlas separates broad engineering reasoning from card-specific source support. Cost, timeline, and deployment claims still need primary or project-specific evidence."
         />
@@ -985,32 +992,43 @@ function SourcesList() {
 /* ── Author note ──────────────────────────────────────────── */
 function AuthorNote() {
   return (
-    <section id="author" className="section section-author">
+    <section id="about" className="section section-author section-about">
       <div className="frame">
         <SectionHead
-          code="FSA-011 · Author note"
-          kicker="Process-engineering lens"
-          title="Built to show how I decompose frontier technologies into process systems."
+          code="FSA · ABOUT"
+          kicker="Builder note · contact"
+          title="Built by Nathan Anderson to show frontier technology as process architecture."
+          lede="This is a portfolio artifact for process-engineering judgment: what must become repeatable, manufacturable, safe, affordable, and integrated before a future system can change the built world."
         />
-        <div className="author-body">
-          <p>
-            I built Future Systems Atlas as a Chemical & Biomolecular Engineering
-            student interested in the gap between frontier invention and real-world
-            deployment.
-          </p>
-          <p>
-            The project reflects the way I want to think as a process engineer: not
-            just asking whether a technology is possible, but what has to become
-            <em> repeatable, manufacturable, safe, affordable, and integrated</em>
-            before it can change the built world.
-          </p>
-          <div className="author-sign">
-            <div className="author-rule" />
-            <div>
-              <div className="author-name">N. Anderson</div>
-              <div className="meta">Chemical &amp; Biomolecular Engineering</div>
-            </div>
+        <div className="about-grid">
+          <div className="author-body about-main">
+            <p>
+              I built Future Systems Atlas as a Chemical &amp; Biomolecular Engineering
+              student interested in the gap between frontier invention and real-world
+              deployment.
+            </p>
+            <p>
+              The project reflects the way I want to think as a process engineer:
+              not just asking whether a technology is possible, but mapping the
+              feedstocks, unit operations, bottlenecks, readiness gaps, and evidence
+              posture that would determine whether it can actually scale.
+            </p>
+            <p>
+              My working thesis: optimistic future technologies become credible when
+              they are translated into process windows, manufacturing rules, reliability
+              tests, infrastructure interfaces, and source-backed assumptions.
+            </p>
           </div>
+          <aside className="about-card">
+            <div className="meta">Nathan Anderson</div>
+            <h3>Chemical &amp; Biomolecular Engineering</h3>
+            <p>Process systems · clean technology · advanced manufacturing · future infrastructure.</p>
+            <div className="about-links">
+              <a href="mailto:fivemoc@gmail.com">Email Nathan →</a>
+              <a href="https://github.com/nanderson92" target="_blank" rel="noreferrer">GitHub →</a>
+              <a href="https://nanderson92.github.io" target="_blank" rel="noreferrer">Main portfolio →</a>
+            </div>
+          </aside>
         </div>
       </div>
     </section>
@@ -1035,18 +1053,19 @@ function Footer() {
           <a href="#readiness">Readiness</a>
           <a href="#atlas">Atlas index</a>
           <a href="#sources">Sources</a>
+          <a href="#about">About / contact</a>
         </div>
         <div className="footer-links">
           <div className="meta" style={{ marginBottom: 4 }}>Sheet</div>
-          <a>FSA-012 · Rev 2026.05</a>
+          <a>FSA · MASTER · Rev 2026.05</a>
           <a>Last updated · May 2026</a>
           <a>Built by Nathan Anderson</a>
           <a>Independent engineering artifact</a>
         </div>
       </div>
       <div className="footer-stamp">
-        <span>Sheet stamp · FSA-012</span>
-        <span>115 cards · 201 sources · 37 ops · 32 chem · 24 bottlenecks · 3 postures</span>
+        <span>FSA · MASTER</span>
+        <span>115 cards · 244 sources · 6 ops · 17 chem · 12 bottlenecks · 3 postures</span>
         <span>© N. Anderson 2026</span>
       </div>
     </footer>

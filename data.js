@@ -30,6 +30,12 @@ window.FSA = (() => {
     { sym: "Pt",  num: "78", name: "Platinum",       group: "PGM catalyst",     uses: ["electrolysis", "fuel cells"], color: "manufacturing" },
     { sym: "Ni",  num: "28", name: "Nickel",         group: "transition",       uses: ["cathodes", "alloys", "catalysts"], color: "manufacturing" },
     { sym: "Co",  num: "27", name: "Cobalt",         group: "transition",       uses: ["cathodes", "catalysts"], color: "manufacturing" },
+    { sym: "Fe",  num: "26", name: "Iron",           group: "transition",       uses: ["iron-air cells", "steel", "redox cycles"], color: "energy" },
+    { sym: "Na",  num: "11", name: "Sodium",         group: "alkali metal",     uses: ["sodium-ion cells", "salts", "heat transfer"], color: "energy" },
+    { sym: "AlON",num: "—",  name: "Aluminum oxynitride", group: "ceramic",     uses: ["transparent armor", "windows", "optics"], color: "materials" },
+    { sym: "BAs", num: "—",  name: "Boron arsenide", group: "semiconductor",    uses: ["thermal management", "power devices"], color: "materials" },
+    { sym: "SiO₂",num: "—",  name: "Silica",         group: "oxide",           uses: ["aerogels", "glass", "dielectrics", "membranes"], color: "materials" },
+    { sym: "CaCO₃",num:"—", name: "Calcium carbonate", group: "mineral",       uses: ["cement", "mineralization", "building materials"], color: "carbon" },
     { sym: "RE",  num: "57+",name: "Rare earths",    group: "lanthanide",       uses: ["magnets", "motors", "lasers"], color: "space" },
   ];
 
@@ -77,8 +83,8 @@ window.FSA = (() => {
   const RAW = [
     // ENERGY (17)
     ["Solid-state batteries", "energy", "Li", "deposition", "purity", "roadmap"],
-    ["Sodium-ion batteries", "energy", "Si", "fabrication", "reliability", "direct"],
-    ["Iron–air batteries", "energy", "C*", "reaction", "cost", "direct"],
+    ["Sodium-ion batteries", "energy", "Na", "fabrication", "reliability", "direct"],
+    ["Iron–air batteries", "energy", "Fe", "reaction", "cost", "direct"],
     ["Lithium–sulfur batteries", "energy", "Li", "reaction", "reliability", "roadmap"],
     ["Solid-oxide fuel cells", "energy", "Pt", "deposition", "reliability", "direct"],
     ["Green hydrogen electrolysis", "energy", "H₂", "reaction", "energy-intensity", "direct"],
@@ -130,21 +136,21 @@ window.FSA = (() => {
 
     // MATERIALS (18)
     ["Mycelium structural composites", "materials", "C*", "fabrication", "reliability", "roadmap"],
-    ["Self-healing concrete", "materials", "C*", "reaction", "reliability", "roadmap"],
+    ["Self-healing concrete", "materials", "CaCO₃", "reaction", "reliability", "roadmap"],
     ["Programmable metamaterials", "materials", "Si", "fabrication", "scale-up", "analogue"],
     ["Topological photonic crystals", "materials", "Si", "deposition", "yield", "analogue"],
-    ["Transparent aluminum (AlON)", "materials", "C*", "fabrication", "cost", "direct"],
+    ["Transparent aluminum (AlON)", "materials", "AlON", "fabrication", "cost", "direct"],
     ["PHA bioplastics", "materials", "C*", "reaction", "yield", "direct"],
     ["Living building materials", "materials", "C*", "reaction", "regulation", "roadmap"],
     ["Mass-timber CLT", "materials", "C*", "fabrication", "supply", "direct"],
     ["Graphene mass manufacturing", "materials", "C*", "deposition", "yield", "roadmap"],
-    ["Cubic boron arsenide thermal", "materials", "Si", "deposition", "scale-up", "analogue"],
-    ["Aerogels (silica/polyimide)", "materials", "Si", "fabrication", "cost", "direct"],
+    ["Cubic boron arsenide thermal", "materials", "BAs", "deposition", "scale-up", "analogue"],
+    ["Aerogels (silica/polyimide)", "materials", "SiO₂", "fabrication", "cost", "direct"],
     ["Metal-organic frameworks", "materials", "Cu", "reaction", "scale-up", "roadmap"],
     ["Quantum-dot displays", "materials", "Si", "deposition", "purity", "direct"],
     ["Solid-state electrolytes", "materials", "Li", "deposition", "purity", "roadmap"],
     ["Cathode active material recycling", "materials", "Ni", "separation", "supply", "direct"],
-    ["Rare-earth-free permanent magnets", "materials", "RE", "fabrication", "supply", "roadmap"],
+    ["Rare-earth-free permanent magnets", "materials", "Fe", "fabrication", "supply", "roadmap"],
     ["Photonic neuromorphic chips", "materials", "Si", "deposition", "yield", "analogue"],
     ["Diamond semiconductors", "materials", "C*", "deposition", "scale-up", "analogue"],
 
@@ -205,14 +211,510 @@ window.FSA = (() => {
     ["Helium-3 lunar mining", "space", "He", "separation", "yield", "analogue"],
   ];
 
+  const FLOW_LIBRARY = {
+    "Solid-state batteries": {
+      description: "Lithium inventory is moved through coated electrodes and a solid electrolyte stack; the hard part is clean interfaces that survive cycling.",
+      flow: [["M-101", "Cathode/anode powders"], ["C-201", "Slurry or dry coating"], ["L-301", "Solid electrolyte layer"], ["A-401", "Cell stacking"], ["F-501", "Formation cycling"], ["Q-601", "Pack qualification"]]
+    },
+    "Sodium-ion batteries": {
+      description: "A lower-cost ion-storage cell built around sodium-compatible cathodes, hard carbon anodes, electrolyte filling, and formation cycling.",
+      flow: [["M-101", "Na cathode + hard carbon"], ["C-201", "Electrode coating"], ["A-301", "Cell assembly"], ["E-401", "Electrolyte filling"], ["F-501", "Formation"], ["Q-601", "Cycle screening"]]
+    },
+    "Iron–air batteries": {
+      description: "Iron is reversibly oxidized and reduced against an air electrode; the process bottleneck is cheap, durable cycling rather than carbon chemistry.",
+      flow: [["M-101", "Iron electrode"], ["A-201", "Air electrode"], ["E-301", "Electrolyte management"], ["R-401", "Fe/FeOx redox cycling"], ["W-501", "Water balance"], ["Q-601", "Long-duration cycling"]]
+    },
+    "Green hydrogen electrolysis": {
+      description: "Purified water and renewable electricity are converted into hydrogen and oxygen, then dried, compressed, and stored.",
+      flow: [["W-101", "Water purification"], ["E-201", "Power conditioning"], ["R-301", "Electrolyzer stack"], ["S-401", "Gas separation"], ["D-501", "Drying + cleanup"], ["C-601", "Compression/storage"]]
+    },
+    "High-temperature SMR hydrogen": {
+      description: "High-temperature nuclear heat drives hydrogen production more efficiently, but the plant must couple heat, chemistry, safety, and purification.",
+      flow: [["Q-101", "Nuclear heat"], ["W-201", "Steam/feed prep"], ["R-301", "Thermochemical or SOEC step"], ["S-401", "H₂ separation"], ["P-501", "Purification"], ["T-601", "Storage/export"]]
+    },
+    "Closed-loop geothermal": {
+      description: "A sealed working fluid loop extracts heat from engineered wells without producing formation fluids at the surface.",
+      flow: [["W-101", "Closed well loop"], ["HX-201", "Subsurface heat pickup"], ["P-301", "Working-fluid circulation"], ["HX-401", "Surface heat exchange"], ["T-501", "Power or district heat"], ["Q-601", "Thermal decline monitoring"]]
+    },
+    "Tokamak fusion": {
+      description: "A magnetically confined plasma must sustain fusion power while heat, neutron damage, tritium breeding, and component replacement remain controllable.",
+      flow: [["F-101", "D–T fuel handling"], ["M-201", "Magnetic confinement"], ["P-301", "Plasma heating/current drive"], ["X-401", "Blanket + neutron capture"], ["HX-501", "Heat extraction"], ["Q-601", "Materials/availability"]]
+    },
+    "Inertial confinement fusion": {
+      description: "Precision fuel capsules are compressed by laser energy; credible scale-up depends on target fabrication, repetition rate, and energy recovery.",
+      flow: [["T-101", "Fuel target fabrication"], ["L-201", "Laser pulse shaping"], ["C-301", "Capsule compression"], ["R-401", "Ignition/burn"], ["HX-501", "Energy capture"], ["Q-601", "Shot-rate reliability"]]
+    },
+    "Stellarator fusion": {
+      description: "Three-dimensional magnetic coils stabilize plasma without pulsed tokamak operation, shifting the bottleneck toward fabrication precision and component maintenance.",
+      flow: [["C-101", "3D coil fabrication"], ["V-201", "Vacuum vessel"], ["P-301", "Plasma heating"], ["M-401", "Steady confinement"], ["HX-501", "Blanket heat removal"], ["Q-601", "Maintainability"]]
+    },
+    "Perovskite tandem PV": {
+      description: "Perovskite and silicon absorber layers are stacked to capture more spectrum, but moisture, ions, and scalable coating windows limit deployment.",
+      flow: [["S-101", "Silicon bottom cell"], ["C-201", "Perovskite coating"], ["A-301", "Anneal/crystallize"], ["E-401", "Contacts"], ["L-501", "Encapsulation"], ["Q-601", "Outdoor stability"]]
+    },
+    "Liquid-solvent DAC": {
+      description: "Large contactors move ambient air across alkaline solvent, then regenerate concentrated CO₂ using heat and caustic recovery.",
+      flow: [["A-101", "Air contactor"], ["S-201", "Alkaline solvent capture"], ["C-301", "Carbonate loop"], ["R-401", "Calcination/regeneration"], ["P-501", "CO₂ purification"], ["C-601", "Compression"]]
+    },
+    "Solid-sorbent DAC": {
+      description: "Ambient air passes through solid sorbents that bind CO₂ and release it under heat or vacuum swing.",
+      flow: [["A-101", "Air contactor"], ["B-201", "Sorbent bed capture"], ["V-301", "Vacuum/thermal swing"], ["S-401", "CO₂ desorption"], ["D-501", "Drying/polishing"], ["C-601", "Compression"]]
+    },
+    "Atmospheric water (sorbent)": {
+      description: "A hygroscopic sorbent captures water vapor from air, then releases it with heat for condensation and purification.",
+      flow: [["A-101", "Ambient air"], ["B-201", "Sorbent capture"], ["R-301", "Thermal regeneration"], ["HX-401", "Condensation"], ["F-501", "Purification"], ["T-601", "Storage"]]
+    },
+    "Electrochemical PFAS destruction": {
+      description: "Contaminated water is concentrated and treated electrochemically to break persistent carbon-fluorine bonds.",
+      flow: [["W-101", "Contaminated water"], ["C-201", "Pre-concentration"], ["E-301", "Electrochemical cell"], ["R-401", "C–F bond destruction"], ["F-501", "Byproduct removal"], ["Q-601", "Effluent verification"]]
+    },
+    "Direct lithium extraction": {
+      description: "Lithium is selectively pulled from brines using sorbents, membranes, or ion-exchange media, then polished into battery-grade product.",
+      flow: [["B-101", "Brine intake"], ["F-201", "Solids pretreatment"], ["S-301", "Selective Li capture"], ["R-401", "Elution/regeneration"], ["C-501", "Concentration"], ["Q-601", "Battery-grade polishing"]]
+    },
+    "Vertical farms": {
+      description: "Controlled-environment agriculture converts electricity, water, nutrients, CO₂, and genetics into produce under tight climate and disease control.",
+      flow: [["S-101", "Seeds/seedlings"], ["N-201", "Nutrient dosing"], ["L-301", "LED lighting"], ["C-401", "Climate control"], ["H-501", "Harvest + handling"], ["Q-601", "Food safety"]]
+    },
+    "Urban air mobility (eVTOL)": {
+      description: "The vehicle is only one subsystem; battery cycles, certification, charging, noise, and vertiport operations determine deployment.",
+      flow: [["A-101", "Airframe + rotors"], ["B-201", "Battery pack"], ["D-301", "Drive electronics"], ["Q-401", "Certification testing"], ["C-501", "Charging/vertiport"], ["O-601", "Fleet operations"]]
+    },
+    "Reusable super-heavy launch": {
+      description: "Full reuse depends on fast propellant loading, thermal protection inspection, engine reliability, and high-throughput refurbishment.",
+      flow: [["P-101", "Methalox propellants"], ["L-201", "Vehicle loading"], ["E-301", "Engine ignition"], ["F-401", "Ascent/reentry"], ["I-501", "Inspection/refurb"], ["Q-601", "Rapid reuse"]]
+    },
+    "Mars ISRU (Sabatier)": {
+      description: "Martian CO₂ and imported or locally produced hydrogen are converted to methane and water for propellant loops.",
+      flow: [["A-101", "Mars CO₂ intake"], ["H-201", "H₂ supply"], ["R-301", "Sabatier reactor"], ["S-401", "CH₄/H₂O separation"], ["E-501", "Water electrolysis"], ["T-601", "Propellant storage"]]
+    },
+    "Cryo propellant transfer": {
+      description: "The core process is managing heat leak, boiloff, phase behavior, and coupling between two tanks in microgravity.",
+      flow: [["T-101", "Donor tank chilldown"], ["P-201", "Line conditioning"], ["M-301", "Microgravity transfer"], ["V-401", "Venting/pressure control"], ["Z-501", "Zero-boiloff cooling"], ["Q-601", "Mass accounting"]]
+    },
+    "Lab-grown meat bioreactors": {
+      description: "Cells must expand in sterile culture, differentiate on scaffolds, and be harvested without media cost or contamination dominating the economics.",
+      flow: [["C-101", "Cell banking"], ["M-201", "Media prep"], ["B-301", "Bioreactor growth"], ["D-401", "Differentiation"], ["H-501", "Harvest/scaffold"], ["F-601", "Food formulation"]]
+    },
+    "Roll-to-roll perovskite": {
+      description: "The same photovoltaic chemistry must survive continuous coating, drying, registration, encapsulation, and inline quality control.",
+      flow: [["W-101", "Flexible web"], ["C-201", "Slot-die coating"], ["D-301", "Dry/anneal window"], ["E-401", "Electrodes"], ["L-501", "Encapsulation"], ["Q-601", "Inline inspection"]]
+    },
+    "Lithium–sulfur batteries": {
+      description: "High theoretical energy density only matters if sulfur loss, lithium-metal failure, electrolyte consumption, and cycle fade can be controlled together.",
+      flow: [["S-101", "Sulfur cathode"], ["L-201", "Li-metal anode"], ["E-301", "Electrolyte design"], ["C-401", "Cell assembly"], ["F-501", "Polysulfide control"], ["Q-601", "Cycle-life screen"]]
+    },
+    "Solid-oxide fuel cells": {
+      description: "SOFC deployment is a ceramic-stack manufacturing and thermal-cycling problem as much as an electrochemical conversion problem.",
+      flow: [["G-101", "Fuel + air feed"], ["R-201", "Internal reforming"], ["E-301", "Electrochemical stack"], ["HX-401", "Heat recuperation"], ["P-501", "Power conditioning"], ["Q-601", "Thermal-cycle QA"]]
+    },
+    "Enhanced geothermal systems": {
+      description: "EGS depends on creating and controlling a subsurface heat exchanger without unacceptable seismicity, water loss, or drilling cost.",
+      flow: [["D-101", "Deep wells"], ["F-201", "Reservoir stimulation"], ["P-301", "Water circulation"], ["HX-401", "Rock heat pickup"], ["T-501", "Power conversion"], ["M-601", "Seismic monitoring"]]
+    },
+    "Floating offshore wind": {
+      description: "The turbine is mature; the frontier is floating platform fabrication, mooring reliability, dynamic export cables, and offshore maintenance logistics.",
+      flow: [["F-101", "Floating platform"], ["T-201", "Turbine assembly"], ["M-301", "Mooring system"], ["C-401", "Dynamic cable"], ["G-501", "Grid export"], ["Q-601", "Offshore O&M"]]
+    },
+    "Concentrating solar thermal": {
+      description: "Concentrating solar becomes dispatchable heat or power only if mirrors, receiver temperature, thermal storage, and fouling losses stay inside an operating window.",
+      flow: [["M-101", "Heliostat field"], ["R-201", "Solar receiver"], ["HX-301", "Heat-transfer fluid"], ["T-401", "Thermal storage"], ["P-501", "Power block"], ["Q-601", "Optical cleanliness"]]
+    },
+    "Synthetic e-kerosene": {
+      description: "Aviation e-fuel is a coupling problem between captured CO₂, green H₂, syngas chemistry, product upgrading, and fuel certification.",
+      flow: [["C-101", "CO₂ feed"], ["H-201", "Green H₂"], ["R-301", "RWGS/syngas"], ["F-401", "Fischer–Tropsch"], ["U-501", "Hydrocracking"], ["Q-601", "Jet-fuel spec"]]
+    },
+    "e-Methanol": {
+      description: "E-methanol turns CO₂ and hydrogen into a liquid carrier, but the economics hinge on catalyst productivity, recycle ratio, and low-cost hydrogen.",
+      flow: [["C-101", "CO₂ feed"], ["H-201", "H₂ feed"], ["R-301", "Methanol synthesis"], ["HX-401", "Heat removal"], ["D-501", "Distillation"], ["RC-601", "Gas recycle"]]
+    },
+    "CO₂-to-polymers": {
+      description: "The engineering question is not just using CO₂, but inserting it into polymer chains with controlled molecular weight, purity, and marketable properties.",
+      flow: [["C-101", "CO₂ purification"], ["E-201", "Epoxide/comonomer"], ["R-301", "Catalytic copolymerization"], ["S-401", "Catalyst removal"], ["F-501", "Pelletizing"], ["Q-601", "Property testing"]]
+    },
+    "Methane pyrolysis": {
+      description: "Methane pyrolysis avoids CO₂ formation only if heat delivery, carbon handling, reactor fouling, and hydrogen separation scale cleanly.",
+      flow: [["G-101", "Methane feed"], ["R-201", "High-temp pyrolysis"], ["S-301", "H₂ separation"], ["C-401", "Solid carbon removal"], ["HX-501", "Heat recovery"], ["Q-601", "Fouling control"]]
+    },
+    "Industrial flue capture": {
+      description: "Post-combustion capture is a solvent, heat-integration, corrosion, and retrofit problem tied to the host plant rather than a standalone box.",
+      flow: [["F-101", "Flue-gas cooling"], ["A-201", "Absorber contact"], ["S-301", "Solvent regeneration"], ["C-401", "CO₂ compression"], ["W-501", "Solvent reclaiming"], ["Q-601", "Emissions QA"]]
+    },
+    "Solar-thermal desalination": {
+      description: "The useful product is fresh water; the process challenge is coupling low-grade heat, evaporation/condensation, fouling control, and brine management.",
+      flow: [["S-101", "Saline intake"], ["P-201", "Pretreatment"], ["HX-301", "Solar heat input"], ["E-401", "Evaporation"], ["C-501", "Condensation"], ["B-601", "Brine handling"]]
+    },
+    "Membrane distillation": {
+      description: "Membrane distillation is attractive when low-grade heat is available, but wetting, scaling, and module heat loss determine whether it lasts.",
+      flow: [["S-101", "Saline feed"], ["HX-201", "Feed heating"], ["M-301", "Hydrophobic membrane"], ["V-401", "Vapor transport"], ["C-501", "Condensate recovery"], ["Q-601", "Wetting/scaling QA"]]
+    },
+    "Produced water reuse": {
+      description: "Oilfield or industrial produced water becomes reusable only after suspended solids, organics, salts, and trace contaminants are handled as one train.",
+      flow: [["W-101", "Produced water"], ["F-201", "Oil/solids removal"], ["M-301", "Membrane/thermal step"], ["A-401", "Trace adsorption"], ["D-501", "Disinfection"], ["Q-601", "Reuse verification"]]
+    },
+    "Mycelium structural composites": {
+      description: "Mycelium products scale through biology plus manufacturing: feedstock variability, growth control, drying, pressing, and fire/moisture qualification.",
+      flow: [["B-101", "Biomass feedstock"], ["I-201", "Mycelium inoculation"], ["G-301", "Controlled growth"], ["D-401", "Drying/kill step"], ["P-501", "Pressing/finishing"], ["Q-601", "Fire/moisture tests"]]
+    },
+    "PHA bioplastics": {
+      description: "PHA is a fermentation-to-polymer problem where carbon feedstock, organism productivity, downstream extraction, and cost dominate scale-up.",
+      flow: [["F-101", "Sugar/oil feed"], ["B-201", "Microbial fermentation"], ["H-301", "Cell harvest"], ["E-401", "Polymer extraction"], ["P-501", "Pelletizing"], ["Q-601", "Molecular weight QA"]]
+    },
+    "Graphene mass manufacturing": {
+      description: "The hard part is not making graphene once; it is controlling layer count, defects, transfer, and dispersion at industrial throughput.",
+      flow: [["C-101", "Carbon precursor"], ["D-201", "CVD/exfoliation"], ["S-301", "Layer separation"], ["T-401", "Transfer/dispersion"], ["F-501", "Film or powder form"], ["Q-601", "Defect metrology"]]
+    },
+    "Metal-organic frameworks": {
+      description: "MOFs move from papers to products when synthesis, activation, shaping, moisture stability, and cycle life are engineered together.",
+      flow: [["M-101", "Metal salts"], ["L-201", "Organic linker"], ["R-301", "Solvothermal synthesis"], ["A-401", "Activation"], ["F-501", "Pellet/monolith forming"], ["Q-601", "Adsorption cycling"]]
+    },
+    "Cathode active material recycling": {
+      description: "Battery recycling is a separations and refining train whose value depends on black-mass quality, metals recovery, impurity control, and cathode-grade output.",
+      flow: [["B-101", "Battery black mass"], ["L-201", "Leaching"], ["S-301", "Metals separation"], ["P-401", "Precipitation"], ["C-501", "Cathode precursor"], ["Q-601", "Impurity QA"]]
+    },
+    "3D-printed buildings": {
+      description: "Construction printing depends on rheology, pumpability, layer adhesion, curing, reinforcement integration, and code qualification.",
+      flow: [["M-101", "Cementitious mix"], ["R-201", "Rheology tuning"], ["P-301", "Pump/extrude"], ["L-401", "Layer build"], ["C-501", "Cure + reinforce"], ["Q-601", "Code inspection"]]
+    },
+    "Continuous-flow chemistry": {
+      description: "Flow chemistry compresses reaction time and inventory, but scale-up shifts to residence-time distribution, heat removal, fouling, and numbering-up.",
+      flow: [["F-101", "Metered feeds"], ["M-201", "Micromixing"], ["R-301", "Flow reactor"], ["HX-401", "Heat control"], ["S-501", "Inline separation"], ["Q-601", "PAT feedback"]]
+    },
+    "Closed-loop battery recycling": {
+      description: "Closed-loop recycling works only if collection, discharge, shredding, hydrometallurgy, precursor synthesis, and cell qualification connect cleanly.",
+      flow: [["C-101", "Collected packs"], ["D-201", "Discharge/dismantle"], ["S-301", "Shredding/sorting"], ["L-401", "Leach + recover"], ["P-501", "CAM precursor"], ["Q-601", "Cell validation"]]
+    },
+    "Building-integrated PV": {
+      description: "BIPV must satisfy building-envelope, electrical, weathering, fire, and aesthetic constraints simultaneously, not just photovoltaic efficiency.",
+      flow: [["G-101", "Glass/module stack"], ["E-201", "Cell integration"], ["S-301", "Sealing/weatherproofing"], ["W-401", "Wiring/inverter"], ["I-501", "Facade installation"], ["Q-601", "Code + leak tests"]]
+    },
+    "Heat-pump retrofits at scale": {
+      description: "The deployment problem is matching refrigerant loops, building loads, installer labor, grid peaks, and user comfort across old housing stock.",
+      flow: [["B-101", "Building audit"], ["L-201", "Load calculation"], ["H-301", "Heat-pump install"], ["D-401", "Duct/hydronic fit"], ["C-501", "Controls tuning"], ["Q-601", "Seasonal performance"]]
+    },
+    "Microgrids + V2G": {
+      description: "Vehicle-to-grid microgrids require power electronics, forecasting, controls, interconnection standards, and battery degradation accounting.",
+      flow: [["G-101", "Local generation"], ["B-201", "Battery/EV fleet"], ["I-301", "Inverters"], ["C-401", "Dispatch control"], ["U-501", "Utility interface"], ["Q-601", "Degradation tracking"]]
+    },
+    "Methalox propulsion": {
+      description: "Methalox engines are a cryogenic combustion and turbomachinery system where mixture ratio, cooling, ignition, and reusability dominate.",
+      flow: [["P-101", "CH₄/O₂ loading"], ["T-201", "Turbopumps"], ["I-301", "Ignition sequence"], ["C-401", "Regenerative cooling"], ["N-501", "Nozzle expansion"], ["Q-601", "Hot-fire reuse QA"]]
+    },
+    "Lunar regolith ISRU": {
+      description: "Regolith ISRU has to mine, sort, heat, react, and separate useful oxygen or metals under abrasive dust and limited power.",
+      flow: [["M-101", "Regolith excavation"], ["S-201", "Size sorting"], ["R-301", "Reduction/molten electrolysis"], ["S-401", "O₂ separation"], ["C-501", "Metal/slag handling"], ["Q-601", "Dust-tolerant QA"]]
+    },
+    "On-orbit manufacturing": {
+      description: "Orbital manufacturing shifts the factory problem to feedstock launch, robotic handling, thermal control, metrology, and repairability in microgravity.",
+      flow: [["F-101", "Launched feedstock"], ["R-201", "Robotic handling"], ["P-301", "Print/form process"], ["T-401", "Thermal control"], ["M-501", "In-space metrology"], ["Q-601", "Assembly validation"]]
+    },
+    "Inflatable habitats": {
+      description: "Inflatable habitats depend on packed deployment, multilayer softgoods, micrometeoroid protection, leak detection, and long-duration structural health.",
+      flow: [["S-101", "Softgoods stack"], ["P-201", "Packed launch"], ["D-301", "Deployment/inflation"], ["S-401", "Structure lockout"], ["L-501", "Leak monitoring"], ["Q-601", "MMOD durability"]]
+    }
+  };
+
+
+  Object.assign(FLOW_LIBRARY, {
+    "Airborne wind energy": {
+      description: "Tethered wings or kites harvest stronger winds aloft, but the system succeeds only if autonomous flight, tether fatigue, winch control, and grid interconnection are reliable.",
+      flow: [["W-101", "Launch/landing station"], ["A-201", "Autonomous wing flight"], ["T-301", "Tether load transfer"], ["G-401", "Generator/winch conversion"], ["C-501", "Power conditioning"], ["Q-601", "Fatigue + flight safety"]]
+    },
+    "Tidal stream energy": {
+      description: "Tidal turbines convert predictable marine currents into power; durability against corrosion, biofouling, blade loading, and subsea maintenance controls economics.",
+      flow: [["S-101", "Seabed survey"], ["F-201", "Foundation install"], ["T-301", "Rotor/turbine capture"], ["E-401", "Subsea export cable"], ["P-501", "Power conversion"], ["Q-601", "Marine reliability checks"]]
+    },
+    "Ocean alkalinity enhancement": {
+      description: "Alkaline minerals or electrochemical alkalinity are added to seawater to increase CO₂ uptake, making verification, ecological limits, and distribution control central.",
+      flow: [["M-101", "Alkalinity source"], ["P-201", "Grinding/dissolution"], ["D-301", "Ocean dosing"], ["C-401", "Carbonate equilibration"], ["M-501", "MRV sampling"], ["R-601", "Ecological/regulatory review"]]
+    },
+    "Enhanced rock weathering": {
+      description: "Crushed silicate or carbonate minerals are spread over land so weathering consumes CO₂, with mining, grinding energy, soil impacts, and measurement dominating scale-up.",
+      flow: [["R-101", "Rock mining"], ["G-201", "Comminution"], ["L-301", "Field logistics"], ["S-401", "Soil application"], ["W-501", "Weathering uptake"], ["M-601", "Carbon accounting"]]
+    },
+    "Biochar at scale": {
+      description: "Biomass is thermally converted into stable carbon-rich char; the process hinges on feedstock logistics, pyrolysis conditions, product stability, and soil certification.",
+      flow: [["B-101", "Biomass collection"], ["D-201", "Drying/sizing"], ["PY-301", "Pyrolysis"], ["G-401", "Syngas/heat recovery"], ["C-501", "Char conditioning"], ["M-601", "Stability + MRV"]]
+    },
+    "Mineralized concrete (CO₂-cured)": {
+      description: "Concrete products are cured with CO₂ so carbonates form inside the material; deployment depends on strength, curing throughput, CO₂ delivery, and code acceptance.",
+      flow: [["M-101", "Cementitious mix"], ["F-201", "Block/precast forming"], ["C-301", "CO₂ curing chamber"], ["R-401", "Carbonate formation"], ["S-501", "Strength testing"], ["Q-601", "Code qualification"]]
+    },
+    "H₂-DRI carbon-negative steel": {
+      description: "Iron ore is reduced using hydrogen instead of carbon monoxide, then melted and refined; infrastructure for clean H₂ and high-temperature solids handling is the constraint.",
+      flow: [["O-101", "Iron ore pellets"], ["H-201", "Hydrogen supply"], ["R-301", "Direct reduction shaft"], ["E-401", "Electric melting"], ["A-501", "Alloy/refining"], ["Q-601", "Steel certification"]]
+    },
+    "Mineral carbonation": {
+      description: "CO₂ is reacted with alkaline minerals or industrial residues to form stable carbonates, shifting the challenge to contact area, kinetics, water use, and solids handling.",
+      flow: [["F-101", "CO₂ stream"], ["M-201", "Alkaline mineral/residue"], ["P-301", "Grinding/activation"], ["R-401", "Carbonation reactor"], ["S-501", "Solids separation"], ["M-601", "Storage verification"]]
+    },
+    "Marine CO₂ removal": {
+      description: "CO₂ is removed from seawater or ocean chemistry is shifted so the ocean can absorb more carbon, making MRV and ecological safety inseparable from the process train.",
+      flow: [["I-101", "Seawater intake"], ["S-201", "DIC/alkalinity shift"], ["G-301", "CO₂ stripping/capture"], ["R-401", "Water return"], ["M-501", "Ocean monitoring"], ["V-601", "MRV + permitting"]]
+    },
+    "BECCS": {
+      description: "Biomass energy with carbon capture couples land, combustion or fermentation, CO₂ capture, compression, and geologic storage into one accounting-sensitive system.",
+      flow: [["B-101", "Biomass supply"], ["E-201", "Energy conversion"], ["C-301", "CO₂ capture"], ["D-401", "Dehydration/compression"], ["T-501", "Transport"], ["S-601", "Storage + MRV"]]
+    },
+    "Cement clinker substitution": {
+      description: "Lower-clinker cement replaces energy-intensive clinker with supplementary binders while maintaining strength gain, durability, supply, and code acceptance.",
+      flow: [["M-101", "SCM/binder sourcing"], ["G-201", "Grinding/blending"], ["R-301", "Hydration chemistry"], ["C-401", "Cure protocol"], ["S-501", "Strength/durability"], ["Q-601", "Standard approval"]]
+    },
+    "Atmospheric water (cooled)": {
+      description: "Air is cooled below its dew point and condensed; energy use depends on humidity, heat exchange, refrigeration efficiency, and condensate quality control.",
+      flow: [["A-101", "Ambient air intake"], ["F-201", "Filtration"], ["HX-301", "Dew-point cooling"], ["C-401", "Condensation"], ["P-501", "Water polishing"], ["T-601", "Storage/sanitation"]]
+    },
+    "Forward osmosis": {
+      description: "A draw solution pulls water through a membrane osmotically, but the full process is only useful if draw regeneration and membrane fouling are controlled.",
+      flow: [["F-101", "Feed water"], ["M-201", "FO membrane contact"], ["D-301", "Draw solution dilution"], ["R-401", "Draw regeneration"], ["P-501", "Product polishing"], ["Q-601", "Flux/fouling check"]]
+    },
+    "Capacitive deionization": {
+      description: "Salts are removed by charging porous electrodes and then released during regeneration, making electrode stability and brine management the main scale questions.",
+      flow: [["W-101", "Brackish feed"], ["P-201", "Particle pretreatment"], ["E-301", "Electrode adsorption"], ["R-401", "Regeneration pulse"], ["B-501", "Brine handling"], ["Q-601", "Conductivity control"]]
+    },
+    "Greywater closed-loop": {
+      description: "Building wastewater is locally treated and reused, requiring robust filtration, biological control, disinfection, monitoring, and plumbing integration.",
+      flow: [["G-101", "Greywater collection"], ["F-201", "Screening/filtration"], ["B-301", "Bio/adsorptive treatment"], ["D-401", "Disinfection"], ["T-501", "Reuse storage"], ["Q-601", "Sensor verification"]]
+    },
+    "Fog harvesting": {
+      description: "Mesh or structured surfaces collect droplets from fog, so site climate, surface wetting, drainage, fouling, and storage determine practical yield.",
+      flow: [["S-101", "Site fog resource"], ["M-201", "Mesh/surface capture"], ["C-301", "Droplet coalescence"], ["D-401", "Gravity drainage"], ["P-501", "Filtration"], ["T-601", "Storage"]]
+    },
+    "Hypersaline brine valorization": {
+      description: "Concentrated brines are converted from disposal liabilities into salts, lithium, magnesium, or chemicals through staged separation and crystallization.",
+      flow: [["B-101", "Hypersaline brine"], ["P-201", "Pretreatment"], ["E-301", "Evaporation/concentration"], ["X-401", "Selective crystallization"], ["S-501", "Ion recovery"], ["W-601", "Residual disposal"]]
+    },
+    "Seawater uranium extraction": {
+      description: "Uranium is captured from extremely dilute seawater using selective adsorbents, so the economics depend on adsorption rate, deployment lifetime, and elution chemistry.",
+      flow: [["S-101", "Seawater exposure"], ["A-201", "Amidoxime adsorbent"], ["L-301", "Long-duration loading"], ["E-401", "Elution"], ["C-501", "Concentration/purification"], ["Q-601", "Adsorbent reuse"]]
+    },
+    "Membrane-less electrolytic purification": {
+      description: "Electrochemical gradients and reactions purify water without a conventional membrane, trading membrane fouling for electrode durability and byproduct control.",
+      flow: [["W-101", "Contaminated feed"], ["E-201", "Electrode reactor"], ["R-301", "Redox/ion migration"], ["S-401", "Phase/product split"], ["P-501", "Polishing"], ["Q-601", "Byproduct monitoring"]]
+    },
+    "Self-healing concrete": {
+      description: "Concrete is modified with bacteria, capsules, or mineral precursors that seal cracks, making survivability, activation, and structural verification the core issues.",
+      flow: [["M-101", "Concrete matrix"], ["A-201", "Healing additive"], ["F-301", "Casting/curing"], ["D-401", "Crack activation"], ["R-501", "Mineral sealing"], ["Q-601", "Durability testing"]]
+    },
+    "Programmable metamaterials": {
+      description: "Microstructured materials encode unusual mechanical or optical response through geometry; scale-up is precision fabrication plus repeatable property verification.",
+      flow: [["D-101", "Lattice design"], ["M-201", "Material selection"], ["F-301", "Microfabrication"], ["A-401", "Array assembly"], ["T-501", "Property test"], ["Q-601", "Defect tolerance"]]
+    },
+    "Topological photonic crystals": {
+      description: "Nanostructured optical lattices guide light through protected modes, but device relevance depends on pattern fidelity, losses, coupling, and wafer-scale yield.",
+      flow: [["S-101", "Substrate prep"], ["L-201", "Lithographic pattern"], ["E-301", "Etch/deposition"], ["C-401", "Waveguide coupling"], ["M-501", "Optical metrology"], ["Q-601", "Yield mapping"]]
+    },
+    "Transparent aluminum (AlON)": {
+      description: "AlON ceramics become transparent only after powder purity, forming, sintering, and polishing produce a dense optical body without scattering defects.",
+      flow: [["P-101", "AlON powder"], ["F-201", "Press/form green body"], ["S-301", "High-temp sintering"], ["H-401", "Hot isostatic pressing"], ["P-501", "Optical polishing"], ["Q-601", "Transmission/impact test"]]
+    },
+    "Living building materials": {
+      description: "Living materials embed organisms or bio-mineral processes into construction products, so moisture, nutrients, containment, and code approval become process variables.",
+      flow: [["B-101", "Biological inoculum"], ["M-201", "Mineral/matrix feed"], ["G-301", "Growth or curing"], ["S-401", "Stabilization"], ["E-501", "Environmental exposure"], ["Q-601", "Biosafety/code review"]]
+    },
+    "Mass-timber CLT": {
+      description: "Cross-laminated timber scales through lamination quality, adhesive cure, moisture control, fire performance, and supply of certified wood feedstock.",
+      flow: [["L-101", "Lumber grading"], ["D-201", "Drying/conditioning"], ["A-301", "Adhesive layup"], ["P-401", "Panel pressing"], ["M-501", "Machining"], ["Q-601", "Fire/structural rating"]]
+    },
+    "Cubic boron arsenide thermal": {
+      description: "Boron arsenide promises exceptional thermal transport, but the process challenge is growing large, pure crystals and integrating them into devices.",
+      flow: [["P-101", "High-purity precursors"], ["G-201", "Crystal growth"], ["C-301", "Defect control"], ["W-401", "Wafering/polish"], ["I-501", "Device integration"], ["Q-601", "Thermal metrology"]]
+    },
+    "Aerogels (silica/polyimide)": {
+      description: "Aerogels deliver insulation by locking pores into a low-density network; manufacturing must control gelation, drying stress, dusting, and mechanical fragility.",
+      flow: [["S-101", "Sol preparation"], ["G-201", "Gelation"], ["A-301", "Aging/solvent exchange"], ["D-401", "Supercritical/ambient drying"], ["R-501", "Reinforcement"], ["Q-601", "Thermal/mechanical test"]]
+    },
+    "Quantum-dot displays": {
+      description: "Quantum-dot displays depend on nanoscale emitter synthesis, ligand control, deposition uniformity, encapsulation, and lifetime under blue/UV excitation.",
+      flow: [["N-101", "QD synthesis"], ["P-201", "Purification/ligand exchange"], ["I-301", "Ink formulation"], ["C-401", "Film patterning"], ["E-501", "Encapsulation"], ["Q-601", "Color/lifetime test"]]
+    },
+    "Solid-state electrolytes": {
+      description: "Solid electrolytes must combine ionic conductivity with manufacturable interfaces, density, moisture stability, and compatibility with lithium metal or cathodes.",
+      flow: [["P-101", "Electrolyte powder"], ["M-201", "Mixing/milling"], ["F-301", "Tape/cold press"], ["S-401", "Sinter/densify"], ["I-501", "Electrode interface"], ["Q-601", "Impedance/cycling"]]
+    },
+    "Rare-earth-free permanent magnets": {
+      description: "Alternative magnets replace constrained rare earth supply with new alloys or architectures, but coercivity, temperature stability, and mass production must close together.",
+      flow: [["A-101", "Alloy feedstock"], ["M-201", "Melt/spin or powder route"], ["H-301", "Heat treatment"], ["F-401", "Magnet forming"], ["M-501", "Magnetization"], ["Q-601", "Coercivity/aging test"]]
+    },
+    "Photonic neuromorphic chips": {
+      description: "Photonic neural hardware routes computation through light, making waveguide loss, modulator energy, memory integration, and packaging the real manufacturing gates.",
+      flow: [["W-101", "Photonic wafer"], ["L-201", "Waveguide patterning"], ["D-301", "Modulator/detector deposition"], ["I-401", "Memory/electronics integration"], ["P-501", "Optical packaging"], ["Q-601", "Inference benchmark"]]
+    },
+    "Diamond semiconductors": {
+      description: "Diamond electronics promise extreme thermal and power performance, but wafer growth, doping, contacts, and defect control remain the process bottlenecks.",
+      flow: [["S-101", "Diamond seed/substrate"], ["CVD-201", "Diamond growth"], ["D-301", "Doping/implant"], ["A-401", "Anneal/activate"], ["M-501", "Ohmic contacts"], ["Q-601", "Power/thermal test"]]
+    },
+    "Vat photopolymerization at scale": {
+      description: "Resin printing becomes production only when exposure, cure depth, resin refill, post-cure, and part qualification are repeatable at high throughput.",
+      flow: [["R-101", "Resin formulation"], ["E-201", "Layer exposure"], ["B-301", "Build/recoat cycle"], ["W-401", "Wash"], ["C-501", "Post-cure"], ["Q-601", "Dimensional/material QA"]]
+    },
+    "Cold-spray additive": {
+      description: "Metal powders are accelerated into a surface and bonded without melting, so powder quality, impact velocity, residual stress, and adhesion drive performance.",
+      flow: [["P-101", "Metal powder"], ["G-201", "Gas heating/pressurization"], ["N-301", "Supersonic nozzle"], ["D-401", "Particle impact deposition"], ["M-501", "Machining/heat treat"], ["Q-601", "Adhesion/fatigue test"]]
+    },
+    "Modular nuclear factories": {
+      description: "Factory-built nuclear systems move cost risk from field construction into repeatable modules, quality documentation, supplier control, and licensing evidence.",
+      flow: [["D-101", "Standard module design"], ["F-201", "Factory fabrication"], ["N-301", "NQA documentation"], ["A-401", "Module assembly"], ["T-501", "Transport/site install"], ["L-601", "Licensing package"]]
+    },
+    "Cellular agriculture (dairy)": {
+      description: "Dairy proteins made by microbes require strain productivity, sterile fermentation, protein recovery, formulation, and food-grade cost control.",
+      flow: [["S-101", "Production strain"], ["F-201", "Fermentation"], ["H-301", "Cell removal"], ["P-401", "Protein purification"], ["F-501", "Food formulation"], ["Q-601", "Taste/safety QA"]]
+    },
+    "Mycelium leather": {
+      description: "Mycelium leather is a controlled growth and finishing process where substrate, morphology, drying, tanning, and wear performance have to be tuned together.",
+      flow: [["S-101", "Biomass substrate"], ["I-201", "Inoculation"], ["G-301", "Sheet growth"], ["D-401", "Drying/pressing"], ["F-501", "Finishing/coating"], ["Q-601", "Abrasion/moisture test"]]
+    },
+    "Precision fermentation proteins": {
+      description: "Engineered microbes make target proteins, but commercial scale depends on strain stability, titer, downstream purification, and food or pharma qualification.",
+      flow: [["S-101", "Engineered strain"], ["M-201", "Media prep"], ["F-301", "Fermentation"], ["H-401", "Harvest/clarify"], ["P-501", "Protein purification"], ["Q-601", "Specification release"]]
+    },
+    "Spider-silk fibers": {
+      description: "Synthetic spider silk requires producing protein at useful concentration, spinning it into aligned fibers, and post-treating for strength and toughness.",
+      flow: [["S-101", "Silk protein feed"], ["P-201", "Protein concentration"], ["D-301", "Dope formulation"], ["S-401", "Wet/dry spinning"], ["D-501", "Draw/post-treat"], ["Q-601", "Tensile testing"]]
+    },
+    "Digital twins for fabs": {
+      description: "A fab digital twin is a live process-control layer: equipment telemetry, recipe context, yield data, and fault detection must be synchronized into decisions.",
+      flow: [["E-101", "Equipment telemetry"], ["R-201", "Recipe/context data"], ["M-301", "Metrology feed"], ["D-401", "Model calibration"], ["C-501", "Control recommendation"], ["Q-601", "Yield validation"]]
+    },
+    "Co-bot assembly cells": {
+      description: "Collaborative robots scale when sensing, fixturing, safety envelopes, end-effectors, and changeover procedures are engineered as one workcell.",
+      flow: [["P-101", "Part presentation"], ["F-201", "Fixturing"], ["R-301", "Robot path"], ["S-401", "Safety sensing"], ["I-501", "Assembly operation"], ["Q-601", "Cycle-time QA"]]
+    },
+    "Self-assembling materials": {
+      description: "Self-assembly uses molecular or colloidal interactions to create structure, but production needs concentration, solvent, kinetics, defects, and locking steps controlled.",
+      flow: [["B-101", "Building-block synthesis"], ["S-201", "Solvent/condition set"], ["A-301", "Self-assembly"], ["L-401", "Lock-in/crosslink"], ["W-501", "Wash/dry"], ["Q-601", "Structure verification"]]
+    },
+    "Atomic-layer manufacturing": {
+      description: "Atomic-layer manufacturing extends ALD-like precision into production, where precursor delivery, surface saturation, purge timing, and throughput become limiting.",
+      flow: [["S-101", "Substrate/surface prep"], ["P-201", "Precursor pulse"], ["R-301", "Surface-limited reaction"], ["P-401", "Purge/counterpulse"], ["N-501", "Cycle repeat"], ["Q-601", "Thickness/metrology"]]
+    },
+    "Cultivated produce greenhouses": {
+      description: "High-tech greenhouses turn agriculture into climate control, irrigation chemistry, lighting, pest management, and logistics under a tight energy budget.",
+      flow: [["S-101", "Seed/propagation"], ["C-201", "Climate control"], ["N-301", "Nutrient irrigation"], ["L-401", "Lighting/shading"], ["H-501", "Harvest/pack"], ["Q-601", "Yield/quality tracking"]]
+    },
+    "Hyperloop": {
+      description: "Hyperloop is less a pod and more an infrastructure process: tube fabrication, vacuum maintenance, levitation, switching, safety, and permitting have to align.",
+      flow: [["T-101", "Tube corridor"], ["V-201", "Vacuum pumping"], ["L-301", "Levitation/propulsion"], ["S-401", "Switching/control"], ["E-501", "Emergency systems"], ["Q-601", "Safety certification"]]
+    },
+    "Autonomous transit pods": {
+      description: "Transit pods depend on fleet operations, charging, sensing, routing, maintenance, and passenger safety more than on the vehicle shell alone.",
+      flow: [["V-101", "Vehicle platform"], ["S-201", "Sensor suite"], ["R-301", "Routing/control"], ["C-401", "Charging depot"], ["M-501", "Fleet maintenance"], ["Q-601", "Safety case"]]
+    },
+    "Smart-glass facades": {
+      description: "Electrochromic glass changes building heat and light loads, but production must control coating uniformity, wiring, sealing, and long-term cycling.",
+      flow: [["G-101", "Glass substrate"], ["C-201", "Transparent conductor"], ["E-301", "Electrochromic stack"], ["L-401", "Lamination/seal"], ["B-501", "Building controls"], ["Q-601", "Cycling/weathering"]]
+    },
+    "District geothermal": {
+      description: "District geothermal moves heat through shared wells, heat exchangers, and distribution loops, with siting, drilling, load matching, and customer interconnects as constraints.",
+      flow: [["R-101", "Resource survey"], ["W-201", "Well drilling"], ["HX-301", "Heat exchange"], ["P-401", "Distribution loop"], ["B-501", "Building interface"], ["Q-601", "Load/temperature control"]]
+    },
+    "Sewage-thermal recovery": {
+      description: "Wastewater heat recovery treats sewers as a low-grade heat source, requiring fouling-tolerant exchangers, heat pumps, and building load integration.",
+      flow: [["S-101", "Sewer heat source"], ["F-201", "Screening/fouling control"], ["HX-301", "Heat exchanger"], ["HP-401", "Heat pump lift"], ["B-501", "Building loop"], ["Q-601", "Sanitary/thermal monitoring"]]
+    },
+    "Smart water grids": {
+      description: "Smart water grids add sensors and controls to distribution networks so leaks, pressure, quality, and demand can be managed in real time.",
+      flow: [["N-101", "Pipe network"], ["S-201", "Sensor nodes"], ["D-301", "Data ingestion"], ["M-401", "Leak/quality model"], ["C-501", "Valve/pump control"], ["Q-601", "Service verification"]]
+    },
+    "Underground freight": {
+      description: "Underground freight systems shift delivery to tunnels or conduits, making excavation, routing, loading, controls, and maintenance access the key process steps.",
+      flow: [["C-101", "Corridor/tunnel"], ["L-201", "Loading interface"], ["V-301", "Vehicle/capsule motion"], ["S-401", "Sorting/routing"], ["U-501", "Urban terminal"], ["Q-601", "Reliability/safety"]]
+    },
+    "Robotic last-mile delivery": {
+      description: "Last-mile robots require fleet charging, perception, curb navigation, handoff security, weather durability, and local regulatory approval.",
+      flow: [["O-101", "Order dispatch"], ["R-201", "Robot assignment"], ["P-301", "Path planning"], ["N-401", "Sidewalk navigation"], ["H-501", "Secure handoff"], ["Q-601", "Fleet uptime/safety"]]
+    },
+    "Cooling-as-a-service": {
+      description: "Cooling-as-a-service turns HVAC into an operating platform where equipment, refrigerants, controls, maintenance, financing, and performance guarantees are bundled.",
+      flow: [["L-101", "Building load audit"], ["E-201", "Equipment install"], ["R-301", "Refrigerant loop"], ["C-401", "Controls optimization"], ["M-501", "Service maintenance"], ["Q-601", "Performance guarantee"]]
+    },
+    "Urban DAC integration": {
+      description: "Urban DAC must fit capture equipment into buildings or districts while managing air contact, heat, noise, footprint, CO₂ logistics, and public acceptance.",
+      flow: [["A-101", "Urban air contact"], ["S-201", "Sorbent/solvent capture"], ["H-301", "Heat integration"], ["C-401", "CO₂ compression"], ["L-501", "Transport/use"], ["Q-601", "Permitting/MRV"]]
+    },
+    "Modular timber towers": {
+      description: "Tall timber buildings require prefabricated panels, connection design, moisture/fire protection, installation sequencing, and code-qualified structural behavior.",
+      flow: [["T-101", "Certified timber"], ["P-201", "Panel fabrication"], ["C-301", "Connection hardware"], ["F-401", "Fire/moisture treatment"], ["A-501", "Site assembly"], ["Q-601", "Structural/code check"]]
+    },
+    "Asteroid mining": {
+      description: "Asteroid mining is a resource-processing chain under extreme logistics: prospecting, rendezvous, excavation, beneficiation, storage, and return or in-space use.",
+      flow: [["P-101", "Prospecting"], ["R-201", "Rendezvous/anchoring"], ["E-301", "Excavation"], ["B-401", "Beneficiation"], ["S-501", "Storage/transfer"], ["Q-601", "Resource assay"]]
+    },
+    "Orbital solar power": {
+      description: "Space solar power requires launchable arrays, autonomous assembly, power beaming, thermal control, and a safe ground receiving architecture.",
+      flow: [["M-101", "PV/module launch"], ["A-201", "On-orbit assembly"], ["P-301", "Power conversion"], ["B-401", "Microwave/laser beam"], ["R-501", "Ground rectenna"], ["Q-601", "Safety/grid validation"]]
+    },
+    "Active debris removal": {
+      description: "Debris removal is a rendezvous and disposal problem where sensing, capture, attitude control, deorbit, and legal authorization matter together.",
+      flow: [["T-101", "Target catalog"], ["R-201", "Rendezvous"], ["C-301", "Capture mechanism"], ["A-401", "Attitude stabilization"], ["D-501", "Deorbit/disposal"], ["Q-601", "Conjunction/legal clearance"]]
+    },
+    "Cislunar fuel depots": {
+      description: "Fuel depots become useful only when cryogenic storage, transfer, docking, boiloff control, and traffic scheduling are dependable in cislunar space.",
+      flow: [["D-101", "Depot tankage"], ["C-201", "Cryo storage"], ["D-301", "Docking interface"], ["T-401", "Fluid transfer"], ["B-501", "Boiloff management"], ["Q-601", "Mission availability"]]
+    },
+    "Rotating space habitats": {
+      description: "Artificial-gravity habitats require structural mass, rotating joints, life support, vibration control, radiation shielding, and maintainable assembly methods.",
+      flow: [["S-101", "Structure modules"], ["A-201", "On-orbit assembly"], ["R-301", "Spin-up/control"], ["L-401", "Life-support loop"], ["S-501", "Shielding"], ["Q-601", "Dynamics/crew safety"]]
+    },
+    "Lunar nuclear power": {
+      description: "Lunar fission systems must be launched, deployed, cooled, shielded, and operated remotely while satisfying space nuclear safety requirements.",
+      flow: [["R-101", "Reactor module"], ["L-201", "Launch/landing"], ["D-301", "Surface deployment"], ["HX-401", "Heat rejection"], ["P-501", "Power conditioning"], ["Q-601", "Nuclear safety case"]]
+    },
+    "Microgravity pharma synthesis": {
+      description: "Microgravity pharma uses altered crystal growth or biology, but value depends on controlled reactors, sterile handling, return logistics, and quality evidence.",
+      flow: [["R-101", "Reaction/culture payload"], ["O-201", "Microgravity operation"], ["C-301", "Crystal/cell growth"], ["S-401", "Stabilization"], ["R-501", "Return logistics"], ["Q-601", "Analytical release"]]
+    },
+    "Optical inter-satellite links": {
+      description: "Laser links need precise pointing, optical surfaces, thermal stability, electronics, and network control to turn spacecraft into useful infrastructure.",
+      flow: [["O-101", "Optical terminal"], ["L-201", "Laser source"], ["P-301", "Pointing/acquisition"], ["T-401", "Thermal control"], ["N-501", "Network routing"], ["Q-601", "Link availability"]]
+    },
+    "Space elevators (tether cable)": {
+      description: "A space elevator is fundamentally a materials and dynamics problem: tether strength, defect tolerance, deployment, climbers, debris risk, and repairability all dominate.",
+      flow: [["M-101", "Ultra-strength fiber"], ["T-201", "Tether fabrication"], ["D-301", "Orbital deployment"], ["C-401", "Climber power/traction"], ["M-501", "Debris monitoring"], ["Q-601", "Inspection/repair"]]
+    },
+    "Helium-3 lunar mining": {
+      description: "Helium-3 concepts require processing huge volumes of regolith for tiny concentrations, so excavation energy, thermal release, separation, and transport dominate.",
+      flow: [["R-101", "Regolith mining"], ["H-201", "High-temp heating"], ["G-301", "Volatile release"], ["S-401", "Gas separation"], ["C-501", "Cryogenic storage"], ["Q-601", "Isotope yield audit"]]
+    }
+  });
+
+  function descriptionFor(name, sector) {
+    if (FLOW_LIBRARY[name]?.description) return FLOW_LIBRARY[name].description;
+    const sectorLine = {
+      energy: "Energy systems scale only when the device physics can be coupled to durable materials, balance-of-plant hardware, and maintainable infrastructure.",
+      carbon: "Carbon systems depend on moving dilute or reactive carbon streams through capture, conversion, storage, and verification without hiding the energy penalty.",
+      water: "Water systems turn scarcity or contamination into a separations problem: intake, selectivity, energy use, fouling control, and verified output quality.",
+      materials: "Materials systems scale when the useful property can be made repeatably across area, volume, interfaces, and service life.",
+      manufacturing: "Manufacturing systems win when the process window, quality control, throughput, and cost of failure can be controlled repeatedly.",
+      cities: "Urban technologies must survive real buildings, fleets, utilities, regulations, maintenance cycles, and user adoption rather than only lab performance.",
+      space: "Space systems have to close mass, energy, thermal, reliability, and maintenance loops under launch and operating constraints."
+    };
+    return sectorLine[sector] || "This card maps the technology into the process steps and constraints that would have to become repeatable before deployment.";
+  }
+
+  function templateFlow(unitOp, sector) {
+    const templates = {
+      separation: [["I-101", "Feed stream"], ["P-201", "Pretreatment"], ["S-301", "Selective separation"], ["R-401", "Regeneration/recycle"], ["Q-501", "Purity verification"], ["T-601", "Product handling"]],
+      reaction: [["F-101", "Feed preparation"], ["R-201", "Reaction zone"], ["HX-301", "Heat management"], ["S-401", "Product separation"], ["RC-501", "Recycle loop"], ["Q-601", "Yield control"]],
+      heat: [["Q-101", "Heat source/sink"], ["HX-201", "Heat exchange"], ["P-301", "Working-fluid loop"], ["C-401", "Thermal control"], ["U-501", "Useful output"], ["Q-601", "Efficiency monitoring"]],
+      deposition: [["S-101", "Substrate prep"], ["C-201", "Coating/deposition"], ["A-301", "Anneal/cure"], ["I-401", "Interface control"], ["L-501", "Encapsulation"], ["Q-601", "Inline metrology"]],
+      fabrication: [["M-101", "Material feed"], ["F-201", "Forming/assembly"], ["J-301", "Joining/integration"], ["T-401", "Tolerance control"], ["Q-501", "Inspection"], ["R-601", "Reliability test"]],
+      qa: [["D-101", "Device/system"], ["S-201", "Stress protocol"], ["M-301", "Measurement"], ["A-401", "Failure analysis"], ["W-501", "Process window"], ["Q-601", "Qualification"]]
+    };
+    return templates[unitOp] || templates.fabrication;
+  }
+
   const ENTRIES = RAW.map(([name, sector, chemical, unitOp, bottleneck, evidence], i) => {
     const pid = `PFD-${String(100 + i + 1).padStart(3, "0")}`;
     const trl = Math.max(1, Math.min(9, 2 + ((i * 7) % 8)));
     const mrl = Math.max(1, Math.min(9, 1 + ((i * 5 + 3) % 8)));
     const irl = Math.max(1, Math.min(9, 1 + ((i * 3 + 5) % 7)));
+    const flowDef = FLOW_LIBRARY[name];
     return {
       pid, name, sector, chemical, unitOp, bottleneck, evidence,
       trl, mrl, irl,
+      description: descriptionFor(name, sector),
+      flow: flowDef?.flow || templateFlow(unitOp, sector),
       scaleTrigger: scaleTriggerFor(bottleneck),
     };
   });
@@ -259,6 +761,7 @@ window.FSA = (() => {
       bottleneck: "Energy use at low humidity",
       trigger: "Low-cost sorbents + waste heat",
       readiness: "MRL · IRL",
+      reasoning: "The bottleneck is not whether water can be captured; it is whether the sorbent can regenerate with cheap heat while still producing useful yield under dry-air conditions."
     },
     {
       pid: "PFD-104",
@@ -277,24 +780,83 @@ window.FSA = (() => {
       bottleneck: "Stack durability + iridium loading",
       trigger: "PGM-free catalysts at $/kW < 300",
       readiness: "MRL",
+      reasoning: "The science is real, but deployment is constrained by stack lifetime, catalyst loading, water quality, compression, and coupling to cheap electricity."
     },
     {
       pid: "PFD-039",
       name: "Solid-Sorbent Direct Air Capture",
       sector: "carbon",
       inputs: ["S-101  Ambient air", "Q-301  Waste heat"],
-      output: "P-401  CO₂ (food / fuel / mineralization)",
+      output: "P-401  CO₂ (fuel / mineralization / storage)",
       steps: [
         ["B-101", "Contactor inlet"],
         ["A-201", "Amine sorbent"],
         ["R-301", "Thermal swing"],
         ["S-401", "CO₂ desorption"],
-        ["F-501", "Polishing"],
+        ["F-501", "Drying/polishing"],
         ["T-601", "Compression"],
       ],
       bottleneck: "Energy + sorbent cycle life",
       trigger: "Sorbents lasting 10⁴ cycles",
       readiness: "MRL · cost",
+      reasoning: "DAC is a dilute-separations problem first; cycle life and regeneration energy decide whether the contactor becomes a plant rather than a demo."
+    },
+    {
+      pid: "PFD-115",
+      name: "Perovskite Tandem PV",
+      sector: "energy",
+      inputs: ["S-101  Silicon bottom cell", "C-201  Perovskite ink"],
+      output: "P-401  Tandem solar module",
+      steps: [
+        ["S-101", "Silicon cell prep"],
+        ["C-201", "Perovskite coating"],
+        ["A-301", "Anneal/crystallize"],
+        ["E-401", "Contact stack"],
+        ["L-501", "Encapsulation"],
+        ["Q-601", "Outdoor stability"],
+      ],
+      bottleneck: "Moisture/thermal reliability",
+      trigger: "Bankable 25-year module data",
+      readiness: "MRL · reliability",
+      reasoning: "Efficiency is the visible win, but bankability comes from coating uniformity, interface control, encapsulation, and outdoor degradation data."
+    },
+    {
+      pid: "PFD-158",
+      name: "Roll-to-Roll Perovskite Manufacturing",
+      sector: "manufacturing",
+      inputs: ["W-101  Flexible web", "C-201  Perovskite precursor"],
+      output: "P-401  Continuous PV laminate",
+      steps: [
+        ["W-101", "Web handling"],
+        ["C-201", "Slot-die coating"],
+        ["D-301", "Dry/anneal window"],
+        ["E-401", "Electrode deposition"],
+        ["L-501", "Encapsulation"],
+        ["Q-601", "Inline inspection"],
+      ],
+      bottleneck: "Yield across area and time",
+      trigger: "Closed-loop coating control",
+      readiness: "MRL · process window",
+      reasoning: "This case shows the manufacturing layer explicitly: the same chemistry must survive web speed, drying gradients, registration, defects, and inline metrology."
+    },
+    {
+      pid: "PFD-202",
+      name: "Cryo Propellant Transfer",
+      sector: "space",
+      inputs: ["T-101  Donor tank", "Z-201  Cryogenic cooling"],
+      output: "P-401  Receiver tank propellant inventory",
+      steps: [
+        ["T-101", "Donor chilldown"],
+        ["P-201", "Line conditioning"],
+        ["M-301", "Microgravity transfer"],
+        ["V-401", "Venting/pressure control"],
+        ["Z-501", "Zero-boiloff cooling"],
+        ["Q-601", "Mass accounting"],
+      ],
+      bottleneck: "Boiloff + phase management",
+      trigger: "Repeated transfer demo in orbit",
+      readiness: "IRL · reliability",
+      reasoning: "The bottleneck is thermal and operational: a depot only works if heat leak, pressure control, gauging, and transfer coupling behave repeatedly in microgravity."
     },
   ];
 

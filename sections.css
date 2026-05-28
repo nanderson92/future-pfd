@@ -5039,3 +5039,483 @@ body[data-motion="off"] .section-galaxy.orbit-home::after {
     padding-top: 76px;
   }
 }
+
+/* ────────────────────────────────────────────────────────────
+   Feedback implementation pass: usability, credibility, sharing
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --fg-muted: color-mix(in oklab, var(--fg) 72%, transparent);
+  --fg-faint: color-mix(in oklab, var(--fg) 54%, transparent);
+}
+
+/* The camera-mode label was colliding with the step rail; the camera panel already provides this state. */
+.pov-reticle { display: none !important; }
+
+/* Keep the left HUD from stacking on top of its own copy. */
+.orbit-hero-card {
+  max-height: none !important;
+  padding-bottom: 18px !important;
+}
+.map-camera-controls {
+  top: 424px !important;
+  transform: none !important;
+}
+.orbit-path-hint {
+  z-index: 48 !important;
+}
+.orbit-path-hint div,
+.orbit-path-hint span,
+.orbit-path-hint b {
+  position: relative;
+  z-index: 5;
+}
+
+/* Surface map search directly on the map instead of hiding discovery behind the Index. */
+.map-search {
+  position: absolute;
+  z-index: 52;
+  left: 50%;
+  top: 126px;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 760px));
+  min-width: 320px;
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  border: 1px solid color-mix(in oklab, var(--fg) 13%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, #020509 48%, transparent);
+  box-shadow: 0 18px 70px color-mix(in oklab, black 28%, transparent);
+  backdrop-filter: blur(18px) saturate(1.16);
+  overflow: hidden;
+}
+.map-search-icon {
+  display: grid;
+  place-items: center;
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+}
+.map-search input {
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--fg);
+  font: 500 12px/1.2 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.map-search input::placeholder { color: var(--fg-faint); }
+.map-search button {
+  border: 0;
+  background: transparent;
+  color: var(--fg-muted);
+  font: 600 16px/1 var(--font-mono);
+}
+.map-search:focus-within {
+  border-color: color-mix(in oklab, var(--c-water) 52%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--c-water) 18%, transparent), 0 18px 70px color-mix(in oklab, black 30%, transparent);
+}
+
+/* Make focused systems easier to click: pause moving targets and label moons. */
+.orbit-galaxy[data-focused="true"] .planet.is-focused .moon-orbit,
+.orbit-galaxy[data-focused="true"] .planet.is-focused .moon-orbit * {
+  animation-play-state: paused !important;
+}
+.moon { outline: none; }
+.moon .moon-label {
+  opacity: 0;
+  pointer-events: none;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.045em;
+  paint-order: stroke;
+  stroke: color-mix(in oklab, #020509 94%, transparent);
+  stroke-width: 5px;
+  transition: opacity 0.18s ease;
+}
+.moon:hover .moon-label,
+.moon:focus .moon-label,
+.planet.is-focused .moon:hover .moon-label,
+.planet.is-focused .moon:focus .moon-label {
+  opacity: 1;
+}
+.orbit-galaxy[data-focused="true"] .planet.is-focused .moon .moon-label {
+  opacity: 0.72;
+}
+.moon:hover .moon-halo,
+.moon:focus .moon-halo {
+  opacity: 0.2 !important;
+}
+.moon:hover circle:last-of-type,
+.moon:focus circle:last-of-type {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(1.22);
+}
+
+/* Distinct world treatments. */
+.planet-surface * { vector-effect: non-scaling-stroke; }
+.planet-surface-energy { filter: drop-shadow(0 0 16px color-mix(in oklab, var(--c-energy) 26%, transparent)); }
+.planet-surface-water { filter: drop-shadow(0 0 12px color-mix(in oklab, var(--c-water) 18%, transparent)); }
+.planet-surface-space ellipse:first-child { transform-box: fill-box; transform-origin: center; transform: rotate(-10deg); }
+
+/* Side chrome should support the map, not compete with it. */
+.orbit-galaxy .galaxy-panel,
+.sector-jump-nav,
+.map-camera-controls {
+  opacity: 0.72;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.orbit-galaxy .galaxy-panel:hover,
+.orbit-galaxy .galaxy-panel:focus-within,
+.sector-jump-nav:hover,
+.sector-jump-nav:focus-within,
+.map-camera-controls:hover,
+.map-camera-controls:focus-within {
+  opacity: 1;
+}
+
+/* Modal cards now carry real descriptions and non-template flow steps. */
+.modal-deck {
+  max-width: 76ch;
+  margin: 8px 0 0;
+  color: var(--fg-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* About/contact page. */
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 22px;
+  align-items: start;
+}
+.about-main {
+  padding: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--panel) 64%, transparent);
+}
+.about-card {
+  padding: 22px;
+  border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent);
+  border-radius: 24px;
+  background: color-mix(in oklab, #020509 58%, transparent);
+  box-shadow: 0 22px 90px color-mix(in oklab, black 28%, transparent);
+}
+.about-card h3 {
+  margin: 6px 0 12px;
+  color: var(--fg);
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+.about-card p {
+  color: var(--fg-muted);
+  line-height: 1.55;
+}
+.about-links {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+.about-links a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in oklab, var(--fg) 13%, transparent);
+  border-radius: 12px;
+  color: var(--fg);
+  background: color-mix(in oklab, var(--fg) 4%, transparent);
+}
+.about-links a:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* Mobile: use scrollable controls instead of tiny unreadable grids. */
+@media (max-width: 760px) {
+  .orbit-lens-rail {
+    display: flex !important;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 0 12px 8px;
+    width: calc(100vw - 24px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    transform: none !important;
+    scroll-snap-type: x proximity;
+  }
+  .orbit-lens-rail button {
+    flex: 0 0 auto;
+    min-width: 128px;
+    font-size: 11px !important;
+    scroll-snap-align: start;
+  }
+  .map-search {
+    top: 96px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: auto;
+    min-width: 0;
+  }
+  .map-camera-controls,
+  .sector-jump-nav,
+  .orbit-galaxy .galaxy-panel {
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    top: auto !important;
+    bottom: 74px !important;
+    width: auto !important;
+    max-height: 32vh !important;
+    transform: none !important;
+    overflow: auto;
+    opacity: 0.92 !important;
+  }
+  .map-camera-controls { display: none !important; }
+  .sector-jump-nav { display: none !important; }
+  .orbit-galaxy .galaxy-panel { bottom: 132px !important; }
+  .orbit-hero-card {
+    top: 148px !important;
+    width: min(320px, calc(100vw - 24px)) !important;
+    left: 12px !important;
+  }
+  .about-grid { grid-template-columns: 1fr; }
+}
+.ac-desc {
+  margin: 8px 0 12px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  line-height: 1.42;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.preview-desc {
+  margin: 10px 0 12px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Pass 2: stronger cases + true mobile bottom-sheet controls
+   ──────────────────────────────────────────────────────────── */
+.case-reasoning {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--fg) 5%, transparent), transparent 68%),
+    color-mix(in oklab, #020509 48%, transparent);
+}
+.case-reasoning p {
+  margin: 6px 0 0;
+  color: var(--fg-muted);
+  line-height: 1.55;
+  max-width: 78ch;
+}
+.cases-tabs {
+  max-height: none;
+}
+.cases-tab .t-name {
+  line-height: 1.16;
+}
+
+.mobile-map-console {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .mobile-map-console {
+    position: fixed;
+    z-index: 96;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    display: grid;
+    border: 1px solid color-mix(in oklab, var(--fg) 15%, transparent);
+    border-radius: 20px;
+    background: color-mix(in oklab, #020509 74%, transparent);
+    box-shadow: 0 -18px 80px color-mix(in oklab, black 36%, transparent);
+    backdrop-filter: blur(22px) saturate(1.22);
+    overflow: hidden;
+  }
+  .mmc-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    border-bottom: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+  }
+  .mmc-tabs button {
+    min-height: 38px;
+    border: 0;
+    border-right: 1px solid color-mix(in oklab, var(--fg) 8%, transparent);
+    background: color-mix(in oklab, var(--fg) 3%, transparent);
+    color: var(--fg-muted);
+    font: 650 11px/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .mmc-tabs button:last-child { border-right: 0; }
+  .mmc-tabs button.active {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .mmc-panel {
+    display: grid;
+    gap: 10px;
+    max-height: 34vh;
+    overflow: auto;
+    padding: 12px;
+  }
+  .mmc-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+  }
+  .mmc-title span {
+    color: var(--fg-faint);
+    font-size: 10px;
+  }
+  .mmc-title b {
+    color: var(--fg);
+    font-size: 11px;
+  }
+  .mmc-panel p {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .mmc-pad {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .mmc-zoom {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 7px;
+  }
+  .mmc-zoom span {
+    display: grid;
+    place-items: center;
+    min-height: 34px;
+    border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+    border-radius: 10px;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .mobile-map-console button,
+  .mmc-sectors button,
+  .mmc-filter-grid button,
+  .mmc-wide {
+    min-height: 34px;
+    border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--fg) 5%, transparent);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.055em;
+  }
+  .mobile-map-console button:hover,
+  .mobile-map-console button:focus-visible,
+  .mmc-sectors button.active,
+  .mmc-filter-grid button.active {
+    background: var(--fg);
+    color: var(--bg);
+    outline: none;
+  }
+  .mmc-wide {
+    width: 100%;
+    text-transform: uppercase;
+  }
+  .mmc-sectors {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mmc-sectors button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    text-transform: uppercase;
+  }
+  .mmc-sectors .sjn-dot {
+    flex: 0 0 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .mmc-callout {
+    display: grid;
+    gap: 3px;
+    padding: 10px;
+    border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--fg) 4%, transparent);
+  }
+  .mmc-callout b { color: var(--fg); font-size: 13px; }
+  .mmc-callout span { color: var(--fg-faint); font: 600 10px/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .mmc-range {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    color: var(--fg-muted);
+    font: 600 11px/1.2 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .mmc-range input {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .mmc-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .mmc-filter-grid.evidence {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* On phone, the bottom sheet owns controls. Suppress the desktop HUD panels. */
+  .map-camera-controls,
+  .sector-jump-nav,
+  .orbit-galaxy .galaxy-panel {
+    display: none !important;
+  }
+  .orbit-state-strip {
+    bottom: 168px !important;
+  }
+  .orbit-lens-rail {
+    bottom: 116px !important;
+  }
+  .map-search {
+    top: 84px !important;
+  }
+  .orbit-hero-card {
+    top: 134px !important;
+    opacity: 0.84;
+  }
+  .orbit-galaxy .galaxy-stage,
+  .orbit-galaxy .galaxy-svg,
+  .orbit-galaxy[data-focused="true"] .galaxy-svg {
+    min-height: 100svh !important;
+  }
+}

@@ -103,8 +103,8 @@ const SUPPORT_PAGE_META = {
   readiness: { code: "FSA · READINESS", title: "Readiness and scale", lede: "TRL, MRL, and IRL separate proof of science from repeatable manufacturing and deployable infrastructure." },
   pathways: { code: "FSA · BOTTLENECKS", title: "Scale-up pathways", lede: "Where each technology gets stuck: cost, dilute feeds, durability, siting, safety, yield, permitting, or infrastructure." },
   atlas: { code: "FSA · INDEX", title: "Full process card index", lede: "The database layer beneath the orbit map. Search, filter, and open individual process cards." },
-  sources: { code: "FSA · SOURCES", title: "Evidence layer", lede: "Source posture, confidence language, and the evidence trail behind the atlas." },
-  about: { code: "FSA · ABOUT", title: "Builder note", lede: "Why this exists as an engineering artifact and portfolio system." },
+  sources: { code: "FSA · SOURCES", title: "Evidence layer", lede: "Three evidence postures, 244 source records, and the trail behind the atlas." },
+  about: { code: "FSA · ABOUT", title: "About Nathan Anderson", lede: "Who built this, why it exists, and how to contact me." },
 };
 
 function SupportPage({ route }) {
