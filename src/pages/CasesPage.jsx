@@ -41,11 +41,11 @@ export default function CasesPage() {
       </div>
 
       <div className="case-list">
-        {FEATURED.map((item) => {
+        {FEATURED.map((item, index) => {
           const sector = sectorById[item.sector];
           const lens = CASE_LENS[item.name] || {};
           return (
-            <article className="case-study" data-sector={item.sector} key={item.pid}>
+            <article className={`case-study ${index % 2 ? "case-study-alt" : ""}`} data-sector={item.sector} key={item.pid}>
               <header>
                 <p className="eyebrow">{item.pid} / {sector?.label}</p>
                 <h2>{item.name}</h2>

@@ -24,19 +24,6 @@
   letter-spacing: 0;
 }
 
-.map-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.map-header-actions a {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 10px;
-  color: var(--muted);
-  font-weight: 700;
-}
-
 .map-app-shell {
   display: grid;
   grid-template-columns: 318px minmax(0, 1fr) 310px;
@@ -184,7 +171,7 @@
 
 .camera-pad {
   display: grid;
-  grid-template-columns: repeat(3, 42px);
+  grid-template-columns: repeat(3, minmax(64px, 1fr));
   gap: 6px;
   justify-content: center;
 }
@@ -192,7 +179,8 @@
 .camera-pad button,
 .control-row button {
   min-height: 36px;
-  padding: 0 10px;
+  padding: 0 8px;
+  font-size: 0.78rem;
   font-weight: 800;
 }
 
@@ -309,6 +297,51 @@ button[data-sector="space"] .sector-dot {
 .sector-panel dd {
   margin: 3px 0 0;
   color: var(--fg);
+}
+
+.lens-legend {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.lens-legend h3 {
+  margin: 0;
+  color: var(--soft);
+  font-size: 0.82rem;
+}
+
+.lens-legend ul {
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.lens-legend li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  color: var(--soft);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.lens-legend b {
+  color: var(--fg);
+  font-size: 0.72rem;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px currentColor;
 }
 
 .mobile-map-console {
@@ -448,11 +481,6 @@ button[data-sector="space"] .sector-dot {
 
   .map-header h1 {
     font-size: 1.05rem;
-  }
-
-  .map-header-actions a {
-    padding: 6px 8px;
-    font-size: 0.76rem;
   }
 
   .map-app-shell {

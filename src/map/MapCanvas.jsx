@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { colorForEntry, colorForSector, screenToWorld } from "./mapGeometry.js";
+import { colorForEntry, colorForSector, moonPosition, screenToWorld } from "./mapGeometry.js";
 import { hitTest } from "./hitTesting.js";
 
 export default function MapCanvas({
@@ -21,45 +21,71 @@ export default function MapCanvas({
   const hoverRef = useRef("");
   const dragRef = useRef(null);
   const rafRef = useRef(0);
+  const loopRef = useRef(0);
+  const phaseRef = useRef(0);
+  const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
+  const drawStateRef = useRef(null);
   const hasSearch = searchTerm.trim().length > 0;
   const stars = useMemo(() => makeStars(150), []);
+
+  drawStateRef.current = {
+    geometry,
+    camera,
+    lens,
+    focused,
+    hasSearch,
+    matchingIds,
+    hoverTarget,
+    stars
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
 
-    const resize = () => {
+    const resize = (notify = true) => {
       const rect = canvas.getBoundingClientRect();
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      canvas.width = Math.round(rect.width * dpr);
-      canvas.height = Math.round(rect.height * dpr);
-      onSize({ width: rect.width, height: rect.height, dpr });
+      const next = { width: rect.width, height: rect.height, dpr };
+      const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
+      const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+      }
+      const prev = sizeRef.current;
+      if (notify && (Math.abs(prev.width - next.width) > 0.5 || Math.abs(prev.height - next.height) > 0.5 || prev.dpr !== next.dpr)) {
+        sizeRef.current = next;
+        onSize(next);
+      }
+      return rect;
     };
 
-    resize();
+    const drawFrame = (time) => {
+      const rect = resize();
+      const state = drawStateRef.current;
+      if (state && rect.width > 0 && rect.height > 0) {
+        const ctx = canvas.getContext("2d");
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        const phase = reduceMotion ? 0 : time / 1000;
+        phaseRef.current = phase;
+        drawAtlas(ctx, rect, { ...state, phase });
+      }
+      loopRef.current = requestAnimationFrame(drawFrame);
+    };
+
+    requestAnimationFrame(() => resize());
+    loopRef.current = requestAnimationFrame(drawFrame);
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(loopRef.current);
+      cancelAnimationFrame(rafRef.current);
+    };
   }, [onSize]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawAtlas(ctx, rect, {
-      geometry,
-      camera,
-      lens,
-      focused,
-      hasSearch,
-      matchingIds,
-      hoverTarget,
-      stars
-    });
-  }, [camera, focused, geometry, hasSearch, hoverTarget, lens, matchingIds, stars]);
 
   const locate = (event) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -69,10 +95,10 @@ export default function MapCanvas({
 
   const updateHover = (event) => {
     if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = requestAnimationFrame(() => {
       rafRef.current = 0;
       const { world } = locate(event);
-      const hit = hitTest(world, geometry, { focused, matchingIds, hasSearch });
+      const hit = hitTest(world, geometry, { focused, matchingIds, hasSearch, phase: phaseRef.current, zoom: camera.zoom });
       const nextId = hit.type ? `${hit.type}:${hit.id}` : "";
       if (nextId !== hoverRef.current) {
         hoverRef.current = nextId;
@@ -110,7 +136,7 @@ export default function MapCanvas({
     canvasRef.current.style.cursor = hoverRef.current ? "pointer" : "grab";
     if (drag && drag.moved > 8) return;
     const { world } = locate(event);
-    const hit = hitTest(world, geometry, { focused, matchingIds, hasSearch });
+    const hit = hitTest(world, geometry, { focused, matchingIds, hasSearch, phase: phaseRef.current, zoom: camera.zoom });
     if (hit.type === "moon") onMoonClick(hit.entry);
     if (hit.type === "planet") onPlanetClick(hit.planet.id);
   };
@@ -151,9 +177,9 @@ export default function MapCanvas({
 }
 
 function drawAtlas(ctx, rect, state) {
-  const { geometry, camera, lens, focused, hasSearch, matchingIds, hoverTarget, stars } = state;
+  const { geometry, camera, lens, focused, hasSearch, matchingIds, hoverTarget, stars, phase } = state;
   ctx.clearRect(0, 0, rect.width, rect.height);
-  drawBackground(ctx, rect, stars);
+  drawBackground(ctx, rect, stars, camera, phase);
 
   ctx.save();
   ctx.translate(camera.tx, camera.ty);
@@ -176,7 +202,8 @@ function drawAtlas(ctx, rect, state) {
       const isSearchMatch = !hasSearch || matchingIds.has(moon.id);
       const isHover = hoverTarget?.id === moon.id;
       const dim = (focused && !isSectorFocused && !isSearchMatch) || (hasSearch && !isSearchMatch);
-      drawMoon(ctx, moon, colorForEntry(moon.entry, lens), { dim, active: isHover || isSearchMatch, focused: isSectorFocused });
+      const position = moonPosition(moon, focused, phase);
+      drawMoon(ctx, { ...moon, ...position }, colorForEntry(moon.entry, lens), { dim, active: isHover || isSearchMatch, focused: isSectorFocused });
     }
   }
 
@@ -188,16 +215,21 @@ function drawAtlas(ctx, rect, state) {
 
   for (const planet of geometry.planets) {
     drawPlanetLabel(ctx, planet, colorForSector(planet.id), focused && focused !== planet.id);
-    for (const moon of planet.moons) {
-      const label = focused === planet.id || hoverTarget?.id === moon.id || (hasSearch && matchingIds.has(moon.id));
-      if (label) drawMoonLabel(ctx, moon, colorForEntry(moon.entry, lens), focused === planet.id || hoverTarget?.id === moon.id);
-    }
+  }
+
+  const placedLabels = [];
+  for (const candidate of labelCandidates(geometry, { focused, hasSearch, matchingIds, hoverTarget, lens, phase })) {
+    const baseBox = labelBox(candidate.moon, candidate.position, 0);
+    const box = intersectsAny(baseBox, placedLabels) ? labelBox(candidate.moon, candidate.position, 28) : baseBox;
+    if (intersectsAny(box, placedLabels)) continue;
+    placedLabels.push(box);
+    drawMoonLabel(ctx, candidate.moon, candidate.position, candidate.color, candidate.prominent, box);
   }
 
   ctx.restore();
 }
 
-function drawBackground(ctx, rect, stars) {
+function drawBackground(ctx, rect, stars, camera, phase) {
   const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
   gradient.addColorStop(0, "#07110f");
   gradient.addColorStop(0.42, "#0b1118");
@@ -207,9 +239,14 @@ function drawBackground(ctx, rect, stars) {
 
   ctx.save();
   for (const star of stars) {
-    ctx.globalAlpha = star.a;
+    const twinkle = 0.72 + Math.sin(phase * star.twinkle + star.seed) * 0.28;
+    ctx.globalAlpha = star.a * twinkle;
     ctx.fillStyle = star.c;
-    ctx.fillRect((star.x * rect.width) % rect.width, (star.y * rect.height) % rect.height, star.s, star.s);
+    const parallaxX = -camera.tx * 0.018 * star.depth;
+    const parallaxY = -camera.ty * 0.012 * star.depth;
+    const x = wrap(star.x * rect.width + parallaxX, rect.width);
+    const y = wrap(star.y * rect.height + parallaxY, rect.height);
+    ctx.fillRect(x, y, star.s, star.s);
   }
   ctx.restore();
 }
@@ -239,6 +276,9 @@ function drawOrbit(ctx, planet, color, focused) {
   ctx.save();
   ctx.strokeStyle = toRgba(color, focused ? 0.34 : 0.16);
   ctx.lineWidth = focused ? 2 : 1;
+  ctx.setLineDash(focused ? [12, 8] : [6, 10]);
+  ctx.shadowColor = toRgba(color, focused ? 0.3 : 0.1);
+  ctx.shadowBlur = focused ? 12 : 4;
   ctx.beginPath();
   ctx.arc(planet.x, planet.y, planet.radius + 108, 0, Math.PI * 2);
   ctx.stroke();
@@ -263,10 +303,12 @@ function drawPlanetConnective(ctx, planet, color, dim) {
 function drawMoon(ctx, moon, color, options) {
   ctx.save();
   ctx.globalAlpha = options.dim ? 0.17 : 0.95;
-  const radius = options.focused ? 10 : 7;
+  const radius = (options.focused ? 10 : 7) * (options.active ? 1.22 : 1);
   ctx.fillStyle = color;
   ctx.strokeStyle = options.active ? "#f7fbff" : toRgba(color, 0.55);
   ctx.lineWidth = options.active ? 2 : 1;
+  ctx.shadowColor = options.active ? color : "transparent";
+  ctx.shadowBlur = options.active ? 15 : 0;
   ctx.beginPath();
   ctx.arc(moon.x, moon.y, options.active ? radius + 3 : radius, 0, Math.PI * 2);
   ctx.fill();
@@ -284,6 +326,9 @@ function drawPlanet(ctx, planet, color, options) {
   ctx.save();
   ctx.globalAlpha = options.dim ? 0.34 : 1;
   const radius = options.focused ? planet.radius * 1.12 : planet.radius;
+  const pulse = 1 + Math.sin(performance.now() / 1200 + planet.x) * 0.05;
+  ctx.shadowColor = toRgba(color, options.focused ? 0.42 : 0.2);
+  ctx.shadowBlur = options.focused ? 28 * pulse : 12;
   const gradient = ctx.createRadialGradient(planet.x - radius * 0.35, planet.y - radius * 0.35, 4, planet.x, planet.y, radius);
   gradient.addColorStop(0, "#f7fbff");
   gradient.addColorStop(0.15, toRgba(color, 0.95));
@@ -369,17 +414,21 @@ function drawPlanetLabel(ctx, planet, color, dim) {
   ctx.restore();
 }
 
-function drawMoonLabel(ctx, moon, color, prominent) {
+function drawMoonLabel(ctx, moon, position, color, prominent, box) {
   ctx.save();
   const label = moon.entry.name;
-  const width = Math.min(210, Math.max(72, label.length * 6.4));
-  const x = moon.x + 13;
-  const y = moon.y - 13;
+  const x = box.x;
+  const y = box.y + 18;
   ctx.globalAlpha = prominent ? 0.95 : 0.82;
   ctx.fillStyle = "rgba(7, 14, 18, 0.86)";
-  roundRect(ctx, x, y - 18, width, 24, 6);
+  roundRect(ctx, box.x, box.y, box.width, box.height, 6);
   ctx.fill();
   ctx.strokeStyle = toRgba(color, 0.55);
+  ctx.stroke();
+  ctx.strokeStyle = toRgba(color, prominent ? 0.42 : 0.2);
+  ctx.beginPath();
+  ctx.moveTo(position.x, position.y);
+  ctx.lineTo(box.x + (box.x > position.x ? 0 : box.width), box.y + box.height / 2);
   ctx.stroke();
   ctx.fillStyle = "#f7fbff";
   ctx.font = "600 12px Inter, system-ui";
@@ -421,6 +470,66 @@ function makeStars(count) {
     y: rand(),
     s: rand() > 0.88 ? 2 : 1,
     a: 0.18 + rand() * 0.56,
-    c: rand() > 0.7 ? "#9eb5ff" : "#e6f2ff"
+    c: rand() > 0.7 ? "#9eb5ff" : "#e6f2ff",
+    depth: 0.5 + rand() * 1.4,
+    twinkle: 0.8 + rand() * 1.8,
+    seed: rand() * Math.PI * 2
   }));
+}
+
+function labelCandidates(geometry, options) {
+  const { focused, hasSearch, matchingIds, hoverTarget, lens, phase } = options;
+  const candidates = [];
+
+  for (const planet of geometry.planets) {
+    const focusedMoons = focused === planet.id && !hasSearch
+      ? [...planet.moons]
+        .sort((a, b) => (b.entry.trl + b.entry.mrl + b.entry.irl) - (a.entry.trl + a.entry.mrl + a.entry.irl))
+        .slice(0, 4)
+      : [];
+
+    for (const moon of planet.moons) {
+      const isHover = hoverTarget?.id === moon.id;
+      const isSearchMatch = hasSearch && matchingIds.has(moon.id);
+      const isFocusPick = focusedMoons.includes(moon);
+      if (!isHover && !isSearchMatch && !isFocusPick) continue;
+      candidates.push({
+        moon,
+        position: moonPosition(moon, focused, phase),
+        color: colorForEntry(moon.entry, lens),
+        prominent: isHover || isSearchMatch,
+        priority: isHover ? 100 : isSearchMatch ? 80 : 40
+      });
+    }
+  }
+
+  return candidates.sort((a, b) => b.priority - a.priority);
+}
+
+function labelBox(moon, position, radialOffset) {
+  const label = moon.entry.name;
+  const width = Math.min(210, Math.max(84, label.length * 6.4));
+  const height = 24;
+  const outward = position.angle ?? moon.angle;
+  const side = Math.cos(outward) >= 0 ? 1 : -1;
+  const anchorX = position.x + Math.cos(outward) * radialOffset;
+  const anchorY = position.y + Math.sin(outward) * radialOffset;
+  return {
+    x: side > 0 ? anchorX + 14 : anchorX - width - 14,
+    y: anchorY - 24,
+    width,
+    height
+  };
+}
+
+function intersectsAny(box, placed) {
+  return placed.some((other) => intersects(box, other));
+}
+
+function intersects(a, b) {
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+function wrap(value, max) {
+  return ((value % max) + max) % max;
 }

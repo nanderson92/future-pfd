@@ -22,8 +22,8 @@ export default function SourcesPage() {
         <p className="eyebrow">Evidence layer / {SOURCE_TOTAL} sources</p>
         <h1 id="sources-title">Source Bank</h1>
         <p>
-          The atlas separates broad engineering reasoning from card-specific support.
-          Cost, timeline, and deployment claims still need primary, current evidence.
+          The atlas marks how each claim is supported: direct technical evidence, roadmap evidence,
+          or analogue evidence that is useful but deliberately treated as inferential.
         </p>
       </div>
 

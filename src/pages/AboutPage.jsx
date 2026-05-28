@@ -11,6 +11,24 @@ export default function AboutPage() {
 
       <About />
 
+      <section className="credentials-panel" aria-labelledby="credentials-title">
+        <h2 id="credentials-title">Engineering Signals</h2>
+        <ul>
+          <li>
+            <strong>Georgia Tech ChBE undergraduate</strong>
+            <span>Chemical and biomolecular engineering training applied to process systems, clean tech, and advanced manufacturing.</span>
+          </li>
+          <li>
+            <strong>115 technology process cards</strong>
+            <span>Each card decomposes a frontier technology into material spine, unit operation, bottleneck, readiness, and scale trigger.</span>
+          </li>
+          <li>
+            <strong>244 typed source records</strong>
+            <span>Evidence is separated into direct, roadmap, and analogue posture so deployment claims are not treated equally.</span>
+          </li>
+        </ul>
+      </section>
+
       <div className="about-grid">
         <section>
           <h2>Project Origin</h2>
@@ -27,10 +45,8 @@ export default function AboutPage() {
         <aside className="contact-panel">
           <h2>Contact</h2>
           <a href="mailto:fivemoc@gmail.com">Email Nathan</a>
-          <span>LinkedIn URL placeholder</span>
           <a href="https://github.com/nanderson92" target="_blank" rel="noreferrer">GitHub</a>
           <a href="https://nanderson92.github.io/future-pfd/" target="_blank" rel="noreferrer">Portfolio project</a>
-          <span>Resume PDF placeholder</span>
         </aside>
       </div>
     </section>

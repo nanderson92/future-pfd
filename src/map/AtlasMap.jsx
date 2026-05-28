@@ -53,11 +53,11 @@ export default function AtlasMap({ initialQuery = "" }) {
     }
     const start = cameraRef.current;
     const startTime = performance.now();
-    const duration = 520;
+    const duration = 620;
 
     const tick = (now) => {
       const t = clamp((now - startTime) / duration, 0, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       const next = {
         zoom: start.zoom + (target.zoom - start.zoom) * eased,
         tx: start.tx + (target.tx - start.tx) * eased,
@@ -126,11 +126,6 @@ export default function AtlasMap({ initialQuery = "" }) {
         <div>
           <p className="eyebrow">Mission control / process atlas</p>
           <h1 id="map-title">Future Systems Atlas Map</h1>
-        </div>
-        <div className="map-header-actions">
-          <a href="#guide">Guide</a>
-          <a href="#index">Index</a>
-          <a href="#sources">Sources</a>
         </div>
       </header>
 

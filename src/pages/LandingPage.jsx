@@ -15,7 +15,7 @@ export default function LandingPage() {
         <div className="button-row">
           <a className="button primary" href="#map">Launch Atlas</a>
           <a className="button" href="#cases">View Cases</a>
-          <a className="button" href="#sources">Evidence Layer</a>
+          <a className="button" href="#sources">View Sources (244)</a>
           <a className="button quiet" href="#about">About Nathan</a>
         </div>
         <dl className="stat-strip" aria-label="Atlas scope">
@@ -27,7 +27,32 @@ export default function LandingPage() {
       </div>
 
       <a className="landing-visual" href="#map" aria-label="Launch the atlas map">
-        <img src="./og-cover.png" alt="Stylized preview of the Future Systems Atlas orbit map" />
+        <div className="orbit-preview" aria-hidden="true">
+          <span className="preview-orbit a" />
+          <span className="preview-orbit b" />
+          <span className="preview-orbit c" />
+          <span className="preview-core" />
+          {SECTORS.map((sector, index) => {
+            const positions = [
+              ["26%", "35%", "62px"],
+              ["36%", "68%", "54px"],
+              ["50%", "26%", "52px"],
+              ["64%", "62%", "58px"],
+              ["75%", "38%", "56px"],
+              ["54%", "78%", "50px"],
+              ["82%", "70%", "60px"]
+            ];
+            const [x, y, size] = positions[index];
+            return (
+              <span
+                className="preview-planet"
+                data-sector={sector.id}
+                key={sector.id}
+                style={{ "--x": x, "--y": y, "--s": size }}
+              />
+            );
+          })}
+        </div>
         <div className="landing-visual-readout">
           <span>Canvas app loads on launch</span>
           <strong>Open map interface</strong>

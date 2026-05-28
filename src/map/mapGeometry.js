@@ -33,6 +33,8 @@ export function createMapGeometry(entries, sectors) {
       const spread = (Math.PI * 2) / techs.length;
       const moonAngle = spread * index - Math.PI / 2 + (ring - 1) * 0.24;
       const moonOrbit = radius + 72 + ring * 34 + (index % 2) * 10;
+      const direction = index % 2 === 0 ? 1 : -1;
+      const speed = direction * (Math.PI * 2) / (80 + (index % 7) * 9);
       return {
         id: entry.pid,
         entry,
@@ -40,6 +42,7 @@ export function createMapGeometry(entries, sectors) {
         radius: ring === 2 ? 7 : 8,
         orbit: moonOrbit,
         angle: moonAngle,
+        speed,
         x: x + Math.cos(moonAngle) * moonOrbit,
         y: y + Math.sin(moonAngle) * moonOrbit
       };
@@ -126,8 +129,7 @@ export function screenToWorld(point, camera) {
 
 export function colorForEntry(entry, lens) {
   if (lens === "chemicals") {
-    const key = hashString(entry.chemical) % CHEMICAL_PALETTE.length;
-    return CHEMICAL_PALETTE[key];
+    return colorForChemical(entry.chemical);
   }
   if (lens === "unitops") return unitOpColors[entry.unitOp] || "#e6f2ff";
   if (lens === "bottlenecks") return bottleneckColors[entry.bottleneck] || "#e6f2ff";
@@ -142,8 +144,25 @@ export function colorForEntry(entry, lens) {
   return sectorColors[entry.sector] || "#e6f2ff";
 }
 
+export function colorForChemical(symbol) {
+  const key = hashString(symbol) % CHEMICAL_PALETTE.length;
+  return CHEMICAL_PALETTE[key];
+}
+
 export function colorForSector(sectorId) {
   return sectorColors[sectorId] || "#e6f2ff";
+}
+
+export function moonPosition(moon, focused, phase = 0) {
+  const shouldDrift = !focused;
+  const angle = shouldDrift ? moon.angle + moon.speed * phase : moon.angle;
+  const baseX = moon.x - Math.cos(moon.angle) * moon.orbit;
+  const baseY = moon.y - Math.sin(moon.angle) * moon.orbit;
+  return {
+    x: baseX + Math.cos(angle) * moon.orbit,
+    y: baseY + Math.sin(angle) * moon.orbit,
+    angle
+  };
 }
 
 export function clamp(value, min, max) {

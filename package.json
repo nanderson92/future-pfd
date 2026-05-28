@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "dev": "node scripts/prepare-vite-index.mjs && vite --host 127.0.0.1",
     "build": "node scripts/prepare-vite-index.mjs && vite build && node scripts/write-root-index.mjs",
@@ -10,12 +14,12 @@
     "test:smoke": "playwright test"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "1.3.2",
-    "vite": "2.9.18",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
-    "@playwright/test": "1.28.1"
+    "@playwright/test": "1.60.0",
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.0.14"
   }
 }
