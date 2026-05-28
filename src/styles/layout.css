@@ -1,0 +1,141 @@
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 72px;
+  padding: 12px clamp(16px, 4vw, 44px);
+  border-bottom: 1px solid var(--line);
+  background: rgba(7, 17, 15, 0.88);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(94, 224, 161, 0.42);
+  border-radius: 8px;
+  background: rgba(94, 224, 161, 0.1);
+  color: var(--c-carbon);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.brand strong,
+.brand em {
+  display: block;
+}
+
+.brand strong {
+  font-size: 0.98rem;
+}
+
+.brand em {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-style: normal;
+}
+
+.nav-links,
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.nav-links a,
+.site-footer a {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current="page"] {
+  border-color: var(--line);
+  color: var(--fg);
+  background: rgba(230, 242, 255, 0.06);
+}
+
+.site-main {
+  min-height: calc(100vh - 72px);
+}
+
+.site-main:not(.map-main) {
+  padding: clamp(28px, 5vw, 72px) clamp(16px, 5vw, 72px);
+}
+
+.map-main {
+  min-height: calc(100vh - 72px);
+}
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px clamp(16px, 5vw, 72px);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.site-footer strong,
+.site-footer span {
+  display: block;
+}
+
+.site-footer strong {
+  color: var(--fg);
+}
+
+@media (max-width: 820px) {
+  .topbar {
+    min-height: 64px;
+    padding: 10px 12px;
+  }
+
+  .brand em {
+    display: none;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-links {
+    flex-wrap: nowrap;
+    max-width: 58vw;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .nav-links a {
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  .site-main:not(.map-main) {
+    padding: 24px 14px 38px;
+  }
+
+  .site-footer {
+    display: block;
+  }
+}

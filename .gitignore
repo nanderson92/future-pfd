@@ -1,0 +1,5 @@
+node_modules/
+.vite/
+npm-debug.log*
+preview.log
+preview.err

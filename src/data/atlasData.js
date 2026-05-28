@@ -1,9 +1,9 @@
-/* ────────────────────────────────────────────────────────────
+﻿/* ────────────────────────────────────────────────────────────
    Future Systems Atlas — Data
    Sectors, chemicals, unit ops, bottlenecks, and 115 entries.
    ──────────────────────────────────────────────────────────── */
 
-window.FSA = (() => {
+const atlasData = (() => {
   const SECTORS = [
     { id: "energy",        label: "Energy",        coord: "07°N",  count: 0 },
     { id: "carbon",        label: "Carbon",        coord: "19°N",  count: 0 },
@@ -1111,3 +1111,9 @@ window.FSA = (() => {
 
   return { SECTORS, CHEMICALS, UNIT_OPS, BOTTLENECKS, STACK, PATHWAYS, ENTRIES, FEATURED, SOURCES };
 })();
+
+export const { SECTORS, CHEMICALS, UNIT_OPS, BOTTLENECKS, STACK, PATHWAYS, ENTRIES, FEATURED, SOURCES } = atlasData;
+export const SOURCE_COUNT = SOURCES.length;
+export const TECHNOLOGY_COUNT = ENTRIES.length;
+export default atlasData;
+
