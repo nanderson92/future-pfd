@@ -232,24 +232,32 @@ function GalaxyMap() {
 
     if (focusedPlanet) {
       return fitBounds(boundsForPlanet(focusedPlanet, "focus"), {
-        padX: 180,
-        padY: 160,
+        padX: 190,
+        padY: 170,
         centerX: CX,
-        centerY: CY + 12,
-        minZoom: 0.92,
-        maxZoom: 1.16,
+        centerY: CY + 8,
+        minZoom: 0.88,
+        maxZoom: 1.10,
       });
     }
 
+    /*
+      Full-orbit mode should not use the raw union-bounds center.
+      The moon distribution is asymmetric, so bounds-fitting pulls the
+      entire atlas rightward. Anchor the camera on the actual atlas hub
+      instead, then choose a conservative zoom that keeps the full solar
+      system in frame.
+    */
     const fullBounds = mergeBounds(planets.map((planet) => boundsForPlanet(planet, "all")));
-    return fitBounds(fullBounds, {
-      padX: 160,
-      padY: 132,
-      centerX: CX,
-      centerY: CY + 6,
-      minZoom: 0.62,
-      maxZoom: 0.74,
-    });
+    const boxW = Math.max(1, fullBounds.maxX - fullBounds.minX);
+    const boxH = Math.max(1, fullBounds.maxY - fullBounds.minY);
+    const safeZoom = Math.min((W - 360) / boxW, (H - 300) / boxH);
+    const zoom = Math.max(0.52, Math.min(0.64, safeZoom)) * navCamera.zoomScale;
+    return {
+      zoom,
+      tx: CX - zoom * CX + navCamera.panX,
+      ty: (CY + 18) - zoom * CY + navCamera.panY,
+    };
   }, [planets, focusedPlanet, navCamera.zoomScale, navCamera.panX, navCamera.panY]);
 
   const [camera, setCamera] = React.useState(targetCamera);
