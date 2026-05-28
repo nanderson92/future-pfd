@@ -7,7 +7,7 @@ export default function Footer() {
       </div>
       <nav aria-label="Footer navigation">
         <a href="#map">Launch Atlas</a>
-        <a href="#sources">Evidence</a>
+        <a href="#sources">Sources</a>
         <a href="#about">About Nathan</a>
       </nav>
     </footer>

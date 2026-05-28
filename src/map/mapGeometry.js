@@ -28,25 +28,35 @@ export function createMapGeometry(entries, sectors) {
     const x = WORLD.cx + Math.cos(angle) * orbit;
     const y = WORLD.cy + Math.sin(angle) * orbit * 0.62;
     const techs = entriesBySector[sector.id] || [];
+    const ringCount = techs.length > 14 ? 3 : 2;
+    const perRing = Math.ceil(techs.length / ringCount);
     const moons = techs.map((entry, index) => {
-      const ring = index % 3 === 0 && techs.length > 13 ? 2 : 1;
-      const spread = (Math.PI * 2) / techs.length;
-      const moonAngle = spread * index - Math.PI / 2 + (ring - 1) * 0.24;
-      const moonOrbit = radius + 72 + ring * 34 + (index % 2) * 10;
+      const ring = index % ringCount;
+      const slot = Math.floor(index / ringCount);
+      const spread = (Math.PI * 2) / perRing;
+      const moonAngle = spread * slot - Math.PI / 2 + ring * 0.22;
+      const moonOrbit = radius + 86 + ring * 42;
+      const orbitY = moonOrbit * (0.58 + ring * 0.04);
       const direction = index % 2 === 0 ? 1 : -1;
-      const speed = direction * (Math.PI * 2) / (80 + (index % 7) * 9);
+      const speed = direction * (Math.PI * 2) / (90 + ring * 28 + (index % 7) * 8);
+      const readiness = (entry.trl + entry.mrl + entry.irl) / 3;
       return {
         id: entry.pid,
         entry,
         planetId: sector.id,
-        radius: ring === 2 ? 7 : 8,
+        radius: 5.8 + readiness * 0.42,
+        ring,
         orbit: moonOrbit,
+        orbitX: moonOrbit,
+        orbitY,
         angle: moonAngle,
         speed,
         x: x + Math.cos(moonAngle) * moonOrbit,
-        y: y + Math.sin(moonAngle) * moonOrbit
+        y: y + Math.sin(moonAngle) * orbitY
       };
     });
+    const maxOrbitX = Math.max(...moons.map((moon) => moon.orbitX), radius + 120);
+    const maxOrbitY = Math.max(...moons.map((moon) => moon.orbitY), radius + 80);
 
     return {
       ...sector,
@@ -54,10 +64,14 @@ export function createMapGeometry(entries, sectors) {
       y,
       radius,
       moons,
-      bounds: boundsForPoints([
-        { x, y, radius },
-        ...moons.map((moon) => ({ x: moon.x, y: moon.y, radius: 22 }))
-      ], 80)
+      bounds: {
+        minX: x - maxOrbitX - 96,
+        maxX: x + maxOrbitX + 96,
+        minY: y - maxOrbitY - 96,
+        maxY: y + maxOrbitY + 96,
+        width: (maxOrbitX + 96) * 2,
+        height: (maxOrbitY + 96) * 2
+      }
     };
   });
 
@@ -73,10 +87,11 @@ export function createMapGeometry(entries, sectors) {
     planetById,
     moonById,
     allMoons: planets.flatMap((planet) => planet.moons),
-    fullBounds: boundsForPoints(planets.flatMap((planet) => [
-      { x: planet.x, y: planet.y, radius: planet.radius + 90 },
-      ...planet.moons.map((moon) => ({ x: moon.x, y: moon.y, radius: 20 }))
-    ]), 90)
+    fullBounds: boundsForPoints(planets.map((planet) => ({
+      x: planet.x,
+      y: planet.y,
+      radius: Math.max(planet.bounds.width, planet.bounds.height) / 2
+    })), 80)
   };
 }
 
@@ -156,11 +171,13 @@ export function colorForSector(sectorId) {
 export function moonPosition(moon, focused, phase = 0) {
   const shouldDrift = !focused;
   const angle = shouldDrift ? moon.angle + moon.speed * phase : moon.angle;
-  const baseX = moon.x - Math.cos(moon.angle) * moon.orbit;
-  const baseY = moon.y - Math.sin(moon.angle) * moon.orbit;
+  const orbitX = moon.orbitX || moon.orbit;
+  const orbitY = moon.orbitY || moon.orbit;
+  const baseX = moon.x - Math.cos(moon.angle) * orbitX;
+  const baseY = moon.y - Math.sin(moon.angle) * orbitY;
   return {
-    x: baseX + Math.cos(angle) * moon.orbit,
-    y: baseY + Math.sin(angle) * moon.orbit,
+    x: baseX + Math.cos(angle) * orbitX,
+    y: baseY + Math.sin(angle) * orbitY,
     angle
   };
 }

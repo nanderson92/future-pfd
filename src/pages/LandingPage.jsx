@@ -9,21 +9,26 @@ export default function LandingPage() {
         <p className="subtitle">115 frontier technologies mapped as process systems.</p>
         <p className="thesis">Sci-fi becomes real when it becomes a process flow.</p>
         <p className="lede">
-          Explore future technologies through the chemicals, unit operations, bottlenecks,
-          readiness levels, and evidence required to make them deployable.
+          See what each future technology is actually made of: the chemistry, the unit operations,
+          the bottleneck that decides if it ships, and the evidence behind every claim.
         </p>
         <div className="button-row">
           <a className="button primary" href="#map">Launch Atlas</a>
-          <a className="button" href="#cases">View Cases</a>
-          <a className="button" href="#sources">View Sources (244)</a>
+          <a className="button" href="#cases">Browse Cases</a>
+          <a className="button" href="#sources">View Sources</a>
           <a className="button quiet" href="#about">About Nathan</a>
         </div>
         <dl className="stat-strip" aria-label="Atlas scope">
-          <div><dt>{TECHNOLOGY_COUNT}</dt><dd>technologies</dd></div>
-          <div><dt>{SECTORS.length}</dt><dd>sectors</dd></div>
-          <div><dt>{SOURCE_COUNT}</dt><dd>sources</dd></div>
-          <div><dt>3</dt><dd>readiness layers</dd></div>
+          <a href="#index"><dt>{TECHNOLOGY_COUNT}</dt><dd>technology cards</dd></a>
+          <a href="#map"><dt>{SECTORS.length}</dt><dd>sector systems</dd></a>
+          <a href="#sources"><dt>{SOURCE_COUNT}</dt><dd>source records</dd></a>
+          <a href="#guide"><dt>3</dt><dd>readiness axes: TRL / MRL / IRL</dd></a>
         </dl>
+        <nav className="sector-strip" aria-label="Quick sector launch">
+          {SECTORS.map((sector) => (
+            <a href={`#map?sector=${sector.id}`} data-sector={sector.id} key={sector.id}>{sector.label}</a>
+          ))}
+        </nav>
       </div>
 
       <a className="landing-visual" href="#map" aria-label="Launch the atlas map">
@@ -54,8 +59,8 @@ export default function LandingPage() {
           })}
         </div>
         <div className="landing-visual-readout">
-          <span>Canvas app loads on launch</span>
-          <strong>Open map interface</strong>
+          <span>Mission map preview</span>
+          <strong>Launch Atlas</strong>
         </div>
       </a>
     </section>

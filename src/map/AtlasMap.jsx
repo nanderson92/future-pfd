@@ -9,9 +9,9 @@ import SectorPanel from "./SectorPanel.jsx";
 import TechnologyModal from "./TechnologyModal.jsx";
 import { clamp, createMapGeometry, fitBounds, safeAreaForViewport, screenToWorld } from "./mapGeometry.js";
 
-export default function AtlasMap({ initialQuery = "" }) {
+export default function AtlasMap({ initialQuery = "", initialSector = "" }) {
   const geometry = useMemo(() => createMapGeometry(ENTRIES, SECTORS), []);
-  const [size, setSize] = useState({ width: 1000, height: 680 });
+  const [size, setSize] = useState({ width: 0, height: 0 });
   const [camera, setCamera] = useState({ zoom: 0.58, tx: 0, ty: 0 });
   const [focused, setFocused] = useState("");
   const [lens, setLens] = useState("sectors");
@@ -40,6 +40,7 @@ export default function AtlasMap({ initialQuery = "" }) {
     const bounds = sectorId ? geometry.planetById.get(sectorId)?.bounds : geometry.fullBounds;
     return fitBounds(bounds || geometry.fullBounds, safeAreaForViewport(size), size, {
       padding: sectorId ? 0.88 : 0.9,
+      minZoom: sectorId ? 0.28 : size.width < 760 ? 0.16 : 0.24,
       maxZoom: sectorId ? 1.65 : 0.92
     });
   }, [focused, geometry, size]);
@@ -72,9 +73,11 @@ export default function AtlasMap({ initialQuery = "" }) {
   useEffect(() => {
     if (!didFitRef.current && size.width > 0 && size.height > 0) {
       didFitRef.current = true;
-      setCamera(fitTarget(""));
+      const sector = geometry.planetById.has(initialSector) ? initialSector : "";
+      setFocused(sector);
+      setCamera(fitTarget(sector));
     }
-  }, [fitTarget, size]);
+  }, [fitTarget, geometry, initialSector, size]);
 
   useEffect(() => () => cancelAnimationFrame(animationRef.current), []);
 

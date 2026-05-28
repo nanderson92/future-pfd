@@ -44,9 +44,9 @@ export default function AboutPage() {
         </section>
         <aside className="contact-panel">
           <h2>Contact</h2>
+          <a className="primary-contact" href="#cases">Start with the six process cases</a>
           <a href="mailto:fivemoc@gmail.com">Email Nathan</a>
           <a href="https://github.com/nanderson92" target="_blank" rel="noreferrer">GitHub</a>
-          <a href="https://nanderson92.github.io/future-pfd/" target="_blank" rel="noreferrer">Portfolio project</a>
         </aside>
       </div>
     </section>

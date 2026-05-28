@@ -12,7 +12,7 @@ export default function IndexPage({ initialTech, initialQuery, initialSector }) 
   const [bottleneck, setBottleneck] = useState("");
   const [evidence, setEvidence] = useState("");
   const [readiness, setReadiness] = useState("");
-  const [view, setView] = useState("cards");
+  const [view, setView] = useState("table");
   const [openEntry, setOpenEntry] = useState(null);
 
   useEffect(() => {

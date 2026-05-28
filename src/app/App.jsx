@@ -49,7 +49,7 @@ export default function App() {
       case "map":
         return (
           <Suspense fallback={<div className="route-loading">Loading atlas map...</div>}>
-            <AtlasMap initialQuery={query.get("q") || ""} />
+            <AtlasMap initialQuery={query.get("q") || ""} initialSector={query.get("sector") || ""} />
           </Suspense>
         );
       case "guide":

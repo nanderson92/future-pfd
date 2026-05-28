@@ -22,11 +22,12 @@ export default function MapCanvas({
   const dragRef = useRef(null);
   const rafRef = useRef(0);
   const loopRef = useRef(0);
+  const introStartRef = useRef(0);
   const phaseRef = useRef(0);
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
   const drawStateRef = useRef(null);
   const hasSearch = searchTerm.trim().length > 0;
-  const stars = useMemo(() => makeStars(150), []);
+  const stars = useMemo(() => makeStars(260), []);
 
   drawStateRef.current = {
     geometry,
@@ -70,8 +71,10 @@ export default function MapCanvas({
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
         const phase = reduceMotion ? 0 : time / 1000;
+        if (!introStartRef.current) introStartRef.current = time;
+        const intro = reduceMotion ? 1 : Math.min(1, Math.max(0, (time - introStartRef.current) / 1200));
         phaseRef.current = phase;
-        drawAtlas(ctx, rect, { ...state, phase });
+        drawAtlas(ctx, rect, { ...state, phase, intro });
       }
       loopRef.current = requestAnimationFrame(drawFrame);
     };
@@ -95,7 +98,7 @@ export default function MapCanvas({
 
   const updateHover = (event) => {
     if (rafRef.current) return;
-      rafRef.current = requestAnimationFrame(() => {
+    rafRef.current = requestAnimationFrame(() => {
       rafRef.current = 0;
       const { world } = locate(event);
       const hit = hitTest(world, geometry, { focused, matchingIds, hasSearch, phase: phaseRef.current, zoom: camera.zoom });
@@ -177,23 +180,24 @@ export default function MapCanvas({
 }
 
 function drawAtlas(ctx, rect, state) {
-  const { geometry, camera, lens, focused, hasSearch, matchingIds, hoverTarget, stars, phase } = state;
+  const { geometry, camera, lens, focused, hasSearch, matchingIds, hoverTarget, stars, phase, intro } = state;
   ctx.clearRect(0, 0, rect.width, rect.height);
-  drawBackground(ctx, rect, stars, camera, phase);
+  drawBackground(ctx, rect, stars, camera, phase, intro);
 
   ctx.save();
   ctx.translate(camera.tx, camera.ty);
   ctx.scale(camera.zoom, camera.zoom);
 
-  drawCentralField(ctx);
+  drawCentralField(ctx, phase, intro);
+  drawShippingLanes(ctx, geometry, phase, intro);
 
   for (const planet of geometry.planets) {
     const color = colorForSector(planet.id);
     const isFocused = focused === planet.id;
     const dim = focused && !isFocused;
     ctx.globalAlpha = dim ? 0.24 : 1;
-    drawOrbit(ctx, planet, color, isFocused);
-    drawPlanetConnective(ctx, planet, color, dim);
+    drawOrbit(ctx, planet, color, isFocused, intro);
+    drawPlanetConnective(ctx, planet, color, dim, intro);
   }
 
   for (const planet of geometry.planets) {
@@ -203,14 +207,15 @@ function drawAtlas(ctx, rect, state) {
       const isHover = hoverTarget?.id === moon.id;
       const dim = (focused && !isSectorFocused && !isSearchMatch) || (hasSearch && !isSearchMatch);
       const position = moonPosition(moon, focused, phase);
-      drawMoon(ctx, { ...moon, ...position }, colorForEntry(moon.entry, lens), { dim, active: isHover || isSearchMatch, focused: isSectorFocused });
+      const planetIntro = planetIntroValue(geometry.planets.indexOf(planet), intro);
+      drawMoon(ctx, { ...moon, ...position }, colorForEntry(moon.entry, lens), { dim, active: isHover || isSearchMatch, focused: isSectorFocused, intro: planetIntro });
     }
   }
 
   for (const planet of geometry.planets) {
     const isFocused = focused === planet.id;
     const dim = focused && !isFocused;
-    drawPlanet(ctx, planet, colorForSector(planet.id), { dim, focused: isFocused, hover: hoverTarget?.id === planet.id });
+    drawPlanet(ctx, planet, colorForSector(planet.id), { dim, focused: isFocused, hover: hoverTarget?.id === planet.id, intro: planetIntroValue(geometry.planets.indexOf(planet), intro), phase });
   }
 
   for (const planet of geometry.planets) {
@@ -229,68 +234,153 @@ function drawAtlas(ctx, rect, state) {
   ctx.restore();
 }
 
-function drawBackground(ctx, rect, stars, camera, phase) {
+function drawBackground(ctx, rect, stars, camera, phase, intro) {
   const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-  gradient.addColorStop(0, "#07110f");
-  gradient.addColorStop(0.42, "#0b1118");
-  gradient.addColorStop(1, "#101014");
+  gradient.addColorStop(0, "#05070d");
+  gradient.addColorStop(0.42, "#0b1018");
+  gradient.addColorStop(1, "#12131b");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, rect.width, rect.height);
+
+  drawNebula(ctx, rect, camera, phase, intro);
 
   ctx.save();
   for (const star of stars) {
     const twinkle = 0.72 + Math.sin(phase * star.twinkle + star.seed) * 0.28;
-    ctx.globalAlpha = star.a * twinkle;
+    ctx.globalAlpha = star.a * twinkle * intro;
     ctx.fillStyle = star.c;
-    const parallaxX = -camera.tx * 0.018 * star.depth;
-    const parallaxY = -camera.ty * 0.012 * star.depth;
+    const parallaxX = -camera.tx * star.parallax;
+    const parallaxY = -camera.ty * star.parallax * 0.7;
     const x = wrap(star.x * rect.width + parallaxX, rect.width);
     const y = wrap(star.y * rect.height + parallaxY, rect.height);
-    ctx.fillRect(x, y, star.s, star.s);
+    ctx.beginPath();
+    ctx.arc(x, y, star.s, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }
 
-function drawCentralField(ctx) {
+function drawNebula(ctx, rect, camera, phase, intro) {
+  const clouds = [
+    [0.22, 0.36, 360, "rgba(94,224,192,0.07)", 0.012],
+    [0.78, 0.28, 420, "rgba(158,181,255,0.06)", 0.018],
+    [0.54, 0.78, 340, "rgba(245,197,66,0.045)", 0.009]
+  ];
   ctx.save();
-  ctx.globalAlpha = 0.45;
-  ctx.strokeStyle = "rgba(230,242,255,0.18)";
+  for (const [x0, y0, radius, color, parallax] of clouds) {
+    const x = x0 * rect.width - camera.tx * parallax + Math.sin(phase * 0.08 + x0) * 8;
+    const y = y0 * rect.height - camera.ty * parallax + Math.cos(phase * 0.06 + y0) * 8;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    g.addColorStop(0, color);
+    g.addColorStop(1, "rgba(5,7,13,0)");
+    ctx.globalAlpha = intro;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, rect.width, rect.height);
+  }
+  ctx.restore();
+}
+
+function drawCentralField(ctx, phase, intro) {
+  ctx.save();
+  ctx.globalAlpha = intro;
+  const pulse = 1 + Math.sin(phase * 1.4) * 0.05;
+  const core = ctx.createRadialGradient(900, 560, 0, 900, 560, 90 * pulse);
+  core.addColorStop(0, "rgba(232,238,246,0.95)");
+  core.addColorStop(0.16, "rgba(94,224,192,0.52)");
+  core.addColorStop(1, "rgba(94,224,192,0)");
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.arc(900, 560, 90 * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(159,176,195,0.18)";
   ctx.lineWidth = 1.2;
+  ctx.setLineDash([10, 12]);
   ctx.beginPath();
   ctx.ellipse(900, 560, 690, 430, 0, 0, Math.PI * 2);
   ctx.stroke();
   ctx.beginPath();
   ctx.ellipse(900, 560, 460, 285, 0, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.globalAlpha = 0.8;
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 0.9 * intro;
   ctx.fillStyle = "rgba(230,242,255,0.82)";
-  ctx.font = "500 14px Inter, system-ui";
-  ctx.fillText("PROCESS FLOW", 850, 552);
-  ctx.font = "500 10px Inter, system-ui";
-  ctx.fillStyle = "rgba(230,242,255,0.46)";
-  ctx.fillText("chemicals / unit ops / bottlenecks / readiness", 790, 574);
+  ctx.textAlign = "center";
+  ctx.font = "700 14px JetBrains Mono, IBM Plex Mono, Consolas, monospace";
+  ctx.fillText("PROCESS FLOW", 900, 553);
+  ctx.font = "600 10px JetBrains Mono, IBM Plex Mono, Consolas, monospace";
+  ctx.fillStyle = "rgba(199,211,223,0.62)";
+  ctx.fillText("CHEM / UNIT OPS / BOTTLENECKS / READINESS", 900, 574);
   ctx.restore();
 }
 
-function drawOrbit(ctx, planet, color, focused) {
+function drawShippingLanes(ctx, geometry, phase, intro) {
+  const lanes = [
+    ["energy", "carbon"],
+    ["carbon", "materials"],
+    ["materials", "manufacturing"],
+    ["manufacturing", "cities"],
+    ["energy", "space"],
+    ["water", "cities"]
+  ];
   ctx.save();
-  ctx.strokeStyle = toRgba(color, focused ? 0.34 : 0.16);
+  ctx.globalAlpha = intro;
+  for (const [fromId, toId] of lanes) {
+    const from = geometry.planetById.get(fromId);
+    const to = geometry.planetById.get(toId);
+    if (!from || !to) continue;
+    const color = colorForSector(toId);
+    drawLane(ctx, from, to, color, phase);
+  }
+  ctx.restore();
+}
+
+function drawLane(ctx, from, to, color, phase) {
+  const cx = (from.x + to.x) / 2 + (to.y - from.y) * 0.18;
+  const cy = (from.y + to.y) / 2 - (to.x - from.x) * 0.12;
+  ctx.save();
+  ctx.strokeStyle = toRgba(color, 0.18);
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([12, 14]);
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.quadraticCurveTo(cx, cy, to.x, to.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const t = (phase * 0.08 + (from.x + to.y) * 0.001) % 1;
+  const x = quadratic(from.x, cx, to.x, t);
+  const y = quadratic(from.y, cy, to.y, t);
+  ctx.fillStyle = toRgba(color, 0.72);
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawOrbit(ctx, planet, color, focused, intro) {
+  ctx.save();
+  ctx.globalAlpha = intro;
+  ctx.strokeStyle = toRgba(color, focused ? 0.38 : 0.18);
   ctx.lineWidth = focused ? 2 : 1;
-  ctx.setLineDash(focused ? [12, 8] : [6, 10]);
+  ctx.setLineDash(focused ? [14, 8] : [6, 12]);
   ctx.shadowColor = toRgba(color, focused ? 0.3 : 0.1);
   ctx.shadowBlur = focused ? 12 : 4;
-  ctx.beginPath();
-  ctx.arc(planet.x, planet.y, planet.radius + 108, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(planet.x, planet.y, planet.radius + 154, 0, Math.PI * 2);
-  ctx.stroke();
+  const rings = [...new Set(planet.moons.map((moon) => moon.ring))].sort((a, b) => a - b);
+  for (const ring of rings) {
+    const moon = planet.moons.find((item) => item.ring === ring);
+    if (!moon) continue;
+    ctx.beginPath();
+    ctx.ellipse(planet.x, planet.y, moon.orbitX, moon.orbitY, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
-function drawPlanetConnective(ctx, planet, color, dim) {
+function drawPlanetConnective(ctx, planet, color, dim, intro) {
   ctx.save();
-  ctx.globalAlpha = dim ? 0.16 : 0.35;
+  ctx.globalAlpha = (dim ? 0.1 : 0.26) * intro;
   ctx.strokeStyle = toRgba(color, 0.4);
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -302,8 +392,9 @@ function drawPlanetConnective(ctx, planet, color, dim) {
 
 function drawMoon(ctx, moon, color, options) {
   ctx.save();
-  ctx.globalAlpha = options.dim ? 0.17 : 0.95;
-  const radius = (options.focused ? 10 : 7) * (options.active ? 1.22 : 1);
+  const intro = options.intro ?? 1;
+  ctx.globalAlpha = (options.dim ? 0.17 : 0.95) * intro;
+  const radius = (options.focused ? moon.radius + 1.5 : moon.radius) * (options.active ? 1.3 : 1);
   ctx.fillStyle = color;
   ctx.strokeStyle = options.active ? "#f7fbff" : toRgba(color, 0.55);
   ctx.lineWidth = options.active ? 2 : 1;
@@ -318,15 +409,17 @@ function drawMoon(ctx, moon, color, options) {
     ctx.beginPath();
     ctx.arc(moon.x, moon.y, radius + 13, 0, Math.PI * 2);
     ctx.stroke();
+    drawTargetReticle(ctx, moon.x, moon.y, radius + 18, color);
   }
   ctx.restore();
 }
 
 function drawPlanet(ctx, planet, color, options) {
   ctx.save();
-  ctx.globalAlpha = options.dim ? 0.34 : 1;
-  const radius = options.focused ? planet.radius * 1.12 : planet.radius;
-  const pulse = 1 + Math.sin(performance.now() / 1200 + planet.x) * 0.05;
+  const intro = options.intro ?? 1;
+  ctx.globalAlpha = (options.dim ? 0.34 : 1) * intro;
+  const radius = (options.focused ? planet.radius * 1.12 : planet.radius) * easeOutBack(intro);
+  const pulse = 1 + Math.sin((options.phase || 0) * 1.2 + planet.x) * 0.035;
   ctx.shadowColor = toRgba(color, options.focused ? 0.42 : 0.2);
   ctx.shadowBlur = options.focused ? 28 * pulse : 12;
   const gradient = ctx.createRadialGradient(planet.x - radius * 0.35, planet.y - radius * 0.35, 4, planet.x, planet.y, radius);
@@ -337,14 +430,50 @@ function drawPlanet(ctx, planet, color, options) {
   ctx.beginPath();
   ctx.arc(planet.x, planet.y, radius, 0, Math.PI * 2);
   ctx.fill();
+  drawPlanetSphere(ctx, planet, color, radius);
   ctx.strokeStyle = options.hover || options.focused ? "#f7fbff" : toRgba(color, 0.72);
   ctx.lineWidth = options.hover || options.focused ? 3 : 1.4;
+  ctx.beginPath();
+  ctx.arc(planet.x, planet.y, radius, 0, Math.PI * 2);
   ctx.stroke();
   drawPlanetPattern(ctx, planet, color, radius);
   ctx.restore();
 }
 
+function drawPlanetSphere(ctx, planet, color, radius) {
+  if (radius < 3) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(planet.x, planet.y, radius, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.globalCompositeOperation = "source-atop";
+  const terminator = ctx.createLinearGradient(planet.x - radius, planet.y, planet.x + radius, planet.y);
+  terminator.addColorStop(0, "rgba(0,0,0,0)");
+  terminator.addColorStop(0.62, "rgba(0,0,0,0.18)");
+  terminator.addColorStop(1, "rgba(0,0,0,0.72)");
+  ctx.fillStyle = terminator;
+  ctx.fillRect(planet.x - radius, planet.y - radius, radius * 2, radius * 2);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.strokeStyle = toRgba(color, 0.78);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(planet.x, planet.y, radius - 1.5, -0.95, 0.55);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = toRgba(color, 0.34);
+  ctx.lineWidth = 4;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 18;
+  ctx.beginPath();
+  ctx.arc(planet.x, planet.y, radius + 3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawPlanetPattern(ctx, planet, color, radius) {
+  if (radius < 3) return;
   ctx.save();
   ctx.beginPath();
   ctx.arc(planet.x, planet.y, radius - 1, 0, Math.PI * 2);
@@ -404,10 +533,17 @@ function drawPlanetPattern(ctx, planet, color, radius) {
 function drawPlanetLabel(ctx, planet, color, dim) {
   ctx.save();
   ctx.globalAlpha = dim ? 0.34 : 0.95;
+  const label = planet.label.toUpperCase();
+  const labelWidth = Math.max(92, label.length * 12);
+  ctx.fillStyle = "rgba(5, 7, 13, 0.72)";
+  roundRect(ctx, planet.x - labelWidth / 2, planet.y + planet.radius + 19, labelWidth, 28, 6);
+  ctx.fill();
+  ctx.strokeStyle = toRgba(color, 0.32);
+  ctx.stroke();
   ctx.fillStyle = "#f7fbff";
-  ctx.font = "700 20px Inter, system-ui";
+  ctx.font = "800 15px JetBrains Mono, IBM Plex Mono, Consolas, monospace";
   ctx.textAlign = "center";
-  ctx.fillText(planet.label, planet.x, planet.y + planet.radius + 36);
+  ctx.fillText(label, planet.x, planet.y + planet.radius + 38);
   ctx.font = "600 11px Inter, system-ui";
   ctx.fillStyle = toRgba(color, 0.9);
   ctx.fillText(`${planet.moons.length} process moons`, planet.x, planet.y + planet.radius + 54);
@@ -431,7 +567,7 @@ function drawMoonLabel(ctx, moon, position, color, prominent, box) {
   ctx.lineTo(box.x + (box.x > position.x ? 0 : box.width), box.y + box.height / 2);
   ctx.stroke();
   ctx.fillStyle = "#f7fbff";
-  ctx.font = "600 12px Inter, system-ui";
+  ctx.font = "700 12px JetBrains Mono, IBM Plex Mono, Consolas, monospace";
   ctx.textAlign = "left";
   ctx.fillText(label.length > 30 ? `${label.slice(0, 28)}...` : label, x + 8, y - 2);
   ctx.restore();
@@ -468,13 +604,48 @@ function makeStars(count) {
   return Array.from({ length: count }, () => ({
     x: rand(),
     y: rand(),
-    s: rand() > 0.88 ? 2 : 1,
-    a: 0.18 + rand() * 0.56,
+    s: rand() > 0.92 ? 1.9 : rand() > 0.7 ? 1.2 : 0.75,
+    a: 0.12 + rand() * 0.62,
     c: rand() > 0.7 ? "#9eb5ff" : "#e6f2ff",
     depth: 0.5 + rand() * 1.4,
+    parallax: 0.006 + rand() * 0.036,
     twinkle: 0.8 + rand() * 1.8,
     seed: rand() * Math.PI * 2
   }));
+}
+
+function drawTargetReticle(ctx, x, y, radius, color) {
+  ctx.save();
+  ctx.globalAlpha = 0.68;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([4, 5]);
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  for (let i = 0; i < 4; i += 1) {
+    const angle = (i / 4) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(angle) * (radius - 5), y + Math.sin(angle) * (radius - 5));
+    ctx.lineTo(x + Math.cos(angle) * (radius + 7), y + Math.sin(angle) * (radius + 7));
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function quadratic(a, b, c, t) {
+  return (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c;
+}
+
+function easeOutBack(value) {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(value - 1, 3) + c1 * Math.pow(value - 1, 2);
+}
+
+function planetIntroValue(index, intro) {
+  return Math.min(1, Math.max(0, (intro - index * 0.07) / 0.58));
 }
 
 function labelCandidates(geometry, options) {
