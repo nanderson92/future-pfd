@@ -68,13 +68,13 @@ function GalaxyMap() {
       setHighlightBottleneck(null);
       setActiveLens("chemicals");
       setFocused(null);
-      const el = document.getElementById("top");
+      const el = document.getElementById("map");
       if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
     };
     const onSector = (e) => {
       setFocused(e.detail);
       setActiveLens("sectors");
-      const el = document.getElementById("top");
+      const el = document.getElementById("map");
       if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
     };
     const onTech = (e) => {
@@ -88,14 +88,14 @@ function GalaxyMap() {
       if (lensId !== "chemicals") setHighlightChem(null);
       if (lensId !== "unitops") setHighlightOp(null);
       if (lensId !== "bottlenecks") setHighlightBottleneck(null);
-      const el = document.getElementById("top");
+      const el = document.getElementById("map");
       if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
     };
     const onReset = () => {
       setFocused(null);
       setActiveLens("sectors");
       clearOrbitFilters();
-      const el = document.getElementById("top");
+      const el = document.getElementById("map");
       if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
     };
     window.addEventListener("fsa:focus-chemical", onChem);
@@ -103,6 +103,18 @@ function GalaxyMap() {
     window.addEventListener("fsa:open-tech", onTech);
     window.addEventListener("fsa:set-lens", onLens);
     window.addEventListener("fsa:reset-orbit", onReset);
+    if (window.FSA_PENDING_ORBIT) {
+      const pending = window.FSA_PENDING_ORBIT;
+      window.FSA_PENDING_ORBIT = null;
+      if (pending.reset) {
+        setFocused(null);
+        setActiveLens("sectors");
+        clearOrbitFilters();
+      } else {
+        if (pending.lens && ATLAS_LENSES.some(l => l.id === pending.lens)) setActiveLens(pending.lens);
+        if (pending.sector) setFocused(pending.sector);
+      }
+    }
     return () => {
       window.removeEventListener("fsa:focus-chemical", onChem);
       window.removeEventListener("fsa:focus-sector", onSector);
@@ -113,9 +125,9 @@ function GalaxyMap() {
   }, []);
 
   // Layout space
-  const W = 1400, H = 820;
+  const W = 1920, H = 1120;
   const CX = W / 2, CY = H / 2;
-  const R = 280;
+  const R = 545;
 
   const planets = React.useMemo(() => {
     return sectors.map((s, i) => {
@@ -123,7 +135,7 @@ function GalaxyMap() {
       const x = CX + Math.cos(angle) * R;
       const y = CY + Math.sin(angle) * R * 0.86;
       const techs = entries.filter(e => e.sector === s.id);
-      const radius = 30 + Math.sqrt(techs.length) * 3.4;
+      const radius = 78 + Math.sqrt(techs.length) * 8.6;
       const avgR = techs.reduce((a, t) => a + (t.trl + t.mrl + t.irl) / 3, 0) / techs.length;
       const innerMoons = [], outerMoons = [];
 
@@ -138,7 +150,7 @@ function GalaxyMap() {
 
       const place = (list, ring, basePhase) => list.map((t, ti) => {
         const ta = (ti / Math.max(list.length, 1)) * Math.PI * 2 + basePhase;
-        const tr = radius + (ring === "inner" ? 22 : 46);
+        const tr = radius + (ring === "inner" ? 76 : 162);
         return {
           ...t,
           lx: Math.cos(ta) * tr,
@@ -159,6 +171,40 @@ function GalaxyMap() {
 
   const focusedPlanet = focused ? planets.find(p => p.id === focused) : null;
 
+  const targetCamera = React.useMemo(() => {
+    if (!focusedPlanet) return { zoom: 1.46, tx: CX - 1.46 * CX, ty: CY - 1.46 * CY };
+    const zoom = 3.72;
+    const focusX = CX - 20;
+    const focusY = CY + 2;
+    return { zoom, tx: focusX - zoom * focusedPlanet.x, ty: focusY - zoom * focusedPlanet.y };
+  }, [focusedPlanet]);
+
+  const [camera, setCamera] = React.useState(targetCamera);
+  const cameraRef = React.useRef(targetCamera);
+
+  React.useEffect(() => {
+    const start = cameraRef.current;
+    const end = targetCamera;
+    const duration = focusedPlanet ? 1280 : 960;
+    let raf = 0;
+    const started = performance.now();
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const tick = (now) => {
+      const t = Math.min(1, (now - started) / duration);
+      const k = ease(t);
+      const next = {
+        zoom: start.zoom + (end.zoom - start.zoom) * k,
+        tx: start.tx + (end.tx - start.tx) * k,
+        ty: start.ty + (end.ty - start.ty) * k,
+      };
+      cameraRef.current = next;
+      setCamera(next);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [targetCamera.zoom, targetCamera.tx, targetCamera.ty]);
+
   // Build chemical spine links
   const chemLinks = React.useMemo(() => {
     if (!highlightChem) return [];
@@ -177,26 +223,20 @@ function GalaxyMap() {
 
   const planetById = id => planets.find(p => p.id === id);
 
-  const scrollToAtlas = () => {
-    const el = document.getElementById("atlas");
-    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
-  };
-
   const openAtlasForSector = (sectorId) => {
-    window.dispatchEvent(new CustomEvent("fsa:atlas-sector", { detail: sectorId }));
-    scrollToAtlas();
+    window.FSA_PENDING_ATLAS_FILTER = { sector: sectorId };
+    window.location.hash = "atlas";
   };
 
   const openAtlasWithFilter = (filter) => {
-    window.dispatchEvent(new CustomEvent("fsa:atlas-filter", { detail: filter }));
-    scrollToAtlas();
+    window.FSA_PENDING_ATLAS_FILTER = filter || {};
+    window.location.hash = "atlas";
   };
 
   const openLensSection = (lensId = activeLens) => {
     const lens = lensById(lensId);
     if (!lens.section) return;
-    const el = document.getElementById(lens.section);
-    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
+    window.location.hash = lens.section;
   };
 
   // Twinkle field — deterministic positions
@@ -247,7 +287,7 @@ function GalaxyMap() {
   }, [activeLens, focused, visibleCount, readinessMin, evidenceFilter, highlightChem, highlightOp, highlightBottleneck]);
 
   return (
-    <section id="top" className="section section-galaxy section-feature orbit-home" data-lens={activeLens}>
+    <section id="map" className="section section-galaxy section-feature orbit-home" data-lens={activeLens} data-focused={focused ? "true" : "false"} data-sector={focused || "all"}>
       <div className="frame frame-flat">
         <div className="orbit-home-head">
           <div className="orbit-system-tag">
@@ -257,7 +297,10 @@ function GalaxyMap() {
             <span className="sep">▣</span>
             <span>115 cards · 7 orbits</span>
           </div>
-          <a className="orbit-index-jump" href="#atlas">Open full index →</a>
+          <div className="orbit-head-actions">
+            <a className="orbit-index-jump" href="#guide">Guide</a>
+            <a className="orbit-index-jump" href="#atlas">Exit map · full index →</a>
+          </div>
         </div>
 
         {/* Top filter strip */}
@@ -290,12 +333,12 @@ function GalaxyMap() {
           )}
         </div>
 
-        <div className="galaxy orbit-galaxy">
+        <div className="galaxy orbit-galaxy" data-focused={focused ? "true" : "false"} data-lens={activeLens} data-sector={focused || "all"}>
           <div className="galaxy-stage" data-focused={focused ? "true" : "false"} data-lens={activeLens}>
             <div className="orbit-hero-card">
               <div className="meta">CENTRAL INTERFACE · CLICK THE SYSTEM</div>
-              <h1>Future systems are process flows.</h1>
-              <p>The planet system is the website. Select a sector, switch the engineering lens, then open moons as process cards. Everything below is supporting instrumentation.</p>
+              <h1>Navigate the future as a process map.</h1>
+              <p>The planets are the website. Pick a system, then the camera moves into its technology moons, process constraints, and evidence layer.</p>
               <div className="orbit-actions">
                 <button onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); }}>Reset orbit</button>
                 <a href="#guide">How to read it</a>
@@ -352,7 +395,27 @@ function GalaxyMap() {
               {highlightOp && <span>Unit op: {window.FSA.UNIT_OPS.find(o => o.id === highlightOp)?.label}</span>}
               {highlightBottleneck && <span>Bottleneck active</span>}
             </div>
-            <GalaxyChrome focused={focusedPlanet} />
+            <GalaxyChrome focused={focusedPlanet} activeLens={activeLens} visibleCount={visibleCount} />
+            <div className="map-page-tabs" aria-label="Map support pages">
+              {[
+                ["#guide", "Guide"],
+                ["#cases", "Cases"],
+                ["#atlas", "Index"],
+                ["#sources", "Sources"]
+              ].map(([href, label]) => <a key={href} href={href}>{label}</a>)}
+            </div>
+            {focusedPlanet && (
+              <div className="sector-lock-banner" data-sector={focusedPlanet.id}>
+                <span>Camera locked</span>
+                <b>{focusedPlanet.label}</b>
+                <em>{focusedPlanet.allTechs.length} process moons · TRL ø {focusedPlanet.avgR.toFixed(1)}</em>
+                <button onClick={() => setFocused(null)}>Pull back to full orbit</button>
+              </div>
+            )}
+            <div className="pov-reticle" aria-hidden="true">
+              <span>{focusedPlanet ? `CAMERA LOCK · ${focusedPlanet.label.toUpperCase()}` : "FREE ORBIT CAMERA"}</span>
+              <b>{lensById(activeLens).label}</b>
+            </div>
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="galaxy-svg">
               <defs>
                 {sectors.map(s => (
@@ -366,7 +429,19 @@ function GalaxyMap() {
                 </radialGradient>
               </defs>
 
+              <g className="camera-rig" transform={`matrix(${camera.zoom} 0 0 ${camera.zoom} ${camera.tx} ${camera.ty})`}>
+
               {/* Twinkle starfield */}
+              <g className="warp-lines" aria-hidden>
+                {Array.from({ length: 22 }, (_, i) => {
+                  const a = (i / 22) * Math.PI * 2;
+                  const x1 = CX + Math.cos(a) * 130;
+                  const y1 = CY + Math.sin(a) * 112;
+                  const x2 = CX + Math.cos(a) * 880;
+                  const y2 = CY + Math.sin(a) * 760;
+                  return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
+                })}
+              </g>
               <g className="twinkles" aria-hidden>
                 {twinkles.map((t, i) => (
                   <circle key={i} cx={t.x} cy={t.y} r={t.r} fill="var(--fg-faint)" opacity="0.3">
@@ -380,7 +455,7 @@ function GalaxyMap() {
 
               {/* Background grid rings */}
               <g className="grid-rings">
-                {[120, 200, 280, 360].map(rr => (
+                {[140, 240, 360, 500, 660].map(rr => (
                   <ellipse key={rr} cx={CX} cy={CY} rx={rr} ry={rr * 0.86} fill="none"
                     stroke="var(--grid-line)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.35" />
                 ))}
@@ -447,6 +522,14 @@ function GalaxyMap() {
                 <text x={CX} y={CY + 106} textAnchor="middle" className="hub-sublabel">click to reset · 115 cards in scope</text>
               </g>
 
+              {focusedPlanet && (
+                <g className="focus-corridor" aria-hidden="true">
+                  <line x1={CX} y1={CY} x2={focusedPlanet.x} y2={focusedPlanet.y} />
+                  <circle cx={focusedPlanet.x} cy={focusedPlanet.y} r={focusedPlanet.radius + 96} />
+                  <circle cx={focusedPlanet.x} cy={focusedPlanet.y} r={focusedPlanet.radius + 148} />
+                </g>
+              )}
+
               {/* Planets */}
               {planets.map((p, i) => {
                 const isFocused = focused === p.id;
@@ -470,6 +553,12 @@ function GalaxyMap() {
                       stroke={`var(--c-${p.id})`} strokeOpacity={isFocused ? 0.4 : 0.14}
                       strokeWidth="0.7" strokeDasharray="1.5 4" />
 
+                    <g className="planet-atmosphere" aria-hidden="true">
+                      <circle cx="0" cy="0" r={p.radius + 42} fill={`var(--c-${p.id})`} opacity={isFocused ? "0.065" : "0.025"} />
+                      <circle cx="0" cy="0" r={p.radius + 78} fill="none" stroke={`var(--c-${p.id})`} strokeOpacity={isFocused ? "0.22" : "0.06"} strokeWidth="0.8" strokeDasharray="5 14">
+                        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur={`${36 + i * 4}s`} repeatCount="indefinite" />
+                      </circle>
+                    </g>
                     {/* Planet body (clickable) */}
                     <g onClick={() => setFocused(isFocused ? null : p.id)}
                        onKeyDown={(event) => {
@@ -519,7 +608,7 @@ function GalaxyMap() {
                     </g>
 
                     {/* Inner orbit group — rotates clockwise */}
-                    <g className="moon-orbit moon-orbit-cw" style={{ "--dur": `${85 + i * 7}s` }}>
+                    <g className="moon-orbit moon-orbit-cw" style={{ "--dur": `${62 + i * 5}s` }}>
                       {p.innerMoons.map(t => (
                         <Moon key={t.pid} t={t} planet={p} visible={isMoonVisible(t)}
                               onHover={setHoverTech} onOpen={setOpenTech} />
@@ -527,7 +616,7 @@ function GalaxyMap() {
                     </g>
 
                     {/* Outer orbit group — rotates counter-clockwise */}
-                    <g className="moon-orbit moon-orbit-ccw" style={{ "--dur": `${115 + i * 9}s` }}>
+                    <g className="moon-orbit moon-orbit-ccw" style={{ "--dur": `${84 + i * 6}s` }}>
                       {p.outerMoons.map(t => (
                         <Moon key={t.pid} t={t} planet={p} visible={isMoonVisible(t)}
                               onHover={setHoverTech} onOpen={setOpenTech} />
@@ -539,6 +628,7 @@ function GalaxyMap() {
                   </g>
                 );
               })}
+              </g>
             </svg>
           </div>
 
@@ -737,7 +827,7 @@ function OrbitLensDock({ activeLens, sectors, entries, planets, chems, unitOps, 
 /* ── A single moon (rendered inside a rotating <g>) ─────── */
 function Moon({ t, planet, visible, onHover, onOpen }) {
   const ev = t.evidence;
-  const baseR = 3.6;
+  const baseR = 10.8;
   const openMoon = (event) => {
     event.stopPropagation();
     if (!visible) return;
@@ -794,7 +884,7 @@ function PlanetLabel({ planet, focused, CX, CY, visibleCount }) {
   );
 }
 
-function GalaxyChrome({ focused }) {
+function GalaxyChrome({ focused, activeLens, visibleCount }) {
   return (
     <div className="galaxy-chrome" aria-hidden>
       <div className="chrome corner tl">
@@ -803,7 +893,7 @@ function GalaxyChrome({ focused }) {
       </div>
       <div className="chrome corner tr">
         <span>{focused ? `${focused.label.toUpperCase()} · ${focused.allTechs.length}E` : "SECTOR MAP"}</span>
-        <span>RNG 280 AU</span>
+        <span>{activeLens?.toUpperCase()} · {visibleCount} VISIBLE</span>
       </div>
       <div className="chrome corner bl">
         <span>EVIDENCE · 3 POSTURES</span>

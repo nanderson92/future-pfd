@@ -32,6 +32,10 @@ function Atlas() {
     const onFilter = (e) => applyFilter(e.detail || {});
     window.addEventListener("fsa:atlas-sector", onSector);
     window.addEventListener("fsa:atlas-filter", onFilter);
+    if (window.FSA_PENDING_ATLAS_FILTER) {
+      applyFilter(window.FSA_PENDING_ATLAS_FILTER);
+      window.FSA_PENDING_ATLAS_FILTER = null;
+    }
     return () => {
       window.removeEventListener("fsa:atlas-sector", onSector);
       window.removeEventListener("fsa:atlas-filter", onFilter);

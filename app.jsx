@@ -27,22 +27,13 @@ function OrbitDock() {
     window.addEventListener("fsa:orbit-state", onState);
     return () => window.removeEventListener("fsa:orbit-state", onState);
   }, []);
-  const jumpTop = () => {
-    const el = document.getElementById("top");
-    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: "smooth" });
+  const returnToMap = (pending) => {
+    window.FSA_PENDING_ORBIT = pending || {};
+    window.location.hash = "map";
   };
-  const resetOrbit = () => {
-    window.dispatchEvent(new CustomEvent("fsa:reset-orbit"));
-    jumpTop();
-  };
-  const focusSector = (id) => {
-    window.dispatchEvent(new CustomEvent("fsa:focus-sector", { detail: id }));
-    jumpTop();
-  };
-  const setLens = (id) => {
-    window.dispatchEvent(new CustomEvent("fsa:set-lens", { detail: id }));
-    jumpTop();
-  };
+  const resetOrbit = () => returnToMap({ reset: true });
+  const focusSector = (id) => returnToMap({ sector: id, lens: "sectors" });
+  const setLens = (id) => returnToMap({ lens: id });
   return (
     <aside className="orbit-dock" aria-label="Orbit quick controls">
       <button className="orbit-dock-hub" onClick={resetOrbit} title="Return to full orbit">
@@ -85,8 +76,71 @@ function OrbitDock() {
   );
 }
 
+
+function getAtlasRoute() {
+  const raw = (window.location.hash || "#map").replace(/^#/, "").trim().toLowerCase();
+  if (!raw || raw === "top" || raw === "home") return "map";
+  const valid = new Set(["map", "guide", "cases", "system", "chemicals", "unitops", "readiness", "pathways", "atlas", "sources", "about"]);
+  return valid.has(raw) ? raw : "map";
+}
+
+function useAtlasRoute() {
+  const [route, setRoute] = React.useState(getAtlasRoute);
+  React.useEffect(() => {
+    const onHash = () => setRoute(getAtlasRoute());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  return route;
+}
+
+const SUPPORT_PAGE_META = {
+  guide: { code: "FSA · GUIDE", title: "How to read the atlas", lede: "The map stays primary. This page explains the legend, evidence language, and process-engineering lenses." },
+  cases: { code: "FSA · CASES", title: "Representative process cases", lede: "Selected examples that show how a future-looking capability becomes chemicals, operations, bottlenecks, and deployment rules." },
+  system: { code: "FSA · SYSTEM", title: "System architecture", lede: "The hidden stack behind the visible future: resources, chemicals, unit operations, manufacturing systems, infrastructure, and deployment pathways." },
+  chemicals: { code: "FSA · CHEMICALS", title: "Chemical spine", lede: "Recurring molecules and materials that connect sectors which look unrelated on the surface." },
+  unitops: { code: "FSA · UNIT OPS", title: "Unit-operation layer", lede: "Separations, reactions, heat transfer, deposition, QA, and manufacturing operations that turn the future into an engineering problem." },
+  readiness: { code: "FSA · READINESS", title: "Readiness and scale", lede: "TRL, MRL, and IRL separate proof of science from repeatable manufacturing and deployable infrastructure." },
+  pathways: { code: "FSA · BOTTLENECKS", title: "Scale-up pathways", lede: "Where each technology gets stuck: cost, dilute feeds, durability, siting, safety, yield, permitting, or infrastructure." },
+  atlas: { code: "FSA · INDEX", title: "Full process card index", lede: "The database layer beneath the orbit map. Search, filter, and open individual process cards." },
+  sources: { code: "FSA · SOURCES", title: "Evidence layer", lede: "Source posture, confidence language, and the evidence trail behind the atlas." },
+  about: { code: "FSA · ABOUT", title: "Builder note", lede: "Why this exists as an engineering artifact and portfolio system." },
+};
+
+function SupportPage({ route }) {
+  const meta = SUPPORT_PAGE_META[route] || SUPPORT_PAGE_META.guide;
+  const renderPage = () => {
+    if (route === "guide") return <FieldGuide />;
+    if (route === "cases") return <CaseStudies />;
+    if (route === "system") return <SystemMap />;
+    if (route === "chemicals") return <ChemicalSpine />;
+    if (route === "unitops") return <UnitOps />;
+    if (route === "readiness") return <Readiness />;
+    if (route === "pathways") return <Pathways />;
+    if (route === "atlas") return <Atlas />;
+    if (route === "sources") return <><Evidence /><AuthorNote /></>;
+    if (route === "about") return <AuthorNote />;
+    return <FieldGuide />;
+  };
+  return (
+    <div className="support-page-shell" data-page={route}>
+      <div className="support-page-command">
+        <a className="support-map-return" href="#map">← Return to orbit map</a>
+        <div>
+          <span className="meta">{meta.code}</span>
+          <h1>{meta.title}</h1>
+          <p>{meta.lede}</p>
+        </div>
+      </div>
+      {renderPage()}
+    </div>
+  );
+}
+
 function App() {
   const [t, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+  const route = useAtlasRoute();
+  const isMap = route === "map";
 
   // Apply theme + typography to <body>
   React.useEffect(() => {
@@ -94,28 +148,19 @@ function App() {
     document.body.setAttribute("data-mono", t.typography);
     document.body.setAttribute("data-motion", t.motion);
     document.body.setAttribute("data-accent", t.accent);
-  }, [t.theme, t.typography, t.motion, t.accent]);
+    document.body.setAttribute("data-route", route);
+  }, [t.theme, t.typography, t.motion, t.accent, route]);
 
   return (
     <>
       <Topology />
       <CoordinateGutters />
       <Nav />
-      <OrbitDock />
-      <main className="sheet">
-        <GalaxyMap />
-        <FieldGuide />
-        <CaseStudies />
-        <SystemMap />
-        <ChemicalSpine />
-        <UnitOps />
-        <Readiness />
-        <Pathways />
-        <Atlas />
-        <Evidence />
-        <AuthorNote />
+      {!isMap && <OrbitDock />}
+      <main className={`sheet ${isMap ? "map-sheet" : "support-sheet"}`}>
+        {isMap ? <GalaxyMap /> : <SupportPage route={route} />}
       </main>
-      <Footer />
+      {!isMap && <Footer />}
 
       <window.TweaksPanel title="Tweaks">
         <window.TweakSection title="Surface">

@@ -101,7 +101,7 @@ function Nav() {
   return (
     <nav className="nav">
       <div className="nav-inner">
-        <a className="nav-brand" href="#top">
+        <a className="nav-brand" href="#map">
           <span className="mark">FS</span>
           <span className="nav-brand-label">
             <span className="l1">Future Systems Atlas</span>
@@ -110,7 +110,7 @@ function Nav() {
         </a>
         <div className="nav-links command-links">
           {[
-            ["#top",       "Map"],
+            ["#map",       "Map"],
             ["#guide",     "Guide"],
             ["#cases",     "Cases"],
             ["#atlas",     "Index"],
