@@ -10,15 +10,24 @@
   <meta property="og:image" content="https://nanderson92.github.io/future-pfd/og-cover.png" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="icon" href="./assets/favicon-DRde9_SU.svg" />
+  <link rel="icon" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet" />
-
-  <script type="module" crossorigin src="./assets/index-GLve_RQN.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CCFpoBm5.css">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="sections.css" />
 </head>
 <body data-theme="dark" data-mono="grotesque">
   <div id="root"></div>
+
+  <!-- Local React vendor bundle + precompiled production scripts: no CDN and no in-browser Babel/JSX transform. -->
+  <script src="dist/react-vendor.js"></script>
+  <script src="dist/tweaks-panel.js"></script>
+  <script src="dist/data.js"></script>
+  <script src="dist/topology.js"></script>
+  <script src="dist/sections.js"></script>
+  <script src="dist/galaxy.js"></script>
+  <script src="dist/atlas.js"></script>
+  <script src="dist/app.js"></script>
 </body>
 </html>

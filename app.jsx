@@ -5,7 +5,7 @@
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "theme": "dark",
   "typography": "grotesque",
-  "motion": "on",
+  "motion": "off",
   "accent": "energy"
 }/*EDITMODE-END*/;
 
@@ -78,10 +78,10 @@ function OrbitDock() {
 
 
 function getAtlasRoute() {
-  const raw = (window.location.hash || "#map").replace(/^#/, "").trim().toLowerCase();
-  if (!raw || raw === "top" || raw === "home") return "map";
-  const valid = new Set(["map", "guide", "cases", "system", "chemicals", "unitops", "readiness", "pathways", "atlas", "sources", "about"]);
-  return valid.has(raw) ? raw : "map";
+  const raw = (window.location.hash || "#home").replace(/^#/, "").trim().toLowerCase();
+  if (!raw || raw === "top" || raw === "home") return "home";
+  const valid = new Set(["home", "map", "guide", "cases", "system", "chemicals", "unitops", "readiness", "pathways", "atlas", "sources", "about"]);
+  return valid.has(raw) ? raw : "home";
 }
 
 function useAtlasRoute() {
@@ -95,6 +95,7 @@ function useAtlasRoute() {
 }
 
 const SUPPORT_PAGE_META = {
+  home: { code: "FSA · HOME", title: "Future Systems Atlas", lede: "A fast launch page for the interactive process-engineering atlas." },
   guide: { code: "FSA · GUIDE", title: "How to read the atlas", lede: "The map stays primary. This page explains the legend, evidence language, and process-engineering lenses." },
   cases: { code: "FSA · CASES", title: "Representative process cases", lede: "Selected examples that show how a future-looking capability becomes chemicals, operations, bottlenecks, and deployment rules." },
   system: { code: "FSA · SYSTEM", title: "System architecture", lede: "The hidden stack behind the visible future: resources, chemicals, unit operations, manufacturing systems, infrastructure, and deployment pathways." },
@@ -106,6 +107,52 @@ const SUPPORT_PAGE_META = {
   sources: { code: "FSA · SOURCES", title: "Evidence layer", lede: "Three evidence postures, 244 source records, and the trail behind the atlas." },
   about: { code: "FSA · ABOUT", title: "About Nathan Anderson", lede: "Who built this, why it exists, and how to contact me." },
 };
+
+
+function LandingPage() {
+  const stats = [
+    ["115", "frontier technologies"],
+    ["244", "source records"],
+    ["7", "future domains"],
+    ["6", "featured process cases"],
+  ];
+  return (
+    <section id="home" className="landing-page" aria-labelledby="landing-title">
+      <div className="landing-bg" aria-hidden="true" />
+      <div className="landing-shell">
+        <div className="landing-copy">
+          <div className="landing-kicker">FSA · MASTER · PROCESS ENGINEERING ATLAS</div>
+          <h1 id="landing-title">A process-flow map of the technologies people call <span>the future.</span></h1>
+          <p>
+            Future Systems Atlas decomposes frontier technology into chemicals, unit operations,
+            manufacturing bottlenecks, readiness levels, and evidence posture. Open the interactive
+            map when you want the full planet/moon interface; start with cases when you want proof of the reasoning.
+          </p>
+          <div className="landing-actions">
+            <a className="btn primary" href="#map">Launch interactive atlas <span className="arrow">→</span></a>
+            <a className="btn" href="#cases">View process cases</a>
+            <a className="btn" href="#about">About / contact</a>
+          </div>
+          <div className="landing-stats" aria-label="Atlas scope">
+            {stats.map(([n, label]) => (
+              <div key={label}>
+                <b>{n}</b>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <a className="landing-preview" href="#map" aria-label="Launch the interactive orbit map">
+          <img src="og-cover.png" alt="Preview of the Future Systems Atlas orbit map" loading="eager" decoding="async" />
+          <div className="landing-preview-caption">
+            <span>Interactive map loads on demand</span>
+            <b>Launch Atlas</b>
+          </div>
+        </a>
+      </div>
+    </section>
+  );
+}
 
 function SupportPage({ route }) {
   const meta = SUPPORT_PAGE_META[route] || SUPPORT_PAGE_META.guide;
@@ -141,6 +188,11 @@ function App() {
   const [t, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
   const route = useAtlasRoute();
   const isMap = route === "map";
+  const isHome = route === "home";
+
+  React.useEffect(() => {
+    requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+  }, [route]);
 
   // Apply theme + typography to <body>
   React.useEffect(() => {
@@ -149,6 +201,7 @@ function App() {
     document.body.setAttribute("data-motion", t.motion);
     document.body.setAttribute("data-accent", t.accent);
     document.body.setAttribute("data-route", route);
+    document.body.setAttribute("data-perf", "optimized");
   }, [t.theme, t.typography, t.motion, t.accent, route]);
 
   return (
@@ -156,58 +209,12 @@ function App() {
       <Topology />
       <CoordinateGutters />
       <Nav />
-      {!isMap && <OrbitDock />}
-      <main className={`sheet ${isMap ? "map-sheet" : "support-sheet"}`}>
-        {isMap ? <GalaxyMap /> : <SupportPage route={route} />}
+      {!isMap && !isHome && <OrbitDock />}
+      <main className={`sheet ${isMap ? "map-sheet" : isHome ? "landing-sheet" : "support-sheet"}`}>
+        {isMap ? <GalaxyMap /> : isHome ? <LandingPage /> : <SupportPage route={route} />}
       </main>
-      {!isMap && <Footer />}
+      {!isMap && !isHome && <Footer />}
 
-      <window.TweaksPanel title="Tweaks">
-        <window.TweakSection title="Surface">
-          <window.TweakRadio
-            label="Theme"
-            value={t.theme}
-            onChange={v => setTweak("theme", v)}
-            options={[{ value: "dark", label: "Dark" }, { value: "light", label: "Light" }]}
-          />
-        </window.TweakSection>
-        <window.TweakSection title="Typography">
-          <window.TweakSelect
-            label="Pairing"
-            value={t.typography}
-            onChange={v => setTweak("typography", v)}
-            options={[
-              { value: "grotesque", label: "Grotesque + Mono (default)" },
-              { value: "serif",     label: "Serif headlines + Mono meta" },
-              { value: "mono",      label: "All mono (terminal)" },
-            ]}
-          />
-        </window.TweakSection>
-        <window.TweakSection title="Motion">
-          <window.TweakRadio
-            label="Ambient motion"
-            value={t.motion}
-            onChange={v => setTweak("motion", v)}
-            options={[{ value: "on", label: "On" }, { value: "off", label: "Off" }]}
-          />
-        </window.TweakSection>
-        <window.TweakSection title="Accent">
-          <window.TweakColor
-            label="Hero accent"
-            value={t.accent}
-            onChange={v => setTweak("accent", v)}
-            options={[
-              { value: "energy",    color: "oklch(0.80 0.155 80)" },
-              { value: "carbon",    color: "oklch(0.78 0.135 195)" },
-              { value: "water",     color: "oklch(0.76 0.145 245)" },
-              { value: "materials", color: "oklch(0.76 0.155 335)" },
-              { value: "manufacturing", color: "oklch(0.80 0.145 150)" },
-              { value: "cities",    color: "oklch(0.78 0.155 35)" },
-              { value: "space",     color: "oklch(0.76 0.155 290)" },
-            ]}
-          />
-        </window.TweakSection>
-      </window.TweaksPanel>
     </>
   );
 }

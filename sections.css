@@ -5519,3 +5519,367 @@ body[data-motion="off"] .section-galaxy.orbit-home::after {
     min-height: 100svh !important;
   }
 }
+
+/* ────────────────────────────────────────────────────────────
+   Performance/application pass
+   - map loads on demand behind a fast landing page
+   - calmer default motion
+   - cheaper compositing for SVG/HUD layers
+   ──────────────────────────────────────────────────────────── */
+body[data-route="home"] .nav {
+  background: color-mix(in oklab, #020509 72%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--fg) 8%, transparent);
+}
+.landing-sheet {
+  min-height: 100svh;
+  padding: 0;
+}
+.landing-page {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 42%, color-mix(in oklab, var(--c-water) 16%, transparent), transparent 40%),
+    radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--c-energy) 10%, transparent), transparent 36%),
+    var(--bg);
+}
+.landing-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--fg) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--fg) 5%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(circle at 50% 50%, black, transparent 76%);
+  pointer-events: none;
+}
+.landing-shell {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, calc(100vw - 40px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.82fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  padding: 112px 0 64px;
+}
+.landing-copy {
+  display: grid;
+  gap: 24px;
+}
+.landing-kicker {
+  width: fit-content;
+  padding: 8px 11px;
+  border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+  border-radius: 999px;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: color-mix(in oklab, var(--fg) 4%, transparent);
+}
+.landing-copy h1 {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(52px, 8vw, 112px);
+  line-height: 0.88;
+  letter-spacing: -0.075em;
+  color: var(--fg);
+}
+.landing-copy h1 span {
+  color: var(--c-energy);
+}
+.landing-copy p {
+  max-width: 66ch;
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.65;
+}
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.landing-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 720px;
+}
+.landing-stats div {
+  border: 1px solid color-mix(in oklab, var(--fg) 9%, transparent);
+  border-radius: 18px;
+  padding: 16px;
+  background: color-mix(in oklab, var(--fg) 4%, transparent);
+}
+.landing-stats b {
+  display: block;
+  color: var(--fg);
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+.landing-stats span {
+  display: block;
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+.landing-preview {
+  display: block;
+  position: relative;
+  border: 1px solid color-mix(in oklab, var(--fg) 13%, transparent);
+  border-radius: 30px;
+  overflow: hidden;
+  background: #020509;
+  box-shadow: 0 34px 120px color-mix(in oklab, black 46%, transparent);
+  transform: translateZ(0);
+}
+.landing-preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  opacity: 0.82;
+}
+.landing-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, color-mix(in oklab, #020509 88%, transparent), transparent 52%);
+  pointer-events: none;
+}
+.landing-preview-caption {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  color: var(--fg);
+}
+.landing-preview-caption span {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.landing-preview-caption b {
+  font-size: 30px;
+  letter-spacing: -0.05em;
+}
+
+body[data-perf="optimized"] .orbit-galaxy .galaxy-svg,
+body[data-perf="optimized"] .orbit-galaxy[data-focused="true"] .galaxy-svg,
+body[data-perf="optimized"] .camera-rig,
+body[data-perf="optimized"] .planet.is-focused .planet-atmosphere circle:first-child,
+body[data-perf="optimized"] .planet.is-focused .moon,
+body[data-perf="optimized"] .lens-rings .active ellipse,
+body[data-perf="optimized"] .planet-surface-energy,
+body[data-perf="optimized"] .planet-surface-water {
+  filter: none !important;
+}
+body[data-perf="optimized"] .orbit-galaxy .galaxy-panel,
+body[data-perf="optimized"] .map-camera-controls,
+body[data-perf="optimized"] .sector-jump-nav,
+body[data-perf="optimized"] .map-search,
+body[data-perf="optimized"] .mobile-orbit-sheet,
+body[data-perf="optimized"] .orbit-lens-dock,
+body[data-perf="optimized"] .orbit-state-strip,
+body[data-perf="optimized"] .orbit-lens-rail {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body[data-perf="optimized"] .moon-orbit,
+body[data-perf="optimized"] .planet.is-focused .moon-orbit,
+body[data-perf="optimized"] .planet.is-hovered .moon-orbit,
+body[data-motion="off"] .moon-orbit,
+body[data-motion="off"] .warp-lines line,
+body[data-motion="off"] .planet-atmosphere circle {
+  animation-play-state: paused !important;
+}
+body[data-perf="optimized"] .warp-lines line {
+  animation: none !important;
+  stroke-opacity: 0.035 !important;
+}
+body[data-perf="optimized"] .orbit-galaxy .galaxy-stage::after {
+  animation: none !important;
+  opacity: 0.05 !important;
+}
+body[data-perf="optimized"] .orbit-galaxy[data-focused="true"] .planet:not(.is-focused) {
+  filter: none !important;
+}
+body[data-perf="optimized"] .moon-label {
+  text-shadow: none !important;
+}
+
+@media (max-width: 860px) {
+  .landing-shell {
+    grid-template-columns: 1fr;
+    padding-top: 96px;
+  }
+  .landing-copy h1 {
+    max-width: 11ch;
+  }
+  .landing-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .landing-shell { width: min(100vw - 24px, 1180px); }
+  .landing-actions .btn { width: 100%; justify-content: center; }
+  .landing-stats { grid-template-columns: 1fr; }
+  .landing-preview-caption { align-items: start; flex-direction: column; }
+  .landing-preview-caption b { font-size: 24px; }
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   Canvas map renderer pass
+   Heavy orbital visuals are now drawn in one canvas; SVG is retained
+   only as a lightweight hit/label layer for accessibility and clicks.
+   ──────────────────────────────────────────────────────────── */
+.galaxy-canvas,
+.map-hit-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100svh;
+  display: block;
+}
+
+.galaxy-canvas {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.map-hit-svg {
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.map-hit-svg .hub-hit,
+.map-hit-svg .planet-hit-target,
+.map-hit-svg .moon-hit {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.map-hit-svg .planet-hit-target {
+  outline: none;
+}
+
+.map-hit-svg .planet-hit-target:focus-visible,
+.map-hit-svg .hub-hit:focus-visible,
+.map-hit-svg .moon-hit:focus-visible .moon-hit-dot {
+  filter: drop-shadow(0 0 12px var(--fg));
+}
+
+.moon-hit {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.moon-hit .moon-hit-dot {
+  fill: color-mix(in oklab, var(--fg) 12%, transparent);
+  stroke: color-mix(in oklab, var(--fg) 42%, transparent);
+  stroke-width: 0.8px;
+  vector-effect: non-scaling-stroke;
+}
+
+.moon-hit:hover,
+.moon-hit:focus-visible {
+  opacity: 1;
+}
+
+.orbit-galaxy[data-focused="true"] .moon-hit,
+.moon-hit:hover,
+.moon-hit:focus-visible {
+  opacity: 1;
+}
+
+.moon-hit.is-hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.moon-hit-label {
+  fill: var(--fg);
+  stroke: color-mix(in oklab, var(--bg) 82%, transparent);
+  stroke-width: 4px;
+  paint-order: stroke fill;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.orbit-galaxy .galaxy-stage {
+  isolation: isolate;
+}
+
+.orbit-galaxy .galaxy-stage > :not(.galaxy-canvas):not(.map-hit-svg) {
+  z-index: 5;
+}
+
+.orbit-galaxy .map-search,
+.orbit-galaxy .map-camera-controls,
+.orbit-galaxy .sector-jump-nav,
+.orbit-galaxy .orbit-lens-dock,
+.orbit-galaxy .orbit-lens-rail,
+.orbit-galaxy .orbit-state-strip,
+.orbit-galaxy .orbit-hero-card,
+.orbit-galaxy .galaxy-panel,
+.orbit-galaxy .mobile-map-sheet,
+.orbit-galaxy .map-page-tabs,
+.orbit-galaxy .sector-lock-banner {
+  z-index: 20;
+}
+
+/* The old SVG visual layer is no longer used, but keep this safe
+   in case any cached markup survives a deployment refresh. */
+.galaxy-svg {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .galaxy-canvas,
+  .map-hit-svg {
+    min-height: 620px;
+  }
+
+  .moon-hit-label {
+    font-size: 10px;
+  }
+}
+
+
+/* Canvas-only interaction pass: the canvas now owns pointer hit-testing. */
+.galaxy-canvas {
+  pointer-events: auto !important;
+  cursor: default;
+  outline: none;
+}
+
+.galaxy-canvas:focus-visible {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fg) 30%, transparent);
+}
+
+/* SVG hit layer removed in pass 3. Keep these inert if a stale cache appears. */
+.map-hit-svg {
+  display: none !important;
+  pointer-events: none !important;
+}

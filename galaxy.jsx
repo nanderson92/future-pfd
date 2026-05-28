@@ -62,6 +62,25 @@ function GalaxyMap() {
   const [mapSearch, setMapSearch] = React.useState("");
   const [mobilePanel, setMobilePanel] = React.useState("camera");
   const [navCamera, setNavCamera] = React.useState({ zoomScale: 1, panX: 0, panY: 0 });
+  const stageRef = React.useRef(null);
+  const [stageSize, setStageSize] = React.useState({ width: 0, height: 0 });
+
+  React.useEffect(() => {
+    const node = stageRef.current;
+    if (!node || typeof ResizeObserver === "undefined") return;
+    const update = () => {
+      const rect = node.getBoundingClientRect();
+      setStageSize(prev => {
+        const width = Math.round(rect.width);
+        const height = Math.round(rect.height);
+        return prev.width === width && prev.height === height ? prev : { width, height };
+      });
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const resetCameraNav = React.useCallback(() => {
     setNavCamera({ zoomScale: 1, panX: 0, panY: 0 });
@@ -212,65 +231,66 @@ function GalaxyMap() {
       maxY: Math.max(acc.maxY, b.maxY),
     }));
 
+    const stageW = stageSize.width || W;
+    const stageH = stageSize.height || H;
+    const meet = Math.min(stageW / W, stageH / H);
+    const ox = (stageW - W * meet) / 2;
+    const oy = (stageH - H * meet) / 2;
+    const cssToViewBox = (cssX, cssY) => ({
+      x: (cssX - ox) / meet,
+      y: (cssY - oy) / meet,
+    });
+
+    const hud = stageW >= 1180
+      ? { left: 214, right: 390, top: 92, bottom: 132 }
+      : stageW >= 760
+        ? { left: 80, right: 80, top: 90, bottom: 170 }
+        : { left: 18, right: 18, top: 78, bottom: 210 };
+
+    const safeCssW = Math.max(280, stageW - hud.left - hud.right);
+    const safeCssH = Math.max(320, stageH - hud.top - hud.bottom);
+    const safeCenter = cssToViewBox(
+      hud.left + safeCssW / 2,
+      hud.top + safeCssH / 2
+    );
+    const safeVbW = safeCssW / meet;
+    const safeVbH = safeCssH / meet;
+
     const fitBounds = (bounds, options = {}) => {
-      const padX = options.padX ?? 110;
-      const padY = options.padY ?? 110;
-      const centerX = options.centerX ?? CX;
-      const centerY = options.centerY ?? CY;
-      const minZoom = options.minZoom ?? 0.62;
-      const maxZoom = options.maxZoom ?? 1.52;
-      const boxW = Math.max(1, bounds.maxX - bounds.minX);
-      const boxH = Math.max(1, bounds.maxY - bounds.minY);
-      const fitZoom = Math.min((W - padX * 2) / boxW, (H - padY * 2) / boxH);
+      const minZoom = options.minZoom ?? 0.52;
+      const maxZoom = options.maxZoom ?? 1.20;
+      const padX = options.padX ?? 80;
+      const padY = options.padY ?? 80;
+      const boxW = Math.max(1, bounds.maxX - bounds.minX + padX * 2);
+      const boxH = Math.max(1, bounds.maxY - bounds.minY + padY * 2);
+      const fitZoom = Math.min(safeVbW / boxW, safeVbH / boxH);
       const zoom = Math.max(minZoom, Math.min(maxZoom, fitZoom)) * navCamera.zoomScale;
       const anchorX = (bounds.minX + bounds.maxX) / 2;
       const anchorY = (bounds.minY + bounds.maxY) / 2;
       return {
         zoom,
-        tx: centerX - zoom * anchorX + navCamera.panX,
-        ty: centerY - zoom * anchorY + navCamera.panY,
+        tx: safeCenter.x - zoom * anchorX + navCamera.panX,
+        ty: safeCenter.y - zoom * anchorY + navCamera.panY,
       };
     };
 
     if (focusedPlanet) {
       return fitBounds(boundsForPlanet(focusedPlanet, "focus"), {
-        padX: 190,
-        padY: 170,
-        centerX: CX,
-        centerY: CY + 8,
-        minZoom: 0.88,
-        maxZoom: 1.10,
+        padX: 96,
+        padY: 96,
+        minZoom: 0.78,
+        maxZoom: 1.06,
       });
     }
 
-    /*
-      Full-orbit mode should not use the raw union-bounds center.
-      The moon distribution is asymmetric, so bounds-fitting pulls the
-      entire atlas rightward. Anchor the camera on the actual atlas hub
-      instead, then choose a conservative zoom that keeps the full solar
-      system in frame.
-    */
     const fullBounds = mergeBounds(planets.map((planet) => boundsForPlanet(planet, "all")));
-    const boxW = Math.max(1, fullBounds.maxX - fullBounds.minX);
-    const boxH = Math.max(1, fullBounds.maxY - fullBounds.minY);
-    const safeZoom = Math.min((W - 520) / boxW, (H - 360) / boxH);
-    const zoom = Math.max(0.46, Math.min(0.50, safeZoom)) * navCamera.zoomScale;
-
-    /*
-      Full-orbit calibration is intentionally viewport-biased, not SVG-centered.
-      In the live browser the fixed left HUD, right sector rail, bottom lens rail,
-      and 16:9-ish viewport make the raw process hub appear low/right. Pinning the
-      hub to this calibrated home target makes the actual orbit field sit centered
-      on first load and every time the user clicks Full Orbit.
-    */
-    const HOME_SCREEN_X = CX - 460;
-    const HOME_SCREEN_Y = CY - 260;
-    return {
-      zoom,
-      tx: HOME_SCREEN_X - zoom * CX + navCamera.panX,
-      ty: HOME_SCREEN_Y - zoom * CY + navCamera.panY,
-    };
-  }, [planets, focusedPlanet, navCamera.zoomScale, navCamera.panX, navCamera.panY]);
+    return fitBounds(fullBounds, {
+      padX: 72,
+      padY: 72,
+      minZoom: 0.42,
+      maxZoom: 0.62,
+    });
+  }, [planets, focusedPlanet, navCamera.zoomScale, navCamera.panX, navCamera.panY, stageSize.width, stageSize.height]);
 
   const [camera, setCamera] = React.useState(targetCamera);
   const cameraRef = React.useRef(targetCamera);
@@ -302,23 +322,6 @@ function GalaxyMap() {
     return () => cancelAnimationFrame(raf);
   }, [targetCamera.zoom, targetCamera.tx, targetCamera.ty]);
 
-  // Build chemical spine links
-  const chemLinks = React.useMemo(() => {
-    if (!highlightChem) return [];
-    const sectorsWithChem = new Set(
-      entries.filter(e => e.chemical === highlightChem).map(e => e.sector)
-    );
-    const ids = [...sectorsWithChem];
-    const links = [];
-    for (let i = 0; i < ids.length; i++) {
-      for (let j = i + 1; j < ids.length; j++) {
-        links.push([ids[i], ids[j]]);
-      }
-    }
-    return links;
-  }, [highlightChem, entries]);
-
-  const planetById = id => planets.find(p => p.id === id);
 
   const openAtlasForSector = (sectorId) => {
     window.FSA_PENDING_ATLAS_FILTER = { sector: sectorId };
@@ -342,7 +345,7 @@ function GalaxyMap() {
       const x = Math.sin(n * 9301 + 49297) * 233280;
       return x - Math.floor(x);
     };
-    return Array.from({ length: 80 }, (_, i) => ({
+    return Array.from({ length: 24 }, (_, i) => ({
       x: seeded(i + 1) * W,
       y: seeded(i + 200) * H,
       r: seeded(i + 400) * 0.9 + 0.3,
@@ -439,7 +442,7 @@ function GalaxyMap() {
         </div>
 
         <div className="galaxy orbit-galaxy" data-focused={focused ? "true" : "false"} data-lens={activeLens} data-sector={focused || "all"}>
-          <div className="galaxy-stage" data-focused={focused ? "true" : "false"} data-lens={activeLens}>
+          <div ref={stageRef} className="galaxy-stage" data-focused={focused ? "true" : "false"} data-lens={activeLens}>
             <div className="orbit-hero-card">
               <div className="meta">115 frontier technologies · process-engineering map</div>
               <h1>Navigate the future as a process map.</h1>
@@ -571,221 +574,31 @@ function GalaxyMap() {
               <span>{focusedPlanet ? `CAMERA LOCK · ${focusedPlanet.label.toUpperCase()}` : "FREE ORBIT CAMERA"}</span>
               <b>{lensById(activeLens).label}</b>
             </div>
-            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="galaxy-svg">
-              <defs>
-                {sectors.map(s => (
-                  <pattern key={s.id} id={`hatch-${s.id}`} patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-                    <line x1="0" y1="0" x2="0" y2="6" stroke={`var(--c-${s.id})`} strokeOpacity="0.4" strokeWidth="1"/>
-                  </pattern>
-                ))}
-                <radialGradient id="hub-glow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%"  stopColor="var(--fg)" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="var(--fg)" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-
-              <g className="camera-rig" transform={`matrix(${camera.zoom} 0 0 ${camera.zoom} ${camera.tx} ${camera.ty})`}>
-
-              {/* Twinkle starfield */}
-              <g className="warp-lines" aria-hidden>
-                {Array.from({ length: 22 }, (_, i) => {
-                  const a = (i / 22) * Math.PI * 2;
-                  const x1 = CX + Math.cos(a) * 130;
-                  const y1 = CY + Math.sin(a) * 112;
-                  const x2 = CX + Math.cos(a) * 880;
-                  const y2 = CY + Math.sin(a) * 760;
-                  return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
-                })}
-              </g>
-              <g className="twinkles" aria-hidden>
-                {twinkles.map((t, i) => (
-                  <circle key={i} cx={t.x} cy={t.y} r={t.r} fill="var(--fg-faint)" opacity="0.3">
-                    <animate attributeName="opacity"
-                      values="0.08;0.45;0.08"
-                      dur={`${t.dur}s`} begin={`${t.delay}s`}
-                      repeatCount="indefinite" />
-                  </circle>
-                ))}
-              </g>
-
-              {/* Background grid rings */}
-              <g className="grid-rings">
-                {[140, 240, 360, 500, 660].map(rr => (
-                  <ellipse key={rr} cx={CX} cy={CY} rx={rr} ry={rr * 0.86} fill="none"
-                    stroke="var(--grid-line)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.35" />
-                ))}
-              </g>
-
-              <g className="lens-rings" aria-hidden="true">
-                {ATLAS_LENSES.map((lens, i) => {
-                  const rr = 116 + i * 42;
-                  return (
-                    <g key={lens.id} className={activeLens === lens.id ? "active" : ""}>
-                      <ellipse cx={CX} cy={CY} rx={rr} ry={rr * 0.86} fill="none" />
-                      <text x={CX + rr + 8} y={CY - rr * 0.12} className="lens-ring-label">{lens.code} · {lens.label.toUpperCase()}</text>
-                    </g>
-                  );
-                })}
-              </g>
-
-              {/* Chemical-spine connections */}
-              {chemLinks.length > 0 && (
-                <g className="chem-links">
-                  {chemLinks.map(([a, b], i) => {
-                    const pa = planetById(a);
-                    const pb = planetById(b);
-                    if (!pa || !pb) return null;
-                    return (
-                      <line key={i}
-                        x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
-                        stroke="var(--c-energy)" strokeOpacity="0.45"
-                        strokeWidth="1.2" strokeDasharray="3 3">
-                        <animate attributeName="stroke-dashoffset"
-                          from="0" to="-12" dur="1.2s" repeatCount="indefinite" />
-                      </line>
-                    );
-                  })}
-                </g>
-              )}
-
-              {/* Central hub */}
-              <g className="hub"
-                 onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); resetCameraNav(); }}
-                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); resetCameraNav(); } }}
-                 role="button"
-                 tabIndex="0"
-                 aria-label="Reset orbit to full atlas"
-                 style={{ cursor: "pointer" }}>
-                <circle cx={CX} cy={CY} r="80" fill="url(#hub-glow)" opacity="0.45" />
-                <circle cx={CX} cy={CY} r="56" fill="none" stroke="var(--fg-faint)" strokeOpacity="0.3" strokeWidth="0.6" />
-                <circle cx={CX} cy={CY} r="42" fill="none" stroke="var(--fg-faint)" strokeOpacity="0.5" strokeWidth="0.6" />
-                {/* Pulsing rings */}
-                <circle cx={CX} cy={CY} r="4" fill="none" stroke="var(--fg)" strokeOpacity="0.5">
-                  <animate attributeName="r" values="4;38" dur="3.5s" repeatCount="indefinite" />
-                  <animate attributeName="stroke-opacity" values="0.55;0" dur="3.5s" repeatCount="indefinite" />
-                </circle>
-                <circle cx={CX} cy={CY} r="4" fill="none" stroke="var(--fg)" strokeOpacity="0.4">
-                  <animate attributeName="r" values="4;38" dur="3.5s" begin="1.7s" repeatCount="indefinite" />
-                  <animate attributeName="stroke-opacity" values="0.4;0" dur="3.5s" begin="1.7s" repeatCount="indefinite" />
-                </circle>
-                <circle cx={CX} cy={CY} r="3.5" fill="var(--fg)" />
-                <line x1={CX - 70} y1={CY} x2={CX - 56} y2={CY} stroke="var(--fg-faint)" strokeWidth="0.6" />
-                <line x1={CX + 56} y1={CY} x2={CX + 70} y2={CY} stroke="var(--fg-faint)" strokeWidth="0.6" />
-                <line x1={CX} y1={CY - 56} x2={CX} y2={CY - 70} stroke="var(--fg-faint)" strokeWidth="0.6" />
-                <line x1={CX} y1={CY + 56} x2={CX} y2={CY + 70} stroke="var(--fg-faint)" strokeWidth="0.6" />
-                <text x={CX} y={CY + 92} textAnchor="middle" className="hub-label">PROCESS · ENGINEERING · LENS</text>
-                <text x={CX} y={CY + 106} textAnchor="middle" className="hub-sublabel">click to reset · 115 cards in scope</text>
-              </g>
-
-              {focusedPlanet && (
-                <g className="focus-corridor" aria-hidden="true">
-                  <line x1={CX} y1={CY} x2={focusedPlanet.x} y2={focusedPlanet.y} />
-                  <circle cx={focusedPlanet.x} cy={focusedPlanet.y} r={focusedPlanet.radius + 96} />
-                  <circle cx={focusedPlanet.x} cy={focusedPlanet.y} r={focusedPlanet.radius + 148} />
-                </g>
-              )}
-
-              {/* Planets */}
-              {planets.map((p, i) => {
-                const isFocused = focused === p.id;
-                const isHover = hoverPlanet === p.id;
-                const isDimmed = focused && !isFocused;
-                const pVisibleCount = p.allTechs.filter(isMoonVisible).length;
-                const hasVisible = pVisibleCount > 0;
-                const planetOpacity = isDimmed ? 0.22 : (hasVisible ? 1 : 0.16);
-
-                return (
-                  <g key={p.id}
-                     className={`planet planet-${p.id}${isFocused ? " is-focused" : ""}${isHover ? " is-hovered" : ""}`}
-                     style={{ opacity: planetOpacity, transition: "opacity 0.35s ease" }}
-                     transform={`translate(${p.x} ${p.y})`}>
-
-                    {/* Orbit rings (static, around 0,0) */}
-                    <circle cx="0" cy="0" r={p.radius + 22} fill="none"
-                      stroke={`var(--c-${p.id})`} strokeOpacity={isFocused ? 0.5 : 0.2}
-                      strokeWidth="0.7" strokeDasharray="1.5 4" />
-                    <circle cx="0" cy="0" r={p.radius + 46} fill="none"
-                      stroke={`var(--c-${p.id})`} strokeOpacity={isFocused ? 0.4 : 0.14}
-                      strokeWidth="0.7" strokeDasharray="1.5 4" />
-
-                    <g className="planet-atmosphere" aria-hidden="true">
-                      <circle cx="0" cy="0" r={p.radius + 42} fill={`var(--c-${p.id})`} opacity={isFocused ? "0.065" : "0.025"} />
-                      <circle cx="0" cy="0" r={p.radius + 78} fill="none" stroke={`var(--c-${p.id})`} strokeOpacity={isFocused ? "0.22" : "0.06"} strokeWidth="0.8" strokeDasharray="5 14">
-                        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur={`${36 + i * 4}s`} repeatCount="indefinite" />
-                      </circle>
-                    </g>
-                    {/* Planet body (clickable) */}
-                    <g onClick={() => focusSector(p.id)}
-                       onKeyDown={(event) => {
-                         if (event.key === "Enter" || event.key === " ") {
-                           event.preventDefault();
-                           focusSector(p.id);
-                         }
-                       }}
-                       onMouseEnter={() => setHoverPlanet(p.id)}
-                       onMouseLeave={() => setHoverPlanet(null)}
-                       role="button"
-                       tabIndex="0"
-                       aria-label={`Focus ${p.label} sector`}
-                       style={{ cursor: "pointer" }}>
-                      {/* Hover halo */}
-                      <circle cx="0" cy="0" r={p.radius + 12}
-                        fill={`var(--c-${p.id})`}
-                        fillOpacity={isHover || isFocused ? 0.08 : 0} />
-                      <circle cx="0" cy="0" r={p.radius + 8}
-                        fill="var(--bg)" stroke={`var(--c-${p.id})`}
-                        strokeOpacity={isFocused || isHover ? 0.55 : 0}
-                        strokeWidth="0.6" strokeDasharray="2 3" />
-                      <circle cx="0" cy="0" r={p.radius}
-                        fill={`url(#hatch-${p.id})`} />
-                      <SectorSurface planet={p} focused={isFocused || isHover} />
-                      <circle cx="0" cy="0" r={p.radius} fill="none"
-                        stroke={`var(--c-${p.id})`} strokeWidth={isFocused ? 1.8 : 1.2} />
-                      <ellipse cx="0" cy="0" rx={p.radius * 0.92} ry={p.radius * 0.28}
-                        fill="none" stroke={`var(--c-${p.id})`} strokeOpacity="0.45" strokeWidth="0.6" />
-                      {/* Sweep arc — gives subtle motion when hovered */}
-                      {(isFocused || isHover) && (
-                        <circle cx="0" cy="0" r={p.radius + 4} fill="none"
-                          stroke={`var(--c-${p.id})`} strokeWidth="1"
-                          strokeDasharray={`${p.radius * 0.6} ${p.radius * 6}`}>
-                          <animateTransform attributeName="transform" type="rotate"
-                            from="0" to="360" dur="6s" repeatCount="indefinite" />
-                        </circle>
-                      )}
-                      {/* Reticle */}
-                      {(isFocused || isHover) && (
-                        <g className="planet-reticle">
-                          <line x1={-p.radius - 14} y1="0" x2={-p.radius - 6} y2="0" stroke={`var(--c-${p.id})`} strokeWidth="1" />
-                          <line x1={p.radius + 6} y1="0" x2={p.radius + 14} y2="0" stroke={`var(--c-${p.id})`} strokeWidth="1" />
-                          <line x1="0" y1={-p.radius - 14} x2="0" y2={-p.radius - 6} stroke={`var(--c-${p.id})`} strokeWidth="1" />
-                          <line x1="0" y1={p.radius + 6} x2="0" y2={p.radius + 14} stroke={`var(--c-${p.id})`} strokeWidth="1" />
-                        </g>
-                      )}
-                    </g>
-
-                    {/* Inner orbit group — rotates clockwise */}
-                    <g className="moon-orbit moon-orbit-cw" style={{ "--dur": `${62 + i * 5}s` }}>
-                      {p.innerMoons.map(t => (
-                        <Moon key={t.pid} t={t} planet={p} visible={isMoonVisible(t)}
-                              onHover={setHoverTech} onOpen={setOpenTech} />
-                      ))}
-                    </g>
-
-                    {/* Outer orbit group — rotates counter-clockwise */}
-                    <g className="moon-orbit moon-orbit-ccw" style={{ "--dur": `${84 + i * 6}s` }}>
-                      {p.outerMoons.map(t => (
-                        <Moon key={t.pid} t={t} planet={p} visible={isMoonVisible(t)}
-                              onHover={setHoverTech} onOpen={setOpenTech} />
-                      ))}
-                    </g>
-
-                    {/* Planet label (static — outside rotating groups, relative coords) */}
-                    <PlanetLabel planet={p} focused={isFocused || isHover} CX={CX} CY={CY} visibleCount={pVisibleCount} />
-                  </g>
-                );
-              })}
-              </g>
-            </svg>
+            <CanvasGalaxyLayer
+              W={W}
+              H={H}
+              CX={CX}
+              CY={CY}
+              planets={planets}
+              camera={camera}
+              twinkles={twinkles}
+              focusedPlanet={focusedPlanet}
+              focused={focused}
+              activeLens={activeLens}
+              highlightChem={highlightChem}
+              isMoonVisible={isMoonVisible}
+              mapSearch={mapSearch}
+              hoverTech={hoverTech}
+              hoverPlanet={hoverPlanet}
+              focusSector={focusSector}
+              setFocused={setFocused}
+              setHoverPlanet={setHoverPlanet}
+              setHoverTech={setHoverTech}
+              setOpenTech={setOpenTech}
+              clearOrbitFilters={clearOrbitFilters}
+              setActiveLens={setActiveLens}
+              resetCameraNav={resetCameraNav}
+            />
           </div>
 
           {/* Side panel */}
@@ -877,6 +690,436 @@ function GalaxyMap() {
   );
 }
 
+
+
+/* ── Canvas-rendered map layer: heavy visuals move off SVG/DOM ─────── */
+function CanvasGalaxyLayer({
+  W, H, CX, CY, planets, camera, twinkles, focusedPlanet, focused,
+  activeLens, highlightChem, isMoonVisible, mapSearch, hoverTech, hoverPlanet,
+  focusSector, setFocused, setHoverPlanet, setHoverTech, setOpenTech,
+  clearOrbitFilters, setActiveLens, resetCameraNav
+}) {
+  const canvasRef = React.useRef(null);
+  const lastHoverRef = React.useRef({ type: null, id: null, planet: null });
+
+  const mapPointFromEvent = React.useCallback((event) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const cssW = Math.max(1, rect.width);
+    const cssH = Math.max(1, rect.height);
+    const meet = Math.min(cssW / W, cssH / H);
+    const ox = (cssW - W * meet) / 2;
+    const oy = (cssH - H * meet) / 2;
+    const sx = (event.clientX - rect.left - ox) / meet;
+    const sy = (event.clientY - rect.top - oy) / meet;
+    return {
+      x: (sx - camera.tx) / camera.zoom,
+      y: (sy - camera.ty) / camera.zoom
+    };
+  }, [W, H, camera.zoom, camera.tx, camera.ty]);
+
+  const hitTest = React.useCallback((point) => {
+    if (!point) return null;
+    const dist = (x, y) => Math.hypot(point.x - x, point.y - y);
+
+    if (dist(CX, CY) <= 92) return { type: "hub" };
+
+    const queryActive = Boolean(mapSearch.trim());
+    const moonPlanets = queryActive
+      ? planets
+      : focused
+        ? planets.filter(p => p.id === focused)
+        : [];
+
+    for (const p of moonPlanets) {
+      const allMoons = [...p.innerMoons, ...p.outerMoons];
+      for (const t of allMoons) {
+        if (!isMoonVisible(t)) continue;
+        const mx = p.x + t.lx;
+        const my = p.y + t.ly;
+        if (dist(mx, my) <= 25) return { type: "moon", planet: p, entry: t };
+      }
+    }
+
+    for (const p of planets) {
+      if (dist(p.x, p.y) <= p.radius + 58) return { type: "planet", planet: p };
+    }
+
+    return null;
+  }, [CX, CY, focused, mapSearch, planets, isMoonVisible]);
+
+  const updateHover = React.useCallback((hit) => {
+    const next = hit
+      ? hit.type === "moon"
+        ? { type: "moon", id: hit.entry.pid, planet: hit.planet.id, entry: hit.entry }
+        : hit.type === "planet"
+          ? { type: "planet", id: hit.planet.id, planet: hit.planet.id }
+          : { type: "hub", id: "hub", planet: null }
+      : { type: null, id: null, planet: null };
+
+    const prev = lastHoverRef.current;
+    if (prev.type === next.type && prev.id === next.id && prev.planet === next.planet) return;
+
+    lastHoverRef.current = next;
+    if (next.type === "moon") {
+      setHoverTech(next.entry);
+      setHoverPlanet(next.planet);
+    } else if (next.type === "planet") {
+      setHoverTech(null);
+      setHoverPlanet(next.planet);
+    } else {
+      setHoverTech(null);
+      setHoverPlanet(null);
+    }
+
+    const canvas = canvasRef.current;
+    if (canvas) canvas.style.cursor = next.type ? "pointer" : "default";
+  }, [setHoverTech, setHoverPlanet]);
+
+  const handlePointerMove = React.useCallback((event) => {
+    updateHover(hitTest(mapPointFromEvent(event)));
+  }, [hitTest, mapPointFromEvent, updateHover]);
+
+  const handlePointerLeave = React.useCallback(() => {
+    lastHoverRef.current = { type: null, id: null, planet: null };
+    setHoverTech(null);
+    setHoverPlanet(null);
+    const canvas = canvasRef.current;
+    if (canvas) canvas.style.cursor = "default";
+  }, [setHoverTech, setHoverPlanet]);
+
+  const handleClick = React.useCallback((event) => {
+    const hit = hitTest(mapPointFromEvent(event));
+    if (!hit) return;
+    if (hit.type === "hub") {
+      setFocused(null);
+      clearOrbitFilters();
+      setActiveLens("sectors");
+      resetCameraNav();
+    } else if (hit.type === "planet") {
+      focusSector(hit.planet.id);
+    } else if (hit.type === "moon") {
+      setOpenTech(hit.entry);
+    }
+  }, [hitTest, mapPointFromEvent, setFocused, clearOrbitFilters, setActiveLens, resetCameraNav, focusSector, setOpenTech]);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let disposed = false;
+
+    const draw = () => {
+      if (disposed) return;
+      const rect = canvas.getBoundingClientRect();
+      const cssW = Math.max(1, rect.width);
+      const cssH = Math.max(1, rect.height);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+        canvas.width = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+      }
+
+      const ctx = canvas.getContext("2d", { alpha: true });
+      if (!ctx) return;
+
+      const fg = "#eef4fb";
+      const faint = "rgba(218,228,240,0.56)";
+      const bg = "#111722";
+      const palette = {
+        energy: "#e7c95c",
+        carbon: "#5fd2c8",
+        water: "#6ea8ff",
+        materials: "#e174c8",
+        manufacturing: "#75d68d",
+        cities: "#ef9466",
+        space: "#b18cff"
+      };
+      const sectorColor = (id) => palette[id] || "#87a7ff";
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssW, cssH);
+
+      const bgGrad = ctx.createRadialGradient(cssW * 0.5, cssH * 0.52, 0, cssW * 0.5, cssH * 0.52, Math.max(cssW, cssH) * 0.72);
+      bgGrad.addColorStop(0, "rgba(255,255,255,0.045)");
+      bgGrad.addColorStop(0.48, "rgba(70,120,180,0.035)");
+      bgGrad.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, cssW, cssH);
+
+      const meet = Math.min(cssW / W, cssH / H);
+      const ox = (cssW - W * meet) / 2;
+      const oy = (cssH - H * meet) / 2;
+
+      const ellipse = (x, y, rx, ry, stroke, alpha = 1, width = 1, dash = []) => {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = width;
+        ctx.setLineDash(dash);
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      };
+
+      const circle = (x, y, r, fill, stroke = null, width = 1, alpha = 1) => {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(); }
+        ctx.restore();
+      };
+
+      const drawSectorTexture = (p, color) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.1;
+        ctx.globalAlpha = 0.32;
+
+        if (p.id === "energy") {
+          for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * p.radius * 0.2, Math.sin(a) * p.radius * 0.2);
+            ctx.lineTo(Math.cos(a) * p.radius * 1.1, Math.sin(a) * p.radius * 1.1);
+            ctx.stroke();
+          }
+        } else if (p.id === "water") {
+          for (let y = -p.radius; y <= p.radius; y += 19) {
+            ctx.beginPath();
+            ctx.moveTo(-p.radius, y);
+            ctx.bezierCurveTo(-p.radius * 0.35, y - 12, p.radius * 0.35, y + 12, p.radius, y);
+            ctx.stroke();
+          }
+        } else if (p.id === "materials") {
+          for (let a = 0; a < Math.PI * 2; a += Math.PI / 5) {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(a) * p.radius, Math.sin(a) * p.radius);
+            ctx.stroke();
+          }
+          for (let r = p.radius * 0.28; r < p.radius; r += 24) {
+            ellipse(0, 0, r, r * 0.66, color, 0.22, 1);
+          }
+        } else if (p.id === "space") {
+          ctx.restore();
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.globalAlpha = 0.42;
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.radius * 1.36, p.radius * 0.32, -0.28, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+          ctx.clip();
+        } else if (p.id === "cities") {
+          for (let x = -p.radius; x <= p.radius; x += 22) {
+            ctx.beginPath(); ctx.moveTo(x, -p.radius); ctx.lineTo(x, p.radius); ctx.stroke();
+          }
+          for (let y = -p.radius; y <= p.radius; y += 22) {
+            ctx.beginPath(); ctx.moveTo(-p.radius, y); ctx.lineTo(p.radius, y); ctx.stroke();
+          }
+        } else if (p.id === "manufacturing") {
+          for (let x = -p.radius * 1.2; x <= p.radius * 1.2; x += 22) {
+            ctx.beginPath(); ctx.moveTo(x, -p.radius); ctx.lineTo(x + p.radius * 0.7, p.radius); ctx.stroke();
+          }
+        } else {
+          for (let r = p.radius * 0.28; r <= p.radius; r += 23) {
+            ellipse(0, 0, r, r * 0.76, color, 0.25, 1);
+          }
+        }
+
+        ctx.restore();
+      };
+
+      const drawMoonLabel = (t, color, strong = false) => {
+        const label = t.name.length > 36 ? t.name.slice(0, 33) + "…" : t.name;
+        ctx.save();
+        ctx.font = `${strong ? 600 : 500} 10px JetBrains Mono, monospace`;
+        ctx.textBaseline = "middle";
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "rgba(12,17,24,0.86)";
+        ctx.fillStyle = strong ? fg : "rgba(238,244,251,0.78)";
+        ctx.strokeText(label, t.lx + 17, t.ly);
+        ctx.fillText(label, t.lx + 17, t.ly);
+        ctx.restore();
+      };
+
+      ctx.save();
+      ctx.translate(ox, oy);
+      ctx.scale(meet, meet);
+      ctx.translate(camera.tx, camera.ty);
+      ctx.scale(camera.zoom, camera.zoom);
+
+      twinkles.forEach((t, i) => {
+        ctx.save();
+        ctx.globalAlpha = 0.16 + ((i % 5) * 0.03);
+        ctx.fillStyle = faint;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      [140, 240, 360, 500, 660].forEach((rr) => {
+        ellipse(CX, CY, rr, rr * 0.86, faint, 0.17, 0.8, [3, 8]);
+      });
+
+      ATLAS_LENSES.forEach((lens, i) => {
+        const rr = 116 + i * 42;
+        ellipse(CX, CY, rr, rr * 0.86, fg, lens.id === activeLens ? 0.34 : 0.08, lens.id === activeLens ? 1.4 : 0.8);
+      });
+
+      circle(CX, CY, 82, "rgba(255,255,255,0.035)", null, 1, 1);
+      circle(CX, CY, 56, null, faint, 0.9, 0.35);
+      circle(CX, CY, 42, null, faint, 0.9, 0.48);
+      circle(CX, CY, 4.5, fg, null, 1, 0.9);
+
+      if (focusedPlanet) {
+        const color = sectorColor(focusedPlanet.id);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.25;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([8, 16]);
+        ctx.beginPath();
+        ctx.moveTo(CX, CY);
+        ctx.lineTo(focusedPlanet.x, focusedPlanet.y);
+        ctx.stroke();
+        ellipse(focusedPlanet.x, focusedPlanet.y, focusedPlanet.radius + 96, focusedPlanet.radius + 96, color, 0.18, 1);
+        ellipse(focusedPlanet.x, focusedPlanet.y, focusedPlanet.radius + 148, focusedPlanet.radius + 148, color, 0.12, 1);
+        ctx.restore();
+      }
+
+      const queryActive = Boolean(mapSearch.trim());
+
+      planets.forEach((p) => {
+        const isFocused = focused === p.id;
+        const isHover = hoverPlanet === p.id;
+        const isDimmed = focused && !isFocused;
+        const pVisibleCount = p.allTechs.filter(isMoonVisible).length;
+        const hasVisible = pVisibleCount > 0;
+        const opacity = isDimmed ? 0.18 : (hasVisible ? 1 : 0.14);
+        const color = sectorColor(p.id);
+
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.translate(p.x, p.y);
+
+        ellipse(0, 0, p.radius + 22, p.radius + 22, color, isFocused || isHover ? 0.52 : 0.18, 0.8, [2, 6]);
+        ellipse(0, 0, p.radius + 46, p.radius + 46, color, isFocused || isHover ? 0.36 : 0.10, 0.8, [2, 8]);
+        circle(0, 0, p.radius + 54, color, null, 1, isFocused || isHover ? 0.13 : 0.035);
+
+        const grad = ctx.createRadialGradient(-p.radius * 0.32, -p.radius * 0.34, p.radius * 0.1, 0, 0, p.radius * 1.1);
+        grad.addColorStop(0, "rgba(255,255,255,0.14)");
+        grad.addColorStop(0.28, color);
+        grad.addColorStop(1, bg);
+        circle(0, 0, p.radius, grad, color, isFocused || isHover ? 2.2 : 1.35, 0.92);
+        drawSectorTexture(p, color);
+
+        const drawMoon = (t) => {
+          const visible = isMoonVisible(t);
+          const isHoveredMoon = hoverTech && hoverTech.pid === t.pid;
+          ctx.save();
+          ctx.globalAlpha = visible ? (isFocused ? 0.96 : 0.72) : 0.07;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = isHoveredMoon ? 1.3 : 0.65;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(t.lx, t.ly);
+          ctx.stroke();
+
+          if (isHoveredMoon) {
+            circle(t.lx, t.ly, 24, color, null, 1, 0.16);
+          }
+
+          ctx.beginPath();
+          ctx.arc(t.lx, t.ly, isHoveredMoon ? 13.5 : (visible ? 10.5 : 6.5), 0, Math.PI * 2);
+          ctx.fillStyle = t.evidence === "direct" ? color : bg;
+          ctx.fill();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = t.evidence === "analogue" ? 0.9 : 1.25;
+          if (t.evidence === "analogue") ctx.setLineDash([2, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          if (visible && (isFocused || queryActive || isHoveredMoon)) drawMoonLabel(t, color, isHoveredMoon);
+          ctx.restore();
+        };
+
+        p.innerMoons.forEach(drawMoon);
+        p.outerMoons.forEach(drawMoon);
+
+        const dx = p.x - CX, dy = p.y - CY;
+        const len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len, uy = dy / len;
+        const lx = ux * (p.radius + 31);
+        const ly = uy * (p.radius + 31);
+        ctx.font = `${isFocused || isHover ? 650 : 500} 13px JetBrains Mono, monospace`;
+        ctx.fillStyle = color;
+        ctx.globalAlpha = isFocused || isHover ? 0.98 : 0.74;
+        ctx.textAlign = ux > 0.3 ? "left" : (ux < -0.3 ? "right" : "center");
+        ctx.fillText(p.label.toUpperCase(), lx, ly);
+        ctx.font = "9px JetBrains Mono, monospace";
+        ctx.fillStyle = faint;
+        ctx.globalAlpha = 0.7;
+        const label = pVisibleCount !== p.allTechs.length ? `${pVisibleCount}/${p.allTechs.length} VISIBLE` : `${p.allTechs.length} ENTRIES`;
+        ctx.fillText(label, lx, ly + 14);
+
+        ctx.restore();
+      });
+
+      ctx.restore();
+    };
+
+    const resizeObserver = new ResizeObserver(draw);
+    resizeObserver.observe(canvas);
+    draw();
+
+    return () => {
+      disposed = true;
+      resizeObserver.disconnect();
+    };
+  }, [
+    W, H, CX, CY, planets, camera.zoom, camera.tx, camera.ty, focused,
+    activeLens, highlightChem, mapSearch, twinkles, hoverTech?.pid,
+    hoverPlanet, readinessSignature(planets, isMoonVisible)
+  ]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="galaxy-canvas"
+      role="application"
+      tabIndex="0"
+      aria-label="Interactive process atlas map. Click planets to focus sectors. Search or focus a planet to open technology moons."
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      onClick={handleClick}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setFocused(null);
+          setHoverTech(null);
+          setHoverPlanet(null);
+        }
+      }}
+    />
+  );
+}
+
+
+function readinessSignature(planets, isMoonVisible) {
+  // Keeps the canvas redraw dependency cheap and deterministic when filters change.
+  return planets.map(p => p.allTechs.filter(isMoonVisible).length).join("|");
+}
 
 function MapCameraControls({ focusedPlanet, navCamera, onNudge, onZoom, onReset, onFullOrbit }) {
   return (
@@ -1094,228 +1337,7 @@ function OrbitLensDock({ activeLens, sectors, entries, planets, chems, unitOps, 
   );
 }
 
-/* ── A single moon (rendered inside a rotating <g>) ─────── */
-function Moon({ t, planet, visible, onHover, onOpen }) {
-  const ev = t.evidence;
-  const baseR = 10.8;
-  const openMoon = (event) => {
-    event.stopPropagation();
-    if (!visible) return;
-    onOpen(t);
-  };
-  return (
-    <g className="moon"
-       role="button"
-       tabIndex={visible ? 0 : -1}
-       aria-label={`Open ${t.name} process card`}
-       onFocus={() => onHover(t)}
-       onBlur={() => onHover(null)}
-       onMouseEnter={() => onHover(t)}
-       onMouseLeave={() => onHover(null)}
-       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openMoon(event); } }}
-       onClick={openMoon}
-       style={{ cursor: visible ? "pointer" : "default", opacity: visible ? 1 : 0.12, transition: "opacity 0.25s" }}>
-      <line x1="0" y1="0" x2={t.lx} y2={t.ly}
-        stroke={`var(--c-${planet.id})`} strokeOpacity="0.1" strokeWidth="0.5" />
-      <circle cx={t.lx} cy={t.ly} r="22" fill="transparent" pointerEvents="all" />
-      <circle cx={t.lx} cy={t.ly} r={baseR + 5} fill={`var(--c-${planet.id})`} opacity="0" className="moon-halo" />
-      <circle cx={t.lx} cy={t.ly} r={baseR}
-        fill={ev === "direct" ? `var(--c-${planet.id})` : "var(--bg)"}
-        stroke={`var(--c-${planet.id})`}
-        strokeWidth={ev === "analogue" ? 0.8 : 1.2}
-        strokeDasharray={ev === "analogue" ? "1.5 1.5" : null} />
-      <text x={t.lx + 18} y={t.ly + 4} className="moon-label" fill={`var(--c-${planet.id})`}>{t.name}</text>
-    </g>
-  );
-}
 
-function SectorSurface({ planet, focused }) {
-  const c = `var(--c-${planet.id})`;
-  const r = planet.radius;
-  if (planet.id === "energy") {
-    return <g className="planet-surface planet-surface-energy" aria-hidden="true">
-      <circle cx="0" cy="0" r={r * 0.72} fill="none" stroke={c} strokeOpacity={focused ? 0.34 : 0.2} strokeWidth="1.1" strokeDasharray="8 10" />
-      <path d={`M ${-r*0.52} ${-r*0.10} C ${-r*0.16} ${-r*0.38}, ${r*0.15} ${r*0.32}, ${r*0.54} ${r*0.02}`} fill="none" stroke={c} strokeOpacity="0.45" strokeWidth="1.2" />
-    </g>;
-  }
-  if (planet.id === "water") {
-    return <g className="planet-surface planet-surface-water" aria-hidden="true">
-      {[ -0.34, -0.12, 0.10, 0.32 ].map((dy, i) => <path key={i} d={`M ${-r*0.70} ${r*dy} C ${-r*0.30} ${r*(dy-0.12)}, ${r*0.25} ${r*(dy+0.12)}, ${r*0.72} ${r*dy}`} fill="none" stroke={c} strokeOpacity="0.38" strokeWidth="1" />)}
-    </g>;
-  }
-  if (planet.id === "materials") {
-    return <g className="planet-surface planet-surface-materials" aria-hidden="true">
-      <path d={`M 0 ${-r*0.70} L ${r*0.55} ${-r*0.08} L ${r*0.28} ${r*0.62} L ${-r*0.48} ${r*0.42} L ${-r*0.62} ${-r*0.22} Z`} fill="none" stroke={c} strokeOpacity="0.35" strokeWidth="1.1" />
-      <line x1={-r*0.48} y1={r*0.42} x2={r*0.55} y2={-r*0.08} stroke={c} strokeOpacity="0.2" />
-    </g>;
-  }
-  if (planet.id === "space") {
-    return <g className="planet-surface planet-surface-space" aria-hidden="true">
-      <ellipse cx="0" cy="0" rx={r*1.22} ry={r*0.32} fill="none" stroke={c} strokeOpacity="0.45" strokeWidth="1.2" />
-      <ellipse cx="0" cy="0" rx={r*0.78} ry={r*0.22} fill="none" stroke={c} strokeOpacity="0.3" strokeWidth="0.8" />
-    </g>;
-  }
-  if (planet.id === "cities") {
-    return <g className="planet-surface planet-surface-cities" aria-hidden="true">
-      {[-0.45,-0.20,0.05,0.30,0.52].map((x,i) => <line key={`v${i}`} x1={r*x} y1={-r*0.55} x2={r*x} y2={r*0.55} stroke={c} strokeOpacity="0.2" />)}
-      {[-0.36,-0.10,0.16,0.42].map((y,i) => <line key={`h${i}`} x1={-r*0.62} y1={r*y} x2={r*0.62} y2={r*y} stroke={c} strokeOpacity="0.2" />)}
-    </g>;
-  }
-  if (planet.id === "manufacturing") {
-    return <g className="planet-surface planet-surface-manufacturing" aria-hidden="true">
-      {[ -0.44, -0.18, 0.08, 0.34 ].map((x,i) => <rect key={i} x={r*x} y={-r*0.48 + i*8} width={r*0.18} height={r*0.96 - i*16} fill="none" stroke={c} strokeOpacity="0.26" />)}
-      <path d={`M ${-r*0.62} ${r*0.42} H ${r*0.62}`} stroke={c} strokeOpacity="0.35" />
-    </g>;
-  }
-  if (planet.id === "carbon") {
-    return <g className="planet-surface planet-surface-carbon" aria-hidden="true">
-      <circle cx={-r*0.18} cy={-r*0.08} r={r*0.20} fill="none" stroke={c} strokeOpacity="0.32" />
-      <circle cx={r*0.20} cy={r*0.12} r={r*0.24} fill="none" stroke={c} strokeOpacity="0.28" />
-      <line x1={-r*0.02} y1={r*0.02} x2={r*0.05} y2={r*0.05} stroke={c} strokeOpacity="0.34" />
-    </g>;
-  }
-  return null;
-}
-
-function PlanetLabel({ planet, focused, CX, CY, visibleCount }) {
-  // Compute outward direction in absolute coords, then offset locally
-  const dx = planet.x - CX;
-  const dy = planet.y - CY;
-  const len = Math.hypot(dx, dy);
-  const ux = dx / len, uy = dy / len;
-  const lx = ux * (planet.radius + 30);
-  const ly = uy * (planet.radius + 30);
-  const anchor = ux > 0.3 ? "start" : (ux < -0.3 ? "end" : "middle");
-  return (
-    <g className="planet-label" pointerEvents="none">
-      <line x1={ux * (planet.radius + 6)} y1={uy * (planet.radius + 6)}
-            x2={ux * (planet.radius + 24)} y2={uy * (planet.radius + 24)}
-            stroke={`var(--c-${planet.id})`} strokeOpacity={focused ? 0.85 : 0.5} strokeWidth="0.7" />
-      <text x={lx} y={ly} textAnchor={anchor} className="pl-name"
-            style={{ fill: `var(--c-${planet.id})`, fontWeight: focused ? 600 : 500 }}>
-        {planet.label.toUpperCase()}
-      </text>
-      <text x={lx} y={ly + 13} textAnchor={anchor} className="pl-meta">
-        {visibleCount != null && visibleCount !== planet.allTechs.length
-          ? `${visibleCount}/${planet.allTechs.length} VISIBLE · TRL ø ${planet.avgR.toFixed(1)}`
-          : `${planet.allTechs.length} ENTRIES · TRL ø ${planet.avgR.toFixed(1)}`}
-      </text>
-    </g>
-  );
-}
-
-function GalaxyChrome({ focused, activeLens, visibleCount }) {
-  return (
-    <div className="galaxy-chrome" aria-hidden>
-      <div className="chrome corner tl">
-        <span>FSA · 010</span>
-        <span>SCAN {focused ? "FOCUSED" : "1 / 7"}</span>
-      </div>
-      <div className="chrome corner tr">
-        <span>{focused ? `${focused.label.toUpperCase()} · ${focused.allTechs.length}E` : "SECTOR MAP"}</span>
-        <span>{activeLens?.toUpperCase()} · {visibleCount} VISIBLE</span>
-      </div>
-      <div className="chrome corner bl">
-        <span>EVIDENCE · 3 POSTURES</span>
-      </div>
-      <div className="chrome corner br">
-        <span>115 ENTRIES · LIVE</span>
-      </div>
-    </div>
-  );
-}
-
-function DefaultReadout({ planets, hoverPlanet, hoverTech, activeLens, setActiveLens, onOpenLayer, setFocused, onOpenTech }) {
-  // Tech-hover preview takes priority
-  if (hoverTech) {
-    const planet = planets.find(p => p.id === hoverTech.sector);
-    const chem = window.FSA.CHEMICALS.find(c => c.sym === hoverTech.chemical);
-    const bn = window.FSA.BOTTLENECKS.find(b => b.id === hoverTech.bottleneck);
-    return (
-      <div className="readout preview" data-sector={hoverTech.sector}>
-        <div className="readout-head">
-          <div className="meta">▼ MOON · {hoverTech.pid}</div>
-          <div className="readout-title" style={{ color: `var(--c-${hoverTech.sector})` }}>{hoverTech.name}</div>
-          <div className="meta dim">{planet?.label} · {hoverTech.evidence}</div>
-        </div>
-        {hoverTech.description && <p className="preview-desc">{hoverTech.description}</p>}
-        <div className="preview-grid">
-          <div className="preview-cell">
-            <div className="meta">Spine</div>
-            <div className="preview-val">{hoverTech.chemical} <span style={{ color: "var(--fg-faint)" }}>· {chem?.name}</span></div>
-          </div>
-          <div className="preview-cell">
-            <div className="meta">Bottleneck</div>
-            <div className="preview-val">{bn?.label}</div>
-          </div>
-        </div>
-        <div className="preview-readiness">
-          <div className="rl-row"><span className="rl-label">TRL</span><span className="rl-bar">{[...Array(9)].map((_,i)=><span key={i} className={`rl-tick ${i<hoverTech.trl?"on":""}`} style={i<hoverTech.trl?{background:`var(--c-${hoverTech.sector})`}:null} />)}</span><span className="rl-val tnum">{hoverTech.trl}/9</span></div>
-          <div className="rl-row"><span className="rl-label">MRL</span><span className="rl-bar">{[...Array(9)].map((_,i)=><span key={i} className={`rl-tick ${i<hoverTech.mrl?"on":""}`} style={i<hoverTech.mrl?{background:`var(--c-${hoverTech.sector})`}:null} />)}</span><span className="rl-val tnum">{hoverTech.mrl}/9</span></div>
-          <div className="rl-row"><span className="rl-label">IRL</span><span className="rl-bar">{[...Array(9)].map((_,i)=><span key={i} className={`rl-tick ${i<hoverTech.irl?"on":""}`} style={i<hoverTech.irl?{background:`var(--c-${hoverTech.sector})`}:null} />)}</span><span className="rl-val tnum">{hoverTech.irl}/9</span></div>
-        </div>
-        <button className="preview-open" onClick={() => onOpenTech(hoverTech)} style={{ borderColor: `var(--c-${hoverTech.sector})`, color: `var(--c-${hoverTech.sector})` }}>
-          Open full card →
-        </button>
-      </div>
-    );
-  }
-
-  const planet = hoverPlanet ? planets.find(p => p.id === hoverPlanet) : null;
-  return (
-    <div className="readout">
-      <div className="readout-head">
-        <div className="meta">▼ FIELD READOUT</div>
-        <div className="readout-title">{planet ? planet.label : "Sector overview"}</div>
-        <div className="meta dim">{planet ? `${planet.allTechs.length} entries · TRL ø ${planet.avgR.toFixed(1)}` : "Hover any planet or moon · click to focus"}</div>
-      </div>
-      <LensModule activeLens={activeLens} setActiveLens={setActiveLens} onOpenLayer={onOpenLayer} />
-      <div className="readout-body">
-        <p>
-          {planet ? SECTOR_DESC[planet.id]
-                  : "This orbit system is the site map. Each sector is a planet; each technology is a moon; the rings encode readiness and evidence. Hover for a quick read, click to make a sector the page, or open a moon as a process card."}
-        </p>
-      </div>
-      <div className="readout-list">
-        {planets.map(p => (
-          <button key={p.id} className="readout-row" onClick={() => setFocused(p.id)}>
-            <span className="rr-dot" style={{ background: `var(--c-${p.id})` }} />
-            <span className="rr-label">{p.label}</span>
-            <span className="rr-count">{p.allTechs.length}</span>
-            <span className="rr-trl meta">TRL ø {p.avgR.toFixed(1)}</span>
-            <span className="rr-arrow">→</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LensModule({ activeLens, setActiveLens, onOpenLayer, compact = false }) {
-  const lens = lensById(activeLens);
-  return (
-    <div className={`lens-module ${compact ? "compact" : ""}`} data-lens={activeLens}>
-      <div className="lens-module-head">
-        <span className="meta">ACTIVE LENS</span>
-        <span className="lens-code">{lens.code}</span>
-      </div>
-      <div className="lens-module-title">{lens.title}</div>
-      <p>{lens.body}</p>
-      <div className="lens-mini-grid">
-        {ATLAS_LENSES.map(l => (
-          <button key={l.id}
-            className={activeLens === l.id ? "active" : ""}
-            onClick={() => setActiveLens(l.id)}>
-            {l.code}
-          </button>
-        ))}
-      </div>
-      {lens.section && (
-        <button className="lens-jump" onClick={() => onOpenLayer(activeLens)}>Open supporting layer →</button>
-      )}
-    </div>
-  );
-}
 
 function FocusReadout({ planet, activeLens, setActiveLens, onOpenLayer, onClose, onOpenTech, onOpenAtlas, bottlenecks }) {
   const bnTally = {};
