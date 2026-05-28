@@ -251,18 +251,18 @@ function GalaxyMap() {
     const fullBounds = mergeBounds(planets.map((planet) => boundsForPlanet(planet, "all")));
     const boxW = Math.max(1, fullBounds.maxX - fullBounds.minX);
     const boxH = Math.max(1, fullBounds.maxY - fullBounds.minY);
-    const safeZoom = Math.min((W - 420) / boxW, (H - 320) / boxH);
-    const zoom = Math.max(0.50, Math.min(0.61, safeZoom)) * navCamera.zoomScale;
+    const safeZoom = Math.min((W - 520) / boxW, (H - 360) / boxH);
+    const zoom = Math.max(0.46, Math.min(0.50, safeZoom)) * navCamera.zoomScale;
 
     /*
-      Browser-calibrated home target:
-      the SVG viewBox center is not the perceived center once the fixed HUD,
-      sector jump rail, and right-side readout are on top of it. The full-orbit
-      camera now pins the process hub left of mathematical center so the visible
-      planet field sits centered in the real viewport.
+      Full-orbit calibration is intentionally viewport-biased, not SVG-centered.
+      In the live browser the fixed left HUD, right sector rail, bottom lens rail,
+      and 16:9-ish viewport make the raw process hub appear low/right. Pinning the
+      hub to this calibrated home target makes the actual orbit field sit centered
+      on first load and every time the user clicks Full Orbit.
     */
-    const HOME_SCREEN_X = CX - 330;
-    const HOME_SCREEN_Y = CY + 18;
+    const HOME_SCREEN_X = CX - 460;
+    const HOME_SCREEN_Y = CY - 260;
     return {
       zoom,
       tx: HOME_SCREEN_X - zoom * CX + navCamera.panX,
