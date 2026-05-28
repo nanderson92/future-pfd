@@ -59,6 +59,26 @@ function GalaxyMap() {
   const [readinessMin, setReadinessMin] = React.useState(1);
   const [openTech, setOpenTech] = React.useState(null);
   const [activeLens, setActiveLens] = React.useState("sectors");
+  const [navCamera, setNavCamera] = React.useState({ zoomScale: 1, panX: 0, panY: 0 });
+
+  const resetCameraNav = React.useCallback(() => {
+    setNavCamera({ zoomScale: 1, panX: 0, panY: 0 });
+  }, []);
+
+  const nudgeCamera = React.useCallback((dx, dy) => {
+    setNavCamera(prev => ({ ...prev, panX: prev.panX + dx, panY: prev.panY + dy }));
+  }, []);
+
+  const changeCameraZoom = React.useCallback((delta) => {
+    setNavCamera(prev => ({
+      ...prev,
+      zoomScale: Math.max(0.78, Math.min(1.52, Number((prev.zoomScale + delta).toFixed(2))))
+    }));
+  }, []);
+
+  const focusSector = React.useCallback((sectorId) => {
+    setFocused(current => current === sectorId ? null : sectorId);
+  }, []);
 
   // Listen for cross-section navigation events
   React.useEffect(() => {
@@ -172,15 +192,25 @@ function GalaxyMap() {
   const focusedPlanet = focused ? planets.find(p => p.id === focused) : null;
 
   const targetCamera = React.useMemo(() => {
-    if (!focusedPlanet) return { zoom: 1.46, tx: CX - 1.46 * CX, ty: CY - 1.46 * CY };
-    const zoom = 3.72;
-    const focusX = CX - 20;
-    const focusY = CY + 2;
-    return { zoom, tx: focusX - zoom * focusedPlanet.x, ty: focusY - zoom * focusedPlanet.y };
-  }, [focusedPlanet]);
+    const baseZoom = focusedPlanet ? 1.54 : 0.74;
+    const zoom = baseZoom * navCamera.zoomScale;
+    const focusX = focusedPlanet ? CX : CX;
+    const focusY = focusedPlanet ? CY : CY;
+    const anchorX = focusedPlanet ? focusedPlanet.x : CX;
+    const anchorY = focusedPlanet ? focusedPlanet.y : CY;
+    return {
+      zoom,
+      tx: focusX - zoom * anchorX + navCamera.panX,
+      ty: focusY - zoom * anchorY + navCamera.panY
+    };
+  }, [focusedPlanet, navCamera.zoomScale, navCamera.panX, navCamera.panY]);
 
   const [camera, setCamera] = React.useState(targetCamera);
   const cameraRef = React.useRef(targetCamera);
+
+  React.useEffect(() => {
+    resetCameraNav();
+  }, [focused, resetCameraNav]);
 
   React.useEffect(() => {
     const start = cameraRef.current;
@@ -328,7 +358,7 @@ function GalaxyMap() {
           </div>
           {(filterCount > 0 || focused) && (
             <button className="gf-reset" onClick={() => {
-              clearOrbitFilters(); setFocused(null); setActiveLens("sectors");
+              clearOrbitFilters(); setFocused(null); setActiveLens("sectors"); resetCameraNav();
             }}>Reset all ×</button>
           )}
         </div>
@@ -340,7 +370,7 @@ function GalaxyMap() {
               <h1>Navigate the future as a process map.</h1>
               <p>The planets are the website. Pick a system, then the camera moves into its technology moons, process constraints, and evidence layer.</p>
               <div className="orbit-actions">
-                <button onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); }}>Reset orbit</button>
+                <button onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); resetCameraNav(); }}>Reset orbit</button>
                 <a href="#guide">How to read it</a>
               </div>
             </div>
@@ -404,6 +434,21 @@ function GalaxyMap() {
                 ["#sources", "Sources"]
               ].map(([href, label]) => <a key={href} href={href}>{label}</a>)}
             </div>
+            <MapCameraControls
+              focusedPlanet={focusedPlanet}
+              navCamera={navCamera}
+              onNudge={nudgeCamera}
+              onZoom={changeCameraZoom}
+              onReset={resetCameraNav}
+              onFullOrbit={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); resetCameraNav(); resetCameraNav(); }}
+            />
+            <SectorJumpNav
+              sectors={sectors}
+              focused={focused}
+              planets={planets}
+              onFocus={focusSector}
+              onFullOrbit={() => { setFocused(null); resetCameraNav(); }}
+            />
             {focusedPlanet && (
               <div className="sector-lock-banner" data-sector={focusedPlanet.id}>
                 <span>Camera locked</span>
@@ -495,8 +540,8 @@ function GalaxyMap() {
 
               {/* Central hub */}
               <g className="hub"
-                 onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); }}
-                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); } }}
+                 onClick={() => { setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); resetCameraNav(); }}
+                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setFocused(null); clearOrbitFilters(); setActiveLens("sectors"); resetCameraNav(); } }}
                  role="button"
                  tabIndex="0"
                  aria-label="Reset orbit to full atlas"
@@ -560,11 +605,11 @@ function GalaxyMap() {
                       </circle>
                     </g>
                     {/* Planet body (clickable) */}
-                    <g onClick={() => setFocused(isFocused ? null : p.id)}
+                    <g onClick={() => focusSector(p.id)}
                        onKeyDown={(event) => {
                          if (event.key === "Enter" || event.key === " ") {
                            event.preventDefault();
-                           setFocused(isFocused ? null : p.id);
+                           focusSector(p.id);
                          }
                        }}
                        onMouseEnter={() => setHoverPlanet(p.id)}
@@ -718,6 +763,56 @@ function GalaxyMap() {
 
       {openTech && <AtlasModal entry={openTech} onClose={() => setOpenTech(null)} />}
     </section>
+  );
+}
+
+
+function MapCameraControls({ focusedPlanet, navCamera, onNudge, onZoom, onReset, onFullOrbit }) {
+  return (
+    <div className="map-camera-controls" aria-label="Map camera controls">
+      <div className="mcc-head">
+        <span>Camera</span>
+        <b>{focusedPlanet ? focusedPlanet.label : "Full orbit"}</b>
+      </div>
+      <div className="mcc-pad" aria-label="Pan map">
+        <span />
+        <button type="button" onClick={() => onNudge(0, 90)} aria-label="Pan map up">↑</button>
+        <span />
+        <button type="button" onClick={() => onNudge(110, 0)} aria-label="Pan map left">←</button>
+        <button type="button" onClick={onReset} aria-label="Reset camera pan and zoom">⌾</button>
+        <button type="button" onClick={() => onNudge(-110, 0)} aria-label="Pan map right">→</button>
+        <span />
+        <button type="button" onClick={() => onNudge(0, -90)} aria-label="Pan map down">↓</button>
+        <span />
+      </div>
+      <div className="mcc-zoom" aria-label="Zoom map">
+        <button type="button" onClick={() => onZoom(-0.12)} aria-label="Zoom out">−</button>
+        <span>{Math.round(navCamera.zoomScale * 100)}%</span>
+        <button type="button" onClick={() => onZoom(0.12)} aria-label="Zoom in">+</button>
+      </div>
+      <button type="button" className="mcc-wide" onClick={onFullOrbit}>Full orbit</button>
+    </div>
+  );
+}
+
+function SectorJumpNav({ sectors, focused, planets, onFocus, onFullOrbit }) {
+  const countFor = (id) => planets.find(p => p.id === id)?.allTechs.length || 0;
+  return (
+    <div className="sector-jump-nav" aria-label="Jump between sector systems">
+      <button type="button" className={!focused ? "active" : ""} onClick={onFullOrbit}>All</button>
+      {sectors.map(s => (
+        <button
+          type="button"
+          key={s.id}
+          className={focused === s.id ? "active" : ""}
+          data-sector={s.id}
+          onClick={() => onFocus(s.id)}
+          title={`${s.label} · ${countFor(s.id)} moons`}>
+          <span className="sjn-dot" />
+          <span>{s.label}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
