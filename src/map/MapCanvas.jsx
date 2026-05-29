@@ -26,6 +26,7 @@ export default function MapCanvas({
   const phaseRef = useRef(0);
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
   const drawStateRef = useRef(null);
+  const dirtyRef = useRef(true);
   const hasSearch = searchTerm.trim().length > 0;
   const stars = useMemo(() => makeStars(260), []);
 
@@ -62,21 +63,30 @@ export default function MapCanvas({
       return rect;
     };
 
+    let lastDraw = 0;
+    const frameBudget = 30;
     const drawFrame = (time) => {
+      loopRef.current = requestAnimationFrame(drawFrame);
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      if (reduceMotion) {
+        if (!dirtyRef.current) return;
+        dirtyRef.current = false;
+      } else if (time - lastDraw < frameBudget) {
+        return;
+      }
+      lastDraw = time;
       const rect = resize();
       const state = drawStateRef.current;
       if (state && rect.width > 0 && rect.height > 0) {
         const ctx = canvas.getContext("2d");
         const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
         const phase = reduceMotion ? 0 : time / 1000;
         if (!introStartRef.current) introStartRef.current = time;
         const intro = reduceMotion ? 1 : Math.min(1, Math.max(0, (time - introStartRef.current) / 1200));
         phaseRef.current = phase;
         drawAtlas(ctx, rect, { ...state, phase, intro });
       }
-      loopRef.current = requestAnimationFrame(drawFrame);
     };
 
     requestAnimationFrame(() => resize());
@@ -89,6 +99,10 @@ export default function MapCanvas({
       cancelAnimationFrame(rafRef.current);
     };
   }, [onSize]);
+
+  useEffect(() => {
+    dirtyRef.current = true;
+  }, [geometry, camera, lens, focused, hasSearch, matchingIds, hoverTarget]);
 
   const locate = (event) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -235,14 +249,10 @@ function drawAtlas(ctx, rect, state) {
 }
 
 function drawBackground(ctx, rect, stars, camera, phase, intro) {
-  const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-  gradient.addColorStop(0, "#05070d");
-  gradient.addColorStop(0.42, "#0b1018");
-  gradient.addColorStop(1, "#12131b");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, rect.width, rect.height);
-
-  drawNebula(ctx, rect, camera, phase, intro);
+  const layer = getStaticLayer(rect.width, rect.height);
+  ctx.globalAlpha = intro;
+  ctx.drawImage(layer, 0, 0, rect.width, rect.height);
+  ctx.globalAlpha = 1;
 
   ctx.save();
   for (const star of stars) {
@@ -351,8 +361,6 @@ function drawLane(ctx, from, to, color, phase) {
   const x = quadratic(from.x, cx, to.x, t);
   const y = quadratic(from.y, cy, to.y, t);
   ctx.fillStyle = toRgba(color, 0.72);
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 10;
   ctx.beginPath();
   ctx.arc(x, y, 3.2, 0, Math.PI * 2);
   ctx.fill();
@@ -365,8 +373,6 @@ function drawOrbit(ctx, planet, color, focused, intro) {
   ctx.strokeStyle = toRgba(color, focused ? 0.38 : 0.18);
   ctx.lineWidth = focused ? 2 : 1;
   ctx.setLineDash(focused ? [14, 8] : [6, 12]);
-  ctx.shadowColor = toRgba(color, focused ? 0.3 : 0.1);
-  ctx.shadowBlur = focused ? 12 : 4;
   const rings = [...new Set(planet.moons.map((moon) => moon.ring))].sort((a, b) => a - b);
   for (const ring of rings) {
     const moon = planet.moons.find((item) => item.ring === ring);
@@ -415,28 +421,19 @@ function drawMoon(ctx, moon, color, options) {
 }
 
 function drawPlanet(ctx, planet, color, options) {
+  const introScale = easeOutBack(options.intro ?? 1);
+  if (introScale <= 0) return;
+  const sprite = getPlanetSprite(planet, color, options.focused);
+  const drawR = sprite.baseR * introScale;
+  const w = sprite.size * introScale;
   ctx.save();
-  const intro = options.intro ?? 1;
-  ctx.globalAlpha = (options.dim ? 0.34 : 1) * intro;
-  const radius = (options.focused ? planet.radius * 1.12 : planet.radius) * easeOutBack(intro);
-  const pulse = 1 + Math.sin((options.phase || 0) * 1.2 + planet.x) * 0.035;
-  ctx.shadowColor = toRgba(color, options.focused ? 0.42 : 0.2);
-  ctx.shadowBlur = options.focused ? 28 * pulse : 12;
-  const gradient = ctx.createRadialGradient(planet.x - radius * 0.35, planet.y - radius * 0.35, 4, planet.x, planet.y, radius);
-  gradient.addColorStop(0, "#f7fbff");
-  gradient.addColorStop(0.15, toRgba(color, 0.95));
-  gradient.addColorStop(1, "#11151c");
-  ctx.fillStyle = gradient;
-  ctx.beginPath();
-  ctx.arc(planet.x, planet.y, radius, 0, Math.PI * 2);
-  ctx.fill();
-  drawPlanetSphere(ctx, planet, color, radius);
+  ctx.globalAlpha = options.dim ? 0.34 : 1;
+  ctx.drawImage(sprite.canvas, planet.x - w / 2, planet.y - w / 2, w, w);
   ctx.strokeStyle = options.hover || options.focused ? "#f7fbff" : toRgba(color, 0.72);
   ctx.lineWidth = options.hover || options.focused ? 3 : 1.4;
   ctx.beginPath();
-  ctx.arc(planet.x, planet.y, radius, 0, Math.PI * 2);
+  ctx.arc(planet.x, planet.y, drawR, 0, Math.PI * 2);
   ctx.stroke();
-  drawPlanetPattern(ctx, planet, color, radius);
   ctx.restore();
 }
 
@@ -569,7 +566,7 @@ function drawMoonLabel(ctx, moon, position, color, prominent, box) {
   ctx.fillStyle = "#f7fbff";
   ctx.font = "700 12px JetBrains Mono, IBM Plex Mono, Consolas, monospace";
   ctx.textAlign = "left";
-  ctx.fillText(label.length > 30 ? `${label.slice(0, 28)}...` : label, x + 8, y - 2);
+  ctx.fillText(label.length > 42 ? `${label.slice(0, 40)}…` : label, x + 8, y - 2);
   ctx.restore();
 }
 
@@ -679,7 +676,7 @@ function labelCandidates(geometry, options) {
 
 function labelBox(moon, position, radialOffset) {
   const label = moon.entry.name;
-  const width = Math.min(210, Math.max(84, label.length * 6.4));
+  const width = Math.max(96, Math.min(320, label.length * 7.3 + 20));
   const height = 24;
   const outward = position.angle ?? moon.angle;
   const side = Math.cos(outward) >= 0 ? 1 : -1;
@@ -703,4 +700,76 @@ function intersects(a, b) {
 
 function wrap(value, max) {
   return ((value % max) + max) % max;
+}
+
+/* ---- Phase 1 performance: cached sprites + static layers ---- */
+const __planetSprites = new Map();
+const __staticLayers = new Map();
+
+function getPlanetSprite(planet, color, focused) {
+  const key = `${planet.id}|${focused ? 1 : 0}`;
+  const cached = __planetSprites.get(key);
+  if (cached) return cached;
+  const baseR = planet.radius * (focused ? 1.12 : 1);
+  const pad = 46 + baseR * 0.55;
+  const size = Math.ceil((baseR + pad) * 2);
+  const cv = document.createElement("canvas");
+  cv.width = size;
+  cv.height = size;
+  const c = cv.getContext("2d");
+  c.translate(size / 2 - planet.x, size / 2 - planet.y);
+  renderPlanetBody(c, planet, color, baseR);
+  const sprite = { canvas: cv, baseR, size };
+  __planetSprites.set(key, sprite);
+  return sprite;
+}
+
+function renderPlanetBody(ctx, planet, color, radius) {
+  ctx.save();
+  ctx.shadowColor = toRgba(color, 0.3);
+  ctx.shadowBlur = 22;
+  const gradient = ctx.createRadialGradient(planet.x - radius * 0.35, planet.y - radius * 0.35, 4, planet.x, planet.y, radius);
+  gradient.addColorStop(0, "#f7fbff");
+  gradient.addColorStop(0.15, toRgba(color, 0.95));
+  gradient.addColorStop(1, "#11151c");
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(planet.x, planet.y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  drawPlanetSphere(ctx, planet, color, radius);
+  drawPlanetPattern(ctx, planet, color, radius);
+}
+
+function getStaticLayer(width, height) {
+  const key = `${Math.round(width)}x${Math.round(height)}`;
+  const cached = __staticLayers.get(key);
+  if (cached) return cached;
+  __staticLayers.clear();
+  const cv = document.createElement("canvas");
+  cv.width = Math.max(1, Math.round(width));
+  cv.height = Math.max(1, Math.round(height));
+  const c = cv.getContext("2d");
+  const gradient = c.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, "#05070d");
+  gradient.addColorStop(0.42, "#0b1018");
+  gradient.addColorStop(1, "#12131b");
+  c.fillStyle = gradient;
+  c.fillRect(0, 0, width, height);
+  const clouds = [
+    [0.22, 0.36, 360, "rgba(94,224,192,0.07)"],
+    [0.78, 0.28, 420, "rgba(158,181,255,0.06)"],
+    [0.54, 0.78, 340, "rgba(245,197,66,0.045)"]
+  ];
+  for (const [x0, y0, r, col] of clouds) {
+    const x = x0 * width;
+    const y = y0 * height;
+    const g = c.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, col);
+    g.addColorStop(1, "rgba(5,7,13,0)");
+    c.fillStyle = g;
+    c.fillRect(0, 0, width, height);
+  }
+  __staticLayers.set(key, cv);
+  return cv;
 }
