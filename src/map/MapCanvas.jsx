@@ -222,7 +222,7 @@ function drawAtlas(ctx, rect, state) {
       const dim = (focused && !isSectorFocused && !isSearchMatch) || (hasSearch && !isSearchMatch);
       const position = moonPosition(moon, focused, phase);
       const planetIntro = planetIntroValue(geometry.planets.indexOf(planet), intro);
-      drawMoon(ctx, { ...moon, ...position }, colorForEntry(moon.entry, lens), { dim, active: isHover || isSearchMatch, focused: isSectorFocused, intro: planetIntro });
+      drawMoon(ctx, { ...moon, ...position }, colorForEntry(moon.entry, lens), { dim, active: isHover || (hasSearch && isSearchMatch), focused: isSectorFocused, intro: planetIntro });
     }
   }
 
@@ -789,14 +789,16 @@ function getMoonSprite(color, radius) {
   const key = `${color}|${radius.toFixed(1)}`;
   const cached = __moonSprites.get(key);
   if (cached) return cached;
-  const pad = 3;
-  const half = Math.ceil(radius + pad + 1);
+  const pad = Math.ceil(radius * 1.8) + 3;
+  const half = Math.ceil(radius) + pad;
   const size = half * 2;
   const cv = document.createElement("canvas");
   cv.width = size;
   cv.height = size;
   const c = cv.getContext("2d");
   c.translate(half, half);
+  c.shadowColor = color;
+  c.shadowBlur = radius * 1.6;
   c.fillStyle = color;
   c.strokeStyle = toRgba(color, 0.55);
   c.lineWidth = 1;

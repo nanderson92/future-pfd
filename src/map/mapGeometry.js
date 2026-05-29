@@ -2,6 +2,10 @@ import { bottleneckColors, evidenceColors, sectorColors, unitOpColors } from "..
 
 export const WORLD = { width: 1800, height: 1120, cx: 900, cy: 560 };
 
+// Multiplier on each planet's distance from center. Higher = planets farther
+// apart so moon fields from neighbouring planets stop overlapping. Tune freely.
+const PLANET_SPREAD = 1.42;
+
 const PLANET_LAYOUT = [
   ["energy", -92, 550, 56],
   ["carbon", -38, 590, 52],
@@ -25,8 +29,8 @@ export function createMapGeometry(entries, sectors) {
     const layout = PLANET_LAYOUT.find(([id]) => id === sector.id);
     const [, angleDeg, orbit, radius] = layout;
     const angle = (angleDeg * Math.PI) / 180;
-    const x = WORLD.cx + Math.cos(angle) * orbit;
-    const y = WORLD.cy + Math.sin(angle) * orbit * 0.62;
+    const x = WORLD.cx + Math.cos(angle) * orbit * PLANET_SPREAD;
+    const y = WORLD.cy + Math.sin(angle) * orbit * 0.62 * PLANET_SPREAD;
     const techs = entriesBySector[sector.id] || [];
     const ringCount = techs.length > 14 ? 3 : 2;
     const perRing = Math.ceil(techs.length / ringCount);
@@ -44,7 +48,7 @@ export function createMapGeometry(entries, sectors) {
         id: entry.pid,
         entry,
         planetId: sector.id,
-        radius: 5.8 + readiness * 0.42,
+        radius: 6.6 + readiness * 0.46,
         ring,
         orbit: moonOrbit,
         orbitX: moonOrbit,
