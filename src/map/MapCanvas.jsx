@@ -253,21 +253,6 @@ function drawBackground(ctx, rect, stars, camera, phase, intro) {
   ctx.globalAlpha = intro;
   ctx.drawImage(layer, 0, 0, rect.width, rect.height);
   ctx.globalAlpha = 1;
-
-  ctx.save();
-  for (const star of stars) {
-    const twinkle = 0.72 + Math.sin(phase * star.twinkle + star.seed) * 0.28;
-    ctx.globalAlpha = star.a * twinkle * intro;
-    ctx.fillStyle = star.c;
-    const parallaxX = -camera.tx * star.parallax;
-    const parallaxY = -camera.ty * star.parallax * 0.7;
-    const x = wrap(star.x * rect.width + parallaxX, rect.width);
-    const y = wrap(star.y * rect.height + parallaxY, rect.height);
-    ctx.beginPath();
-    ctx.arc(x, y, star.s, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
 }
 
 function drawNebula(ctx, rect, camera, phase, intro) {
@@ -397,27 +382,37 @@ function drawPlanetConnective(ctx, planet, color, dim, intro) {
 }
 
 function drawMoon(ctx, moon, color, options) {
-  ctx.save();
   const intro = options.intro ?? 1;
-  ctx.globalAlpha = (options.dim ? 0.17 : 0.95) * intro;
-  const radius = (options.focused ? moon.radius + 1.5 : moon.radius) * (options.active ? 1.3 : 1);
-  ctx.fillStyle = color;
-  ctx.strokeStyle = options.active ? "#f7fbff" : toRgba(color, 0.55);
-  ctx.lineWidth = options.active ? 2 : 1;
-  ctx.shadowColor = options.active ? color : "transparent";
-  ctx.shadowBlur = options.active ? 15 : 0;
-  ctx.beginPath();
-  ctx.arc(moon.x, moon.y, options.active ? radius + 3 : radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+  if (intro <= 0) return;
+  const baseRadius = options.focused ? moon.radius + 1.5 : moon.radius;
+
   if (options.active) {
+    ctx.save();
+    ctx.globalAlpha = intro;
+    const radius = baseRadius * 1.3;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = "#f7fbff";
+    ctx.lineWidth = 2;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(moon.x, moon.y, radius + 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
     ctx.globalAlpha = 0.22;
     ctx.beginPath();
     ctx.arc(moon.x, moon.y, radius + 13, 0, Math.PI * 2);
     ctx.stroke();
     drawTargetReticle(ctx, moon.x, moon.y, radius + 18, color);
+    ctx.restore();
+    return;
   }
-  ctx.restore();
+
+  const sprite = getMoonSprite(color, baseRadius);
+  ctx.globalAlpha = (options.dim ? 0.17 : 0.95) * intro;
+  ctx.drawImage(sprite.canvas, moon.x - sprite.half, moon.y - sprite.half);
+  ctx.globalAlpha = 1;
 }
 
 function drawPlanet(ctx, planet, color, options) {
@@ -770,6 +765,46 @@ function getStaticLayer(width, height) {
     c.fillStyle = g;
     c.fillRect(0, 0, width, height);
   }
+  let seed = 17;
+  const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  for (let i = 0; i < 150; i += 1) {
+    const sx = rand() * width;
+    const sy = rand() * height;
+    const ss = rand() > 0.9 ? 1.8 : rand() > 0.7 ? 1.2 : 0.75;
+    c.globalAlpha = 0.14 + rand() * 0.52;
+    c.fillStyle = rand() > 0.7 ? "#9eb5ff" : "#e6f2ff";
+    c.beginPath();
+    c.arc(sx, sy, ss, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.globalAlpha = 1;
   __staticLayers.set(key, cv);
   return cv;
+}
+
+/* ---- Phase 1.5: cached moon sprites (replaces ~690 path ops/frame) ---- */
+const __moonSprites = new Map();
+
+function getMoonSprite(color, radius) {
+  const key = `${color}|${radius.toFixed(1)}`;
+  const cached = __moonSprites.get(key);
+  if (cached) return cached;
+  const pad = 3;
+  const half = Math.ceil(radius + pad + 1);
+  const size = half * 2;
+  const cv = document.createElement("canvas");
+  cv.width = size;
+  cv.height = size;
+  const c = cv.getContext("2d");
+  c.translate(half, half);
+  c.fillStyle = color;
+  c.strokeStyle = toRgba(color, 0.55);
+  c.lineWidth = 1;
+  c.beginPath();
+  c.arc(0, 0, radius, 0, Math.PI * 2);
+  c.fill();
+  c.stroke();
+  const sprite = { canvas: cv, half };
+  __moonSprites.set(key, sprite);
+  return sprite;
 }
