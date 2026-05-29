@@ -4,7 +4,7 @@ export default function LandingPage() {
   return (
     <section className="landing-page" aria-labelledby="landing-title">
       <div className="landing-copy">
-        <p className="eyebrow">Future Systems Atlas</p>
+        <p className="eyebrow">Process map / 115 frontier technologies / 244 sources</p>
         <h1 id="landing-title">Future Systems Atlas</h1>
         <p className="subtitle">115 frontier technologies mapped as process systems.</p>
         <p className="thesis">Sci-fi becomes real when it becomes a process flow.</p>
@@ -16,7 +16,7 @@ export default function LandingPage() {
           <a className="button primary" href="#map">Launch Atlas</a>
           <a className="button" href="#cases">Browse Cases</a>
           <a className="button" href="#sources">View Sources</a>
-          <a className="button quiet" href="#about">About Nathan</a>
+          <a className="button" href="#about">About Nathan</a>
         </div>
         <dl className="stat-strip" aria-label="Atlas scope">
           <a href="#index"><dt>{TECHNOLOGY_COUNT}</dt><dd>technology cards</dd></a>
@@ -59,7 +59,7 @@ export default function LandingPage() {
           })}
         </div>
         <div className="landing-visual-readout">
-          <span>Mission map preview</span>
+          <span>Live system map</span>
           <strong>Launch Atlas</strong>
         </div>
       </a>

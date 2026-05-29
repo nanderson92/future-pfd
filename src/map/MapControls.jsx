@@ -25,17 +25,11 @@ export default function MapControls({
           <span>Camera</span>
           <strong>{focused ? sectors.find((sector) => sector.id === focused)?.label : "Full Orbit"}</strong>
         </div>
-        <div className="camera-pad">
-          <button type="button" onClick={() => onPan(0, 70)} aria-label="Pan up" title="Pan up">Up</button>
-          <button type="button" onClick={() => onPan(70, 0)} aria-label="Pan left" title="Pan left">Left</button>
-          <button type="button" className="recenter-button" onClick={onResetView} aria-label="Recenter current view" title="Recenter current view">Recenter</button>
-          <button type="button" onClick={() => onPan(-70, 0)} aria-label="Pan right" title="Pan right">Right</button>
-          <button type="button" onClick={() => onPan(0, -70)} aria-label="Pan down" title="Pan down">Down</button>
-        </div>
-        <div className="control-row">
-          <button type="button" onClick={() => onZoom(1.16)}>+</button>
-          <button type="button" onClick={() => onZoom(0.86)}>-</button>
+        <div className="control-row camera-actions">
+          <button type="button" onClick={onResetView}>Recenter</button>
           <button type="button" onClick={onFullOrbit}>Full Orbit</button>
+          <button type="button" onClick={() => onZoom(1.16)} aria-label="Zoom in" title="Zoom in">+</button>
+          <button type="button" onClick={() => onZoom(0.86)} aria-label="Zoom out" title="Zoom out">-</button>
         </div>
       </section>
 

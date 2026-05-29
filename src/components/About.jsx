@@ -6,11 +6,9 @@ export default function About() {
         <h2>I map the gap between frontier invention and real-world deployment.</h2>
       </div>
       <p>
-        Future Systems Atlas is a portfolio artifact built around process-engineering judgment:
-        feedstocks, unit operations, bottlenecks, readiness gaps, and the evidence required
-        before a future system can become manufacturable infrastructure.
-        This atlas is how I demonstrate the process-engineering judgment I would bring to scaling
-        hard manufacturing and deployment problems.
+        Most future technologies are described as predictions or product pitches. I describe them as
+        process systems: what goes in, what transforms it, what breaks first at scale, and whether
+        the evidence is real. Future Systems Atlas is 115 of those source-backed teardowns.
       </p>
     </section>
   );

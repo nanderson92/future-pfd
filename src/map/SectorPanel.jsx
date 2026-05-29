@@ -48,8 +48,7 @@ export default function SectorPanel({ focusedPlanet, hoverTarget, lens, onOpenEn
       <p className="eyebrow">Readout</p>
       <h2>Full Orbit</h2>
       <p>
-        Pick a sector planet to focus its moon system. Search highlights matching technologies
-        without moving the camera or making targets fight you.
+        Tap a planet to drop into its system. Search lights up matches across the whole map.
       </p>
       <dl>
         <div><dt>Map mode</dt><dd>Canvas planets and process moons</dd></div>

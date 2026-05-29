@@ -24,6 +24,8 @@ export default function MapCanvas({
   const loopRef = useRef(0);
   const introStartRef = useRef(0);
   const phaseRef = useRef(0);
+  const lastActivityRef = useRef(0);
+  const scheduleRenderRef = useRef(null);
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
   const drawStateRef = useRef(null);
   const dirtyRef = useRef(true);
@@ -47,7 +49,7 @@ export default function MapCanvas({
 
     const resize = (notify = true) => {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const dpr = Math.max(1, Math.min(1.5, window.devicePixelRatio || 1));
       const next = { width: rect.width, height: rect.height, dpr };
       const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
       const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
@@ -64,36 +66,50 @@ export default function MapCanvas({
     };
 
     let lastDraw = 0;
-    const frameBudget = 30;
+    const frameBudget = 1000 / 60;
+    const requestLoop = () => {
+      if (!loopRef.current) loopRef.current = requestAnimationFrame(drawFrame);
+    };
+
     const drawFrame = (time) => {
-      loopRef.current = requestAnimationFrame(drawFrame);
+      loopRef.current = 0;
       const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      const introActive = !introStartRef.current || time - introStartRef.current < 1400;
+      const recentInteraction = time - lastActivityRef.current < 14000;
+      const hasHover = Boolean(hoverRef.current);
+      const shouldAnimate = !reduceMotion && (introActive || recentInteraction || hasHover);
       if (reduceMotion) {
         if (!dirtyRef.current) return;
         dirtyRef.current = false;
       } else if (time - lastDraw < frameBudget) {
+        if (shouldAnimate || dirtyRef.current) requestLoop();
         return;
       }
       lastDraw = time;
       const rect = resize();
       const state = drawStateRef.current;
       if (state && rect.width > 0 && rect.height > 0) {
-        const ctx = canvas.getContext("2d");
-        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const ctx = canvas.getContext("2d", { alpha: false });
+        const dpr = Math.max(1, Math.min(1.5, window.devicePixelRatio || 1));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const phase = reduceMotion ? 0 : time / 1000;
         if (!introStartRef.current) introStartRef.current = time;
         const intro = reduceMotion ? 1 : Math.min(1, Math.max(0, (time - introStartRef.current) / 1200));
         phaseRef.current = phase;
         drawAtlas(ctx, rect, { ...state, phase, intro });
+        dirtyRef.current = false;
       }
+      if (shouldAnimate || dirtyRef.current) requestLoop();
     };
 
+    scheduleRenderRef.current = requestLoop;
+    lastActivityRef.current = performance.now();
     requestAnimationFrame(() => resize());
-    loopRef.current = requestAnimationFrame(drawFrame);
+    requestLoop();
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     return () => {
+      scheduleRenderRef.current = null;
       observer.disconnect();
       cancelAnimationFrame(loopRef.current);
       cancelAnimationFrame(rafRef.current);
@@ -102,7 +118,15 @@ export default function MapCanvas({
 
   useEffect(() => {
     dirtyRef.current = true;
+    lastActivityRef.current = performance.now();
+    scheduleRenderRef.current?.();
   }, [geometry, camera, lens, focused, hasSearch, matchingIds, hoverTarget]);
+
+  const requestActivityRender = () => {
+    dirtyRef.current = true;
+    lastActivityRef.current = performance.now();
+    scheduleRenderRef.current?.();
+  };
 
   const locate = (event) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -122,10 +146,12 @@ export default function MapCanvas({
         canvasRef.current.style.cursor = hit.type ? "pointer" : dragRef.current ? "grabbing" : "grab";
         onHover(hit.type ? hit : null);
       }
+      requestActivityRender();
     });
   };
 
   const onPointerDown = (event) => {
+    requestActivityRender();
     const { screen } = locate(event);
     dragRef.current = { x: screen.x, y: screen.y, moved: 0 };
     canvasRef.current.setPointerCapture?.(event.pointerId);
@@ -133,6 +159,7 @@ export default function MapCanvas({
   };
 
   const onPointerMove = (event) => {
+    requestActivityRender();
     if (dragRef.current) {
       const { screen } = locate(event);
       const dx = screen.x - dragRef.current.x;
@@ -147,6 +174,7 @@ export default function MapCanvas({
   };
 
   const onPointerUp = (event) => {
+    requestActivityRender();
     const drag = dragRef.current;
     dragRef.current = null;
     canvasRef.current.releasePointerCapture?.(event.pointerId);
@@ -160,11 +188,13 @@ export default function MapCanvas({
 
   const onWheel = (event) => {
     event.preventDefault();
+    requestActivityRender();
     const { screen } = locate(event);
     onZoom(event.deltaY < 0 ? 1.08 : 0.92, screen);
   };
 
   const onKeyDown = (event) => {
+    requestActivityRender();
     if (event.key === "ArrowUp") onPan(0, 70);
     if (event.key === "ArrowDown") onPan(0, -70);
     if (event.key === "ArrowLeft") onPan(70, 0);
@@ -222,7 +252,7 @@ function drawAtlas(ctx, rect, state) {
       const dim = (focused && !isSectorFocused && !isSearchMatch) || (hasSearch && !isSearchMatch);
       const position = moonPosition(moon, focused, phase);
       const planetIntro = planetIntroValue(geometry.planets.indexOf(planet), intro);
-      drawMoon(ctx, { ...moon, ...position }, colorForEntry(moon.entry, lens), { dim, active: isHover || (hasSearch && isSearchMatch), focused: isSectorFocused, intro: planetIntro });
+      drawMoon(ctx, { ...moon, ...position }, colorForEntry(moon.entry, lens), { dim, active: isHover || (hasSearch && isSearchMatch), focused: isSectorFocused, intro: planetIntro, phase });
     }
   }
 
@@ -237,9 +267,10 @@ function drawAtlas(ctx, rect, state) {
   }
 
   const placedLabels = [];
+  const labelBounds = visibleWorldBounds(rect, camera, 8);
   for (const candidate of labelCandidates(geometry, { focused, hasSearch, matchingIds, hoverTarget, lens, phase })) {
-    const baseBox = labelBox(candidate.moon, candidate.position, 0);
-    const box = intersectsAny(baseBox, placedLabels) ? labelBox(candidate.moon, candidate.position, 28) : baseBox;
+    const baseBox = labelBox(candidate.moon, candidate.position, 0, labelBounds);
+    const box = intersectsAny(baseBox, placedLabels) ? labelBox(candidate.moon, candidate.position, 28, labelBounds) : baseBox;
     if (intersectsAny(box, placedLabels)) continue;
     placedLabels.push(box);
     drawMoonLabel(ctx, candidate.moon, candidate.position, candidate.color, candidate.prominent, box);
@@ -250,9 +281,8 @@ function drawAtlas(ctx, rect, state) {
 
 function drawBackground(ctx, rect, stars, camera, phase, intro) {
   const layer = getStaticLayer(rect.width, rect.height);
-  ctx.globalAlpha = intro;
-  ctx.drawImage(layer, 0, 0, rect.width, rect.height);
   ctx.globalAlpha = 1;
+  ctx.drawImage(layer, 0, 0, rect.width, rect.height);
 }
 
 function drawNebula(ctx, rect, camera, phase, intro) {
@@ -404,7 +434,7 @@ function drawMoon(ctx, moon, color, options) {
     ctx.beginPath();
     ctx.arc(moon.x, moon.y, radius + 13, 0, Math.PI * 2);
     ctx.stroke();
-    drawTargetReticle(ctx, moon.x, moon.y, radius + 18, color);
+    drawTargetReticle(ctx, moon.x, moon.y, radius + 18, color, options.phase || 0);
     ctx.restore();
     return;
   }
@@ -561,7 +591,7 @@ function drawMoonLabel(ctx, moon, position, color, prominent, box) {
   ctx.fillStyle = "#f7fbff";
   ctx.font = "700 12px JetBrains Mono, IBM Plex Mono, Consolas, monospace";
   ctx.textAlign = "left";
-  ctx.fillText(label.length > 42 ? `${label.slice(0, 40)}…` : label, x + 8, y - 2);
+  ctx.fillText(label.length > 42 ? `${label.slice(0, 40)}...` : label, x + 8, y - 2);
   ctx.restore();
 }
 
@@ -606,12 +636,13 @@ function makeStars(count) {
   }));
 }
 
-function drawTargetReticle(ctx, x, y, radius, color) {
+function drawTargetReticle(ctx, x, y, radius, color, phase = 0) {
   ctx.save();
   ctx.globalAlpha = 0.68;
   ctx.strokeStyle = color;
   ctx.lineWidth = 1.2;
   ctx.setLineDash([4, 5]);
+  ctx.lineDashOffset = -((phase * 24) % 9);
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.stroke();
@@ -669,7 +700,7 @@ function labelCandidates(geometry, options) {
   return candidates.sort((a, b) => b.priority - a.priority);
 }
 
-function labelBox(moon, position, radialOffset) {
+function labelBox(moon, position, radialOffset, bounds) {
   const label = moon.entry.name;
   const width = Math.max(96, Math.min(320, label.length * 7.3 + 20));
   const height = 24;
@@ -677,12 +708,31 @@ function labelBox(moon, position, radialOffset) {
   const side = Math.cos(outward) >= 0 ? 1 : -1;
   const anchorX = position.x + Math.cos(outward) * radialOffset;
   const anchorY = position.y + Math.sin(outward) * radialOffset;
-  return {
+  const box = {
     x: side > 0 ? anchorX + 14 : anchorX - width - 14,
     y: anchorY - 24,
     width,
     height
   };
+  if (bounds) {
+    if (bounds.maxX - bounds.minX > width) box.x = clampValue(box.x, bounds.minX, bounds.maxX - width);
+    if (bounds.maxY - bounds.minY > height) box.y = clampValue(box.y, bounds.minY, bounds.maxY - height);
+  }
+  return box;
+}
+
+function visibleWorldBounds(rect, camera, pad) {
+  const invZoom = 1 / camera.zoom;
+  return {
+    minX: (pad - camera.tx) * invZoom,
+    maxX: (rect.width - pad - camera.tx) * invZoom,
+    minY: (pad - camera.ty) * invZoom,
+    maxY: (rect.height - pad - camera.ty) * invZoom
+  };
+}
+
+function clampValue(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function intersectsAny(box, placed) {

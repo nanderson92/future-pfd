@@ -35,8 +35,8 @@ const html = `<!doctype html>
       body {
         margin: 0;
         min-height: 100%;
-        background: #07110f;
-        color: #f4f8f6;
+        background: #05070d;
+        color: #e8eef6;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
@@ -45,7 +45,7 @@ const html = `<!doctype html>
         display: grid;
         min-height: 100vh;
         place-items: center;
-        color: #c5ccc8;
+        color: #c7d3df;
       }
     </style>
   </head>
@@ -65,7 +65,7 @@ const html = `<!doctype html>
       boot().catch((error) => {
         console.error(error);
         root.innerHTML = \`
-          <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#07110f;color:#f4f8f6">
+          <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#05070d;color:#e8eef6">
             <section style="max-width:680px;border:1px solid rgba(230,242,255,.18);border-radius:8px;padding:24px;background:rgba(230,242,255,.05)">
               <h1 style="margin:0 0 12px;font-size:28px">Future Systems Atlas could not load.</h1>
               <p style="margin:0;color:#c5ccc8;line-height:1.6">The static build assets are missing or blocked. Run <code>npm run build</code> and deploy this root page with the generated <code>dist/</code> folder.</p>

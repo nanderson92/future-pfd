@@ -6,7 +6,11 @@ export default function AboutPage() {
       <div className="page-head">
         <p className="eyebrow">Builder note / recruiting path</p>
         <h1 id="about-title">Nathan Anderson</h1>
-        <p>Chemical & Biomolecular Engineering, Georgia Tech.</p>
+        <p>
+          Chemical & Biomolecular Engineering, Georgia Tech. I am looking for process, R&D,
+          scale-up, clean tech, advanced manufacturing, and future-systems engineering work where
+          the hard question is whether a promising technology can actually be built.
+        </p>
       </div>
 
       <About />
@@ -34,8 +38,9 @@ export default function AboutPage() {
           <h2>Project Origin</h2>
           <p>
             I built Future Systems Atlas because frontier technologies are usually explained as
-            predictions or products. I wanted to show the engineering layer underneath: chemicals,
-            unit operations, process windows, scale-up bottlenecks, readiness gaps, and evidence posture.
+            predictions or products. I wanted to show the engineering layer underneath: what goes in,
+            what transforms, what breaks first at scale, and which claims have direct evidence versus
+            roadmap or analogue support.
           </p>
           <p>
             The thesis is simple: optimistic future systems become credible when they can be mapped

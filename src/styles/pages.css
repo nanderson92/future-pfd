@@ -15,7 +15,7 @@
 .landing-copy h1,
 .page-head h1 {
   margin: 0;
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: clamp(3rem, 6vw, 5.5rem);
   line-height: 0.95;
   letter-spacing: 0;
 }
@@ -299,7 +299,7 @@
 }
 
 .page-head h1 {
-  font-size: clamp(2.2rem, 4vw, 3.7rem);
+  font-size: clamp(2.7rem, 5vw, 4.7rem);
 }
 
 .page-head p {
@@ -312,8 +312,17 @@
 .index-card-grid,
 .about-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+}
+
+.guide-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.posture-grid,
+.index-card-grid,
+.about-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .guide-card,
@@ -368,11 +377,22 @@
 
 .case-jump-nav a {
   flex: 0 0 auto;
+  border: 1px solid rgba(230, 242, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  background: rgba(230, 242, 255, 0.035);
   color: var(--soft);
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.case-jump-nav a:hover,
+.case-jump-nav a:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--fg);
 }
 
 .case-study {
@@ -615,15 +635,28 @@
   border-radius: 0;
   background: transparent;
   text-align: left;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .table-row.head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(18, 26, 38, 0.96);
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 800;
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.table-row:not(.head) {
+  cursor: pointer;
+}
+
+.table-row:not(.head):hover {
+  background: rgba(230, 242, 255, 0.06);
 }
 
 .table-row span:first-child,
